@@ -4,7 +4,7 @@ import {
   googleCallback,
   handleRefreshToken,
   handleLogout,
-} from "../controllers/auth.controllers";
+} from "../controllers/auth.controller";
 
 const router = Router();
 
