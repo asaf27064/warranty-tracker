@@ -7,6 +7,7 @@ import cors from "cors";
 import passport from "passport";
 import { initializePassport } from "./config/passport";
 import authRoutes from "./routes/auth.routes";
+import productRoutes from "./routes/product.routes";
 
 initializePassport();
 
@@ -24,6 +25,7 @@ app.use(cookieParser());
 app.use(passport.initialize());
 
 app.use("/auth", authRoutes);
+app.use("/api/products", productRoutes);
 
 app.listen(PORT, () => {
   console.log(`server running on port: ${PORT}`);

@@ -4,7 +4,6 @@ import prisma from "../config/db";
 
 type AccessTokenPayload = {
   userId: string;
-  email: string;
 };
 
 export const verifyJWT = async (
