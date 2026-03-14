@@ -11,5 +11,54 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+}
+
+enum WarrantyStatus {
+  ACTIVE
+  EXPIRING_SOON
+  EXPIRED
+}
+
+enum Category {
+  ELECTRONICS
+  HOME_KITCHEN
+  PHONES
+  JEWELRY
+  KIDS_TOYS
+  APPLIANCES
+  FURNITURE
+  FASHION
+  AUTOMOTIVE
+  SPORTS
+  TOOLS
+  OTHER
+}
+
+model User {
+  id        String    @id @default(uuid())
+  googleId  String    @unique
+  avatarUrl String?
+  name      String
+  email     String    @unique
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Product {
+  id             String         @id @default(uuid())
+  picture        String?
+  store          String?
+  userId         String
+  status         WarrantyStatus @default(ACTIVE)
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name           String
+  purchaseDate   DateTime
+  warrantyExpiry DateTime
+  warrantyMonths Int
+  category       Category
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@index([userId])
 }
