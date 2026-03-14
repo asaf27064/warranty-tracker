@@ -20,6 +20,7 @@ enum WarrantyStatus {
 }
 
 enum Category {
+  NONE
   ELECTRONICS
   HOME_KITCHEN
   PHONES
@@ -68,7 +69,7 @@ model Product {
   purchaseDate   DateTime
   warrantyExpiry DateTime
   warrantyMonths Int
-  category       Category
+  category       Category       @default(NONE)
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
