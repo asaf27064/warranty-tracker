@@ -76,6 +76,16 @@ export const createProduct = async (req: Request, res: Response) => {
       },
     });
 
+    const reminderDate = new Date(warrantyExpiry);
+    reminderDate.setDate(reminderDate.getDate() - 30);
+
+    await prisma.reminder.create({
+      data: {
+        remindAt: reminderDate,
+        productId: newProduct.id,
+      },
+    });
+
     return res.status(201).json({ newProduct });
   } catch (error) {
     console.error(error);

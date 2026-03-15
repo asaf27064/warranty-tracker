@@ -9,6 +9,7 @@ import { initializePassport } from "./config/passport";
 import authRoutes from "./routes/auth.routes";
 import productRoutes from "./routes/product.routes";
 import documentRoutes from "./routes/document.routes";
+import reminderRoutes from "./routes/reminder.routes";
 
 initializePassport();
 
@@ -28,6 +29,7 @@ app.use(passport.initialize());
 app.use("/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/documents", documentRoutes);
+app.use("/api/reminders", reminderRoutes);
 
 app.listen(PORT, () => {
   console.log(`server running on port: ${PORT}`);
