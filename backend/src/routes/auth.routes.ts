@@ -4,9 +4,14 @@ import {
   googleCallback,
   handleRefreshToken,
   handleLogout,
+  getMe,
 } from "../controllers/auth.controller";
 
+import { verifyJWT } from "../middlewares/auth";
+
 const router = Router();
+
+router.get("/me", verifyJWT, getMe);
 
 router.get(
   "/google",

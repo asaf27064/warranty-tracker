@@ -46,6 +46,10 @@ export const googleCallback = async (req: Request, res: Response) => {
   );
 };
 
+export const getMe = async (req: Request, res: Response) => {
+  return res.status(200).json({ user: req.user });
+};
+
 export const handleRefreshToken = async (req: Request, res: Response) => {
   const cookies = req.cookies;
 
