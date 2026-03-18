@@ -1,10 +1,6 @@
 import { createContext, useContext, useState, useEffect, useRef } from "react";
-
 import type { ReactNode } from "react";
-
-import api from "../api/axios";
-
-import { setupInterceptors } from "../api/axios";
+import api, { setupInterceptors } from "../api/axios";
 
 type User = {
   id: string;
