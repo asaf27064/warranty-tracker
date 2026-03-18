@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useRef } from "react";
 import type { ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 import api, { setupInterceptors } from "../api/axios";
 
 type User = {
@@ -24,6 +25,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const tokenRef = useRef<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     tokenRef.current = accessToken;
@@ -36,14 +38,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (tokenFromUrl) {
         setAccessToken(tokenFromUrl);
-        window.history.replaceState({}, "", "/");
+        window.history.replaceState({}, "", "/dashboard");
         try {
           const res = await api.get("/auth/me", {
             headers: { Authorization: `Bearer ${tokenFromUrl}` },
           });
-          setUser(res.data.user);
+          setUser(res.data);
+          navigate("/dashboard");
         } catch {
           setAccessToken(null);
+          navigate("/");
+        }
+      } else {
+        // page reload — try refresh from cookie
+        try {
+          const res = await api.post("/auth/refresh");
+          setAccessToken(res.data.accessToken);
+          const meRes = await api.get("/auth/me", {
+            headers: { Authorization: `Bearer ${res.data.accessToken}` },
+          });
+          setUser(meRes.data);
+        } catch {
+          // not logged in
         }
       }
 
@@ -61,6 +77,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         } catch {
           setUser(null);
           setAccessToken(null);
+          navigate("/");
         }
       },
     );
@@ -76,6 +93,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setUser(null);
       setAccessToken(null);
+      navigate("/");
     }
   };
 

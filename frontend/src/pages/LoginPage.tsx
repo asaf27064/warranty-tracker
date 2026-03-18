@@ -2,11 +2,22 @@ import { motion } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 import { ChevronRight } from "lucide-react";
 import logo from "../assets/logo.png";
+import { Navigate } from "react-router-dom";
 
 import { Button } from "../components/ui/button";
 
 const LoginPage = () => {
   const { loginWithGoogle } = useAuth();
+  const { user, loading } = useAuth();
+
+  const params = new URLSearchParams(window.location.search);
+  const hasToken = params.get("token");
+
+  if (loading || hasToken) return null;
+
+  if (user) {
+    return <Navigate to="/dashboard" />;
+  }
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-zinc-950">

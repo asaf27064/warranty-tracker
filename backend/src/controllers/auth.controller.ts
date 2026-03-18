@@ -42,7 +42,7 @@ export const googleCallback = async (req: Request, res: Response) => {
   });
 
   return res.redirect(
-    `${process.env.CLIENT_URL}/auth/success?token=${encodeURIComponent(accessToken)}`,
+    `${process.env.CLIENT_URL}?token=${encodeURIComponent(accessToken)}`,
   );
 };
 
