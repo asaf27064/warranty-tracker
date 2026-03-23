@@ -191,7 +191,7 @@ const Dashboard = () => {
                   className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
                     activeFilter === f.key
                       ? "bg-zinc-700 text-white"
-                      : "text-zinc-400 hover:text-white"
+                      : "text-zinc-700 hover:text-white"
                   }`}
                 >
                   {f.label}
