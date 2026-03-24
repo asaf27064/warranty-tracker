@@ -30,7 +30,6 @@ const Dashboard = () => {
   const [activeFilter, setActiveFilter] = useState("ALL");
   const [showAddProduct, setShowAddProduct] = useState(false);
 
-  // Fake data — will replace with API later
   const stats = {
     active: products.filter((p) => p.status === "ACTIVE").length,
     expiringSoon: products.filter((p) => p.status === "EXPIRING_SOON").length,
@@ -163,9 +162,7 @@ const Dashboard = () => {
             {/* Add Product Button */}
             <Button
               className="gap-2 bg-emerald-600 hover:bg-emerald-700"
-              onClick={(e) => {
-                (setShowAddProduct(true), e.stopPropagation());
-              }}
+              onClick={() => setShowAddProduct(true)}
             >
               <Plus className="h-4 w-4" />
               Add Product
@@ -175,21 +172,6 @@ const Dashboard = () => {
 
         {/* Product Grid */}
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <Dialog open={showAddProduct} onOpenChange={setShowAddProduct}>
-            <DialogContent className="border-zinc-800 bg-zinc-900 sm:max-w-2xl">
-              <DialogHeader>
-                <DialogTitle className="text-white">
-                  Add New Product
-                </DialogTitle>
-              </DialogHeader>
-              <AddProduct
-                onSuccess={() => {
-                  setShowAddProduct(false);
-                  getAllProducts();
-                }}
-              />
-            </DialogContent>
-          </Dialog>
           {filteredProducts.map((product, index) => (
             <motion.div
               key={product.id}
@@ -279,6 +261,19 @@ const Dashboard = () => {
             </p>
           </motion.div>
         )}
+        <Dialog open={showAddProduct} onOpenChange={setShowAddProduct}>
+          <DialogContent className="border-zinc-800 bg-zinc-900 sm:max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="text-white">Add New Product</DialogTitle>
+            </DialogHeader>
+            <AddProduct
+              onSuccess={() => {
+                setShowAddProduct(false);
+                getAllProducts();
+              }}
+            />
+          </DialogContent>
+        </Dialog>
       </main>
     </div>
   );
