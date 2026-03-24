@@ -15,66 +15,27 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
+import { useProducts } from "../hooks/useProducts";
+import AddProduct from "../components/AddProduct";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "../components/ui/dialog";
 
 const Dashboard = () => {
+  const { products, getAllProducts, deleteProduct } = useProducts();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("ALL");
+  const [showAddProduct, setShowAddProduct] = useState(false);
 
   // Fake data — will replace with API later
-  const stats = { active: 5, expiringSoon: 2, expired: 1 };
-
-  const products = [
-    {
-      id: "1",
-      name: "MacBook Pro 14",
-      category: "ELECTRONICS",
-      store: "iDigital",
-      purchaseDate: "2024-06-15",
-      warrantyExpiry: "2026-06-15",
-      warrantyMonths: 24,
-      status: "ACTIVE",
-    },
-    {
-      id: "2",
-      name: "Samsung TV 55",
-      category: "ELECTRONICS",
-      store: "Bug",
-      purchaseDate: "2024-01-10",
-      warrantyExpiry: "2025-01-10",
-      warrantyMonths: 12,
-      status: "EXPIRED",
-    },
-    {
-      id: "3",
-      name: "Dyson V15",
-      category: "APPLIANCES",
-      store: "KSP",
-      purchaseDate: "2024-09-01",
-      warrantyExpiry: "2025-09-01",
-      warrantyMonths: 12,
-      status: "EXPIRING_SOON",
-    },
-    {
-      id: "4",
-      name: "iPhone 15 Pro",
-      category: "PHONES",
-      store: "iDigital",
-      purchaseDate: "2024-03-20",
-      warrantyExpiry: "2025-03-20",
-      warrantyMonths: 12,
-      status: "ACTIVE",
-    },
-    {
-      id: "5",
-      name: "Sony WH-1000XM5",
-      category: "ELECTRONICS",
-      store: "Amazon",
-      purchaseDate: "2024-11-01",
-      warrantyExpiry: "2025-11-01",
-      warrantyMonths: 12,
-      status: "ACTIVE",
-    },
-  ];
+  const stats = {
+    active: products.filter((p) => p.status === "ACTIVE").length,
+    expiringSoon: products.filter((p) => p.status === "EXPIRING_SOON").length,
+    expired: products.filter((p) => p.status === "EXPIRED").length,
+  };
 
   const statusConfig = {
     ACTIVE: { color: "bg-emerald-500/10 text-emerald-500", label: "Active" },
@@ -200,7 +161,12 @@ const Dashboard = () => {
             </div>
 
             {/* Add Product Button */}
-            <Button className="gap-2 bg-emerald-600 hover:bg-emerald-700">
+            <Button
+              className="gap-2 bg-emerald-600 hover:bg-emerald-700"
+              onClick={(e) => {
+                (setShowAddProduct(true), e.stopPropagation());
+              }}
+            >
               <Plus className="h-4 w-4" />
               Add Product
             </Button>
@@ -209,6 +175,21 @@ const Dashboard = () => {
 
         {/* Product Grid */}
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <Dialog open={showAddProduct} onOpenChange={setShowAddProduct}>
+            <DialogContent className="border-zinc-800 bg-zinc-900 sm:max-w-2xl">
+              <DialogHeader>
+                <DialogTitle className="text-white">
+                  Add New Product
+                </DialogTitle>
+              </DialogHeader>
+              <AddProduct
+                onSuccess={() => {
+                  setShowAddProduct(false);
+                  getAllProducts();
+                }}
+              />
+            </DialogContent>
+          </Dialog>
           {filteredProducts.map((product, index) => (
             <motion.div
               key={product.id}

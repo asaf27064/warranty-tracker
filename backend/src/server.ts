@@ -10,7 +10,8 @@ import authRoutes from "./routes/auth.routes";
 import productRoutes from "./routes/product.routes";
 import documentRoutes from "./routes/document.routes";
 import reminderRoutes from "./routes/reminder.routes";
-import {startReminderCron} from "./services/reminder.service"
+import { startReminderCron } from "./services/reminder.service";
+import imageRoutes from "./routes/image.routes";
 
 initializePassport();
 
@@ -31,6 +32,7 @@ app.use("/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/documents", documentRoutes);
 app.use("/api/reminders", reminderRoutes);
+app.use("/api/images", imageRoutes);
 
 startReminderCron();
 
