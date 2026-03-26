@@ -24,6 +24,7 @@ export const useProducts = () => {
   const createProduct = async (data: CreateProductData) => {
     const res = await api.post("/api/products", data);
     setProducts([...products, res.data]);
+    return res.data;
   };
 
   const updateProduct = async (id: string, data: UpdateProductData) => {
