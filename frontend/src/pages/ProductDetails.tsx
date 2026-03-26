@@ -8,8 +8,7 @@ import type { Product } from "../types";
 const ProductDetails = () => {
   const { getProductById, updateProduct, deleteProduct } = useProducts();
   //const { documents, getAllDocs, uploadDoc, deleteDoc } = useDocuments();
-  //const { reminders, getAllReminders, createReminder, deleteReminder } =
-    useReminders();
+  //const { reminders, getAllReminders, createReminder, deleteReminder } = useReminders();
   const { id } = useParams<{ id: string }>();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -32,9 +31,7 @@ const ProductDetails = () => {
   if (loading) return null;
   if (!product) return <div>Product not found</div>;
 
-  return (
-    <main>hi</main>
-  )
+  return <main>hi</main>;
 };
 
 export default ProductDetails;
