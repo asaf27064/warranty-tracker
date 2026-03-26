@@ -1,4 +1,5 @@
 import Navbar from "../components/Navbar";
+import { useNavigate } from "react-router-dom";
 import { Card } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
@@ -29,6 +30,7 @@ const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("ALL");
   const [showAddProduct, setShowAddProduct] = useState(false);
+  const navigate = useNavigate();
 
   const stats = {
     active: products.filter((p) => p.status === "ACTIVE").length,
@@ -179,7 +181,10 @@ const Dashboard = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 + index * 0.05 }}
             >
-              <Card className="group cursor-pointer border-zinc-800 bg-zinc-900 p-5 transition-all hover:border-zinc-700 hover:shadow-lg hover:shadow-zinc-900/50">
+              <Card
+                className="group cursor-pointer border-zinc-800 bg-zinc-900 p-5 transition-all hover:border-zinc-700 hover:shadow-lg hover:shadow-zinc-900/50"
+                onClick={() => navigate(`/product/${product.id}`)}
+              >
                 {/* Status Badge */}
                 <div className="flex items-start justify-between">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-800">
