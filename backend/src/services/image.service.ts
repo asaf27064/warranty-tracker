@@ -1,15 +1,13 @@
 export async function searchImages(query: string): Promise<string[]> {
-  const apiKey = process.env.GOOGLE_SEARCH_API_KEY;
-  const cx = process.env.GOOGLE_SEARCH_ENGINE_ID;
-
-  if (!apiKey || !cx) return [];
+  const apiKey = process.env.SERPAPI_KEY;
+  if (!apiKey) return [];
 
   try {
     const res = await fetch(
-      `https://www.googleapis.com/customsearch/v1?q=${encodeURIComponent(query)}&cx=${cx}&key=${apiKey}&searchType=image&num=6`,
+      `https://serpapi.com/search.json?q=${encodeURIComponent(query)}&tbm=isch&ijn=0&api_key=${apiKey}`,
     );
     const data = await res.json();
-    return data.items?.map((item: any) => item.link) || [];
+    return data.images_results?.slice(0, 6).map((img: any) => img.thumbnail) || [];
   } catch {
     return [];
   }

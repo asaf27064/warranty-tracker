@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
@@ -36,6 +36,14 @@ const ImageSearchModal = ({
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (open && initialQuery) {
+      setQuery(initialQuery);
+      handleSearch();
+    }
+  }, [open]);
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="border-zinc-800 bg-zinc-900 sm:max-w-2xl">

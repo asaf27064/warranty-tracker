@@ -14,6 +14,7 @@ import { Save, Upload, Search, X } from "lucide-react";
 import { Category } from "../types";
 import { useProducts } from "../hooks/useProducts";
 import ImageSearchModal from "./ImageSearchModal";
+import api from "../api/axios";
 
 type Props = {
   onSuccess: () => void;
@@ -51,6 +52,17 @@ const AddProduct = ({ onSuccess }: Props) => {
       form.warrantyUnit === "Years"
         ? form.warrantyDuration * 12
         : form.warrantyDuration;
+
+    let pictureUrl = form.picture;
+
+    if (imageFile) {
+      const formData = new FormData();
+      formData.append("file", imageFile);
+      const uploadRes = await api.post("/api/images/upload", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      pictureUrl = uploadRes.data.url;
+    }
     setLoading(true);
     try {
       await createProduct({
@@ -59,7 +71,7 @@ const AddProduct = ({ onSuccess }: Props) => {
         purchaseDate: new Date(form.purchaseDate).toISOString(),
         warrantyMonths: warrantyMonths,
         store: form.store || undefined,
-        picture: form.picture || undefined,
+        picture: pictureUrl || undefined,
       });
       onSuccess();
     } catch (error) {
