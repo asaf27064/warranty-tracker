@@ -100,3 +100,33 @@ export type Reminder = {
   productId: string;
   createdAt: string;
 };
+
+export const CategoryLabels: Record<string, string> = {
+  NONE: "None",
+  ELECTRONICS: "Electronics",
+  HOME_KITCHEN: "Home & Kitchen",
+  PHONES: "Phones",
+  JEWELRY: "Jewelry",
+  KIDS_TOYS: "Kids & Toys",
+  APPLIANCES: "Appliances",
+  FURNITURE: "Furniture",
+  FASHION: "Fashion",
+  AUTOMOTIVE: "Automotive",
+  SPORTS: "Sports",
+  TOOLS: "Tools",
+  OTHER: "Other",
+};
+
+export const DocTypeLabels: Record<string, string> = {
+  RECEIPT: "Receipt",
+  INVOICE: "Invoice",
+  WARRANTY_CERTIFICATE: "Warranty Certificate",
+  PHOTO: "Photo",
+  OTHER: "Other",
+};
+
+export const StatusLabels: Record<string, string> = {
+  ACTIVE: "Active",
+  EXPIRING_SOON: "Expiring Soon",
+  EXPIRED: "Expired",
+};

@@ -9,13 +9,16 @@ export const useDocuments = () => {
     setDocuments(res.data);
   };
 
-  const uploadDoc = async (productId: string, file: File) => {
+  const uploadDoc = async (
+    productId: string,
+    file: File,
+    docType: string = "OTHER",
+  ) => {
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("docType", docType);
     await api.post(`/api/documents/product/${productId}`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
+      headers: { "Content-Type": "multipart/form-data" },
     });
     await getAllDocs(productId);
   };

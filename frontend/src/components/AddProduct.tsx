@@ -13,6 +13,7 @@ import {
 import { Save, Upload, Search, X } from "lucide-react";
 import { Category } from "../types";
 import { useProducts } from "../hooks/useProducts";
+import { CategoryLabels } from "../types";
 import ImageSearchModal from "./ImageSearchModal";
 import api from "../api/axios";
 
@@ -81,21 +82,23 @@ const AddProduct = ({ onSuccess }: Props) => {
     }
   };
 
-  const categoryLabels: Record<string, string> = {
-    NONE: "None",
-    ELECTRONICS: "Electronics",
-    HOME_KITCHEN: "Home & Kitchen",
-    PHONES: "Phones",
-    JEWELRY: "Jewelry",
-    KIDS_TOYS: "Kids & Toys",
-    APPLIANCES: "Appliances",
-    FURNITURE: "Furniture",
-    FASHION: "Fashion",
-    AUTOMOTIVE: "Automotive",
-    SPORTS: "Sports",
-    TOOLS: "Tools",
-    OTHER: "Other",
-  };
+  /**
+    const categoryLabels: Record<string, string> = {
+      NONE: "None",
+      ELECTRONICS: "Electronics",
+      HOME_KITCHEN: "Home & Kitchen",
+      PHONES: "Phones",
+      JEWELRY: "Jewelry",
+      KIDS_TOYS: "Kids & Toys",
+      APPLIANCES: "Appliances",
+      FURNITURE: "Furniture",
+      FASHION: "Fashion",
+      AUTOMOTIVE: "Automotive",
+      SPORTS: "Sports",
+      TOOLS: "Tools",
+      OTHER: "Other",
+    };
+  */
 
   return (
     <>
@@ -130,13 +133,13 @@ const AddProduct = ({ onSuccess }: Props) => {
               </SelectTrigger>
               <SelectContent className="border-zinc-700 bg-zinc-800">
                 <SelectGroup>
-                  {Object.values(Category).map((cat) => (
+                  {Object.entries(CategoryLabels).map(([value, label]) => (
                     <SelectItem
-                      key={cat}
-                      value={cat}
+                      key={value}
+                      value={value}
                       className="text-zinc-300 focus:bg-zinc-700 focus:text-white"
                     >
-                      {categoryLabels[cat] || cat}
+                      {label}
                     </SelectItem>
                   ))}
                 </SelectGroup>
