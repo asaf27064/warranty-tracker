@@ -267,7 +267,7 @@ const ProductDetails = () => {
                   }
                 >
                   <SelectTrigger className="w-40 border-zinc-700 bg-zinc-800 text-sm text-white">
-                    <SelectValue />
+                    <SelectValue>{DocTypeLabels[selectedDocType]}</SelectValue>
                   </SelectTrigger>
                   <SelectContent className="border-zinc-700 bg-zinc-800">
                     {Object.entries(DocTypeLabels).map(([value, label]) => (

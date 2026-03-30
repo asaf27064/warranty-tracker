@@ -82,24 +82,6 @@ const AddProduct = ({ onSuccess }: Props) => {
     }
   };
 
-  /**
-    const categoryLabels: Record<string, string> = {
-      NONE: "None",
-      ELECTRONICS: "Electronics",
-      HOME_KITCHEN: "Home & Kitchen",
-      PHONES: "Phones",
-      JEWELRY: "Jewelry",
-      KIDS_TOYS: "Kids & Toys",
-      APPLIANCES: "Appliances",
-      FURNITURE: "Furniture",
-      FASHION: "Fashion",
-      AUTOMOTIVE: "Automotive",
-      SPORTS: "Sports",
-      TOOLS: "Tools",
-      OTHER: "Other",
-    };
-  */
-
   return (
     <>
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -129,7 +111,9 @@ const AddProduct = ({ onSuccess }: Props) => {
               }
             >
               <SelectTrigger className="border-zinc-700 bg-zinc-800 text-white">
-                <SelectValue placeholder="Select category" />
+                <SelectValue placeholder="Select category">
+                  {CategoryLabels[form.category]}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent className="border-zinc-700 bg-zinc-800">
                 <SelectGroup>
