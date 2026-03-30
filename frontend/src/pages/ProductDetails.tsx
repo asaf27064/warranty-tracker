@@ -30,6 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../components/ui/select";
+import ProductForm from "../components/ProductForm";
 
 const ProductDetails = () => {
   const { getProductById, deleteProduct } = useProducts();
@@ -42,6 +43,7 @@ const ProductDetails = () => {
   const [loading, setLoading] = useState(true);
   const [daysBefore, setDaysBefore] = useState(30);
   const [selectedDocType, setSelectedDocType] = useState("OTHER");
+  const [showProductModal, setShowProductModal] = useState(false);
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -231,7 +233,7 @@ const ProductDetails = () => {
                 variant="outline"
                 className="gap-2 border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
                 onClick={() => {
-                  /* TODO: open edit modal */
+                  setShowProductModal(true);
                 }}
               >
                 <Pencil className="h-4 w-4" />
@@ -427,6 +429,20 @@ const ProductDetails = () => {
           </Card>
         </motion.div>
       </main>
+
+      {product && (
+        <ProductForm
+          open={showProductModal}
+          onClose={() => setShowProductModal(false)}
+          product={product}
+          onSuccess={async () => {
+            if (!id) return;
+            const updated = await getProductById(id);
+            setProduct(updated);
+            setShowProductModal(false);
+          }}
+        />
+      )}
     </div>
   );
 };

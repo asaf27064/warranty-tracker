@@ -24,6 +24,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../components/ui/dialog";
+import ProductForm from "../components/ProductForm";
 
 const Dashboard = () => {
   const { products, getAllProducts, deleteProduct } = useProducts();
@@ -276,19 +277,14 @@ const Dashboard = () => {
             </p>
           </motion.div>
         )}
-        <Dialog open={showAddProduct} onOpenChange={setShowAddProduct}>
-          <DialogContent className="border-zinc-800 bg-zinc-900 sm:max-w-2xl">
-            <DialogHeader>
-              <DialogTitle className="text-white">Add New Product</DialogTitle>
-            </DialogHeader>
-            <AddProduct
-              onSuccess={() => {
-                setShowAddProduct(false);
-                getAllProducts();
-              }}
-            />
-          </DialogContent>
-        </Dialog>
+        <ProductForm
+          open={showAddProduct}
+          onClose={() => setShowAddProduct(false)}
+          onSuccess={async () => {
+            await getAllProducts();
+            setShowAddProduct(false);
+          }}
+        />
       </main>
     </div>
   );

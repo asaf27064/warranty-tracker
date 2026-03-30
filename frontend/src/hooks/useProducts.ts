@@ -31,13 +31,14 @@ export const useProducts = () => {
     try {
       const res = await api.put(`/api/products/${id}`, data);
 
-      setProducts(
-        products.map((product) => {
-          return product.id === id ? res.data : product;
-        }),
+      setProducts((prev) =>
+        prev.map((product) => (product.id === id ? res.data : product)),
       );
+
+      return res.data;
     } catch (error) {
       console.error(error);
+      throw error;
     }
   };
 
