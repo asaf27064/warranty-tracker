@@ -19,11 +19,15 @@ import { useState } from "react";
 import { useProducts } from "../hooks/useProducts";
 import ProductForm from "../components/ProductForm";
 import { Skeleton } from "../components/ui/skeleton";
+import ProductFilters from "../components/ProductFilters";
+import { CategoryLabels } from "../types";
 
 const Dashboard = () => {
   const { products, loading, getAllProducts } = useProducts();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("ALL");
+  const [categoryFilter, setCategoryFilter] = useState("ALL");
+  const [sortBy, setSortBy] = useState("newest");
   const [showAddProduct, setShowAddProduct] = useState(false);
   const navigate = useNavigate();
 
@@ -46,16 +50,33 @@ const Dashboard = () => {
     const matchesSearch =
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.store?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesFilter = activeFilter === "ALL" || p.status === activeFilter;
-    return matchesSearch && matchesFilter;
+    const matchesStatus = activeFilter === "ALL" || p.status === activeFilter;
+    const matchesCategory =
+      categoryFilter === "ALL" || p.category === categoryFilter;
+    return matchesSearch && matchesStatus && matchesCategory;
   });
 
-  const filters = [
-    { key: "ALL", label: "All" },
-    { key: "ACTIVE", label: "Active" },
-    { key: "EXPIRING_SOON", label: "Expiring" },
-    { key: "EXPIRED", label: "Expired" },
-  ];
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
+    switch (sortBy) {
+      case "newest":
+        return (
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+      case "oldest":
+        return (
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        );
+      case "expiring":
+        return (
+          new Date(a.warrantyExpiry).getTime() -
+          new Date(b.warrantyExpiry).getTime()
+        );
+      case "name":
+        return a.name.localeCompare(b.name);
+      default:
+        return 0;
+    }
+  });
 
   return (
     <div className="min-h-screen bg-zinc-950">
@@ -80,21 +101,27 @@ const Dashboard = () => {
               icon: ShieldCheck,
               count: stats.active,
               label: "Active",
-              color: "emerald",
+              key: "ACTIVE",
+              bg: "bg-emerald-500/10",
+              text: "text-emerald-500",
               delay: 0.1,
             },
             {
               icon: AlertTriangle,
               count: stats.expiringSoon,
               label: "Expiring Soon",
-              color: "amber",
+              key: "EXPIRING_SOON",
+              bg: "bg-amber-500/10",
+              text: "text-amber-500",
               delay: 0.2,
             },
             {
               icon: ShieldX,
               count: stats.expired,
               label: "Expired",
-              color: "red",
+              key: "EXPIRED",
+              bg: "bg-red-500/10",
+              text: "text-red-500",
               delay: 0.3,
             },
           ].map((stat) => (
@@ -104,10 +131,13 @@ const Dashboard = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: stat.delay }}
             >
-              <Card className="border-zinc-800 bg-zinc-900 p-6 transition-colors hover:border-zinc-700">
+              <Card
+                className="cursor-pointer border-zinc-800 bg-zinc-900 p-6 transition-colors hover:border-zinc-700"
+                onClick={() => setActiveFilter(stat.key)}
+              >
                 <div className="flex items-center gap-4">
-                  <div className={`rounded-xl bg-${stat.color}-500/10 p-3`}>
-                    <stat.icon className={`h-6 w-6 text-${stat.color}-500`} />
+                  <div className={`rounded-xl ${stat.bg} p-3`}>
+                    <stat.icon className={`h-6 w-6 ${stat.text}`} />
                   </div>
                   <div>
                     <p className="text-3xl font-bold text-white">
@@ -128,43 +158,24 @@ const Dashboard = () => {
           transition={{ delay: 0.4 }}
           className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
         >
-          <div className="relative flex-1 sm:max-w-md">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
-            <Input
-              placeholder="Search products..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="border-zinc-800 bg-zinc-900 pl-10 text-white placeholder:text-zinc-500"
-            />
-          </div>
-
-          <div className="flex items-center gap-2">
-            {/* Filter buttons */}
-            <div className="flex gap-1 rounded-lg border border-zinc-800 bg-zinc-900 p-1">
-              {filters.map((f) => (
-                <button
-                  key={f.key}
-                  onClick={() => setActiveFilter(f.key)}
-                  className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-                    activeFilter === f.key
-                      ? "bg-zinc-700 text-white"
-                      : "text-zinc-700 hover:text-white"
-                  }`}
-                >
-                  {f.label}
-                </button>
-              ))}
-            </div>
-
-            {/* Add Product Button */}
-            <Button
-              className="gap-2 bg-emerald-600 hover:bg-emerald-700"
-              onClick={() => setShowAddProduct(true)}
-            >
-              <Plus className="h-4 w-4" />
-              Add Product
-            </Button>
-          </div>
+          <ProductFilters
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            statusFilter={activeFilter}
+            setStatusFilter={setActiveFilter}
+            categoryFilter={categoryFilter}
+            setCategoryFilter={setCategoryFilter}
+            sortBy={sortBy}
+            setSortBy={setSortBy}
+          />
+          {/* Add Product Button */}
+          <Button
+            className="gap-2 bg-emerald-600 hover:bg-emerald-700"
+            onClick={() => setShowAddProduct(true)}
+          >
+            <Plus className="h-4 w-4" />
+            Add Product
+          </Button>
         </motion.div>
 
         {/* Product Grid */}
@@ -197,7 +208,7 @@ const Dashboard = () => {
                   <Skeleton className="mt-4 h-1.5 w-full rounded-full" />
                 </div>
               ))
-            : filteredProducts.map((product, index) => (
+            : sortedProducts.map((product, index) => (
                 <motion.div
                   key={product.id}
                   initial={{ opacity: 0, y: 20 }}
@@ -240,7 +251,7 @@ const Dashboard = () => {
                         {product.name}
                       </h3>
                       <p className="mt-1 text-xs text-zinc-500">
-                        {product.category}
+                        {CategoryLabels[product.category] || product.category}
                       </p>
                     </div>
 
@@ -273,12 +284,23 @@ const Dashboard = () => {
                                 : "bg-red-500"
                           }`}
                           style={{
-                            width:
-                              product.status === "ACTIVE"
-                                ? "75%"
-                                : product.status === "EXPIRING_SOON"
-                                  ? "90%"
-                                  : "100%",
+                            width: `${Math.max(
+                              0,
+                              Math.min(
+                                100,
+                                Math.round(
+                                  ((Date.now() -
+                                    new Date(product.purchaseDate).getTime()) /
+                                    (new Date(
+                                      product.warrantyExpiry,
+                                    ).getTime() -
+                                      new Date(
+                                        product.purchaseDate,
+                                      ).getTime())) *
+                                    100,
+                                ),
+                              ),
+                            )}%`,
                           }}
                         />
                       </div>
