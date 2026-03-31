@@ -25,6 +25,16 @@ type Props = {
   onSuccess: () => void;
 };
 
+type ProductFormData = {
+  name: string;
+  category: string;
+  purchaseDate: string;
+  warrantyDuration: number;
+  warrantyUnit: string;
+  store: string;
+  picture: string;
+};
+
 const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
   const { createProduct, updateProduct } = useProducts();
   const [loading, setLoading] = useState(false);
@@ -34,7 +44,16 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
 
   const isEdit = !!product;
 
-  const [form, setForm] = useState({
+  const clearImage = () => {
+    if (imagePreview && imageFile) {
+      URL.revokeObjectURL(imagePreview);
+    }
+    setImagePreview(null);
+    setImageFile(null);
+    setForm((prev) => ({ ...prev, picture: "" }));
+  };
+
+  const [form, setForm] = useState<ProductFormData>({
     name: "",
     category: Category.NONE as string,
     purchaseDate: "",
@@ -46,23 +65,38 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
 
   // Populate form when editing
   useEffect(() => {
-    if (!product || !open) return;
+    if (!open) return;
 
-    const months = product.warrantyMonths;
-    const isYears = months >= 12 && months % 12 === 0;
+    if (product) {
+      const months = product.warrantyMonths;
+      const isYears = months >= 12 && months % 12 === 0;
+      setForm({
+        name: product.name,
+        category: product.category,
+        purchaseDate: new Date(product.purchaseDate)
+          .toISOString()
+          .split("T")[0],
+        warrantyDuration: isYears ? months / 12 : months,
+        warrantyUnit: isYears ? "Years" : "Months",
+        store: product.store || "",
+        picture: product.picture || "",
+      });
+      setImagePreview(product.picture || null);
+    } else {
+      setForm({
+        name: "",
+        category: Category.NONE as string,
+        purchaseDate: "",
+        warrantyDuration: 12,
+        warrantyUnit: "Months",
+        store: "",
+        picture: "",
+      });
+      setImagePreview(null);
+    }
 
-    setForm({
-      name: product.name,
-      category: product.category,
-      purchaseDate: new Date(product.purchaseDate).toISOString().split("T")[0],
-      warrantyDuration: isYears ? months / 12 : months,
-      warrantyUnit: isYears ? "Years" : "Months",
-      store: product.store || "",
-      picture: product.picture || "",
-    });
-
-    setImagePreview(product.picture || null);
     setImageFile(null);
+    setLoading(false);
   }, [product, open]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -77,6 +111,8 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
     e.preventDefault();
     if (!form.name || !form.purchaseDate || !form.warrantyDuration) return;
 
+    setLoading(true);
+
     const warrantyMonths =
       form.warrantyUnit === "Years"
         ? form.warrantyDuration * 12
@@ -84,25 +120,24 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
 
     let pictureUrl = form.picture;
 
-    if (imageFile) {
-      const formData = new FormData();
-      formData.append("file", imageFile);
-      const uploadRes = await api.post("/api/images/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      pictureUrl = uploadRes.data.url;
-    }
-
-    setLoading(true);
     try {
+      if (imageFile) {
+        const formData = new FormData();
+        formData.append("file", imageFile);
+        const uploadRes = await api.post("/api/images/upload", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        pictureUrl = uploadRes.data.url;
+      }
+
       if (isEdit && product) {
         await updateProduct(product.id, {
           name: form.name,
           category: form.category as Category,
           purchaseDate: new Date(form.purchaseDate).toISOString(),
           warrantyMonths,
-          store: form.store || undefined,
-          picture: pictureUrl || undefined,
+          store: form.store || null,
+          picture: pictureUrl || null,
         });
       } else {
         await createProduct({
@@ -111,7 +146,7 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
           purchaseDate: new Date(form.purchaseDate).toISOString(),
           warrantyMonths,
           store: form.store || undefined,
-          picture: pictureUrl || undefined,
+          picture: pictureUrl,
         });
       }
       onSuccess();
@@ -263,9 +298,7 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
                 <button
                   type="button"
                   onClick={() => {
-                    setImagePreview(null);
-                    setImageFile(null);
-                    setForm((prev) => ({ ...prev, picture: "" }));
+                    clearImage();
                   }}
                   className="absolute right-1 top-1 rounded-full bg-zinc-900/80 p-1 text-zinc-400 hover:text-white"
                 >

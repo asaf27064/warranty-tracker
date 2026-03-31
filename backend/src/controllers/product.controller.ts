@@ -118,8 +118,9 @@ export const updateProduct = async (req: Request, res: Response) => {
       where: { id },
       data: {
         name: req.body.name ?? product.name,
-        store: req.body.store ?? product.store,
-        picture: req.body.picture ?? product.picture,
+        store: req.body.store !== undefined ? req.body.store : product.store,
+        picture:
+          req.body.picture !== undefined ? req.body.picture : product.picture,
         purchaseDate: purchaseDate,
         warrantyExpiry: warrantyExpiry,
         warrantyMonths: warrantyMonths,

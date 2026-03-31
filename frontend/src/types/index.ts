@@ -70,8 +70,8 @@ export type UpdateProductData = {
   category?: Category;
   purchaseDate?: string;
   warrantyMonths?: number;
-  store?: string;
-  picture?: string;
+  store?: string | null;
+  picture?: string | null;
 };
 
 export type Stats = {
