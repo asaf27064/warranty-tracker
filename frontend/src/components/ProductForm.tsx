@@ -11,8 +11,8 @@ import {
   SelectGroup,
 } from "./ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
-import { Save, Upload, Search, X } from "lucide-react";
-import { Category, CategoryLabels } from "../types";
+import { Save, Upload, Search, X, FileText } from "lucide-react";
+import { Category, CategoryLabels, DocTypeLabels } from "../types";
 import type { Product } from "../types";
 import { useProducts } from "../hooks/useProducts";
 import ImageSearchModal from "./ImageSearchModal";
@@ -41,6 +41,10 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
   const [showImageSearch, setShowImageSearch] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [docFiles, setDocFiles] = useState<{ file: File; docType: string }[]>(
+    [],
+  );
+  const [selectedDocType, setSelectedDocType] = useState("OTHER");
 
   const isEdit = !!product;
 
@@ -97,6 +101,8 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
 
     setImageFile(null);
     setLoading(false);
+    setDocFiles([]);
+    setSelectedDocType("OTHER");
   }, [product, open]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -130,6 +136,8 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
         pictureUrl = uploadRes.data.url;
       }
 
+      let productId: string | undefined;
+
       if (isEdit && product) {
         await updateProduct(product.id, {
           name: form.name,
@@ -139,8 +147,9 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
           store: form.store || null,
           picture: pictureUrl || null,
         });
+        productId = product.id;
       } else {
-        await createProduct({
+        const res = await createProduct({
           name: form.name,
           category: form.category as Category,
           purchaseDate: new Date(form.purchaseDate).toISOString(),
@@ -148,6 +157,18 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
           store: form.store || undefined,
           picture: pictureUrl,
         });
+        productId = res?.id;
+      }
+      // Upload queued documents
+      if (docFiles.length > 0 && productId) {
+        for (const doc of docFiles) {
+          const formData = new FormData();
+          formData.append("file", doc.file);
+          formData.append("docType", doc.docType);
+          await api.post(`/api/documents/product/${productId}`, formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+          });
+        }
       }
       onSuccess();
     } catch (error) {
@@ -342,6 +363,87 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
                 />
               </div>
             )}
+          </div>
+
+          {/* Documents */}
+          <div className="space-y-3">
+            <Label className="text-zinc-300">Documents</Label>
+
+            {docFiles.length > 0 && (
+              <div className="flex flex-col gap-2">
+                {docFiles.map((doc, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between rounded-lg bg-zinc-800/50 px-3 py-2"
+                  >
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-zinc-400" />
+                      <span className="text-sm text-white">
+                        {doc.file.name}
+                      </span>
+                      <span className="text-xs text-zinc-500">
+                        {DocTypeLabels[doc.docType]}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setDocFiles(docFiles.filter((_, j) => j !== i))
+                      }
+                      className="text-red-400 hover:text-red-300"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="flex items-center gap-2">
+              <Select
+                value={selectedDocType}
+                onValueChange={(value) => setSelectedDocType(value ?? "OTHER")}
+              >
+                <SelectTrigger className="w-40 border-zinc-700 bg-zinc-800 text-sm text-white">
+                  <span>{DocTypeLabels[selectedDocType]}</span>
+                </SelectTrigger>
+                <SelectContent className="border-zinc-700 bg-zinc-800">
+                  {Object.entries(DocTypeLabels).map(([value, label]) => (
+                    <SelectItem
+                      key={value}
+                      value={value}
+                      className="text-zinc-300"
+                    >
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                type="button"
+                variant="outline"
+                className="gap-2 border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                onClick={() => document.getElementById("docUpload")?.click()}
+              >
+                <Upload className="h-4 w-4" />
+                Add Document
+              </Button>
+              <input
+                id="docUpload"
+                type="file"
+                accept="image/*,application/pdf"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    setDocFiles([
+                      ...docFiles,
+                      { file, docType: selectedDocType },
+                    ]);
+                  }
+                }}
+              />
+            </div>
           </div>
 
           {/* Submit */}

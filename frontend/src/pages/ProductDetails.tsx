@@ -48,13 +48,17 @@ const ProductDetails = () => {
   useEffect(() => {
     const fetchAll = async () => {
       if (!id) return;
+      console.log("fetchAll called with id:", id);
       try {
         const data = await getProductById(id);
+        console.log("product fetched:", data);
         setProduct(data);
+        console.log("calling getAllDocs");
         await getAllDocs(id);
+        console.log("calling getAllReminders");
         await getAllReminders(id);
-      } catch {
-        console.error("Product not found");
+      } catch (err) {
+        console.error("fetchAll error:", err);
       } finally {
         setLoading(false);
       }

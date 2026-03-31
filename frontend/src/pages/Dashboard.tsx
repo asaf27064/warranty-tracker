@@ -17,17 +17,10 @@ import {
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { useProducts } from "../hooks/useProducts";
-import AddProduct from "../components/AddProduct";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "../components/ui/dialog";
 import ProductForm from "../components/ProductForm";
 
 const Dashboard = () => {
-  const { products, getAllProducts, deleteProduct } = useProducts();
+  const { products, getAllProducts } = useProducts();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("ALL");
   const [showAddProduct, setShowAddProduct] = useState(false);
