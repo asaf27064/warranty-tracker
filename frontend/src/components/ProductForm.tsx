@@ -366,85 +366,89 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
           </div>
 
           {/* Documents */}
-          <div className="space-y-3">
-            <Label className="text-zinc-300">Documents</Label>
+          {!isEdit && (
+            <div className="space-y-3">
+              <Label className="text-zinc-300">Documents</Label>
 
-            {docFiles.length > 0 && (
-              <div className="flex flex-col gap-2">
-                {docFiles.map((doc, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between rounded-lg bg-zinc-800/50 px-3 py-2"
-                  >
-                    <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-zinc-400" />
-                      <span className="text-sm text-white">
-                        {doc.file.name}
-                      </span>
-                      <span className="text-xs text-zinc-500">
-                        {DocTypeLabels[doc.docType]}
-                      </span>
+              {docFiles.length > 0 && (
+                <div className="flex flex-col gap-2">
+                  {docFiles.map((doc, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center justify-between rounded-lg bg-zinc-800/50 px-3 py-2"
+                    >
+                      <div className="flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-zinc-400" />
+                        <span className="text-sm text-white">
+                          {doc.file.name}
+                        </span>
+                        <span className="text-xs text-zinc-500">
+                          {DocTypeLabels[doc.docType]}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setDocFiles(docFiles.filter((_, j) => j !== i))
+                        }
+                        className="text-red-400 hover:text-red-300"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setDocFiles(docFiles.filter((_, j) => j !== i))
-                      }
-                      className="text-red-400 hover:text-red-300"
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div className="flex items-center gap-2">
-              <Select
-                value={selectedDocType}
-                onValueChange={(value) => setSelectedDocType(value ?? "OTHER")}
-              >
-                <SelectTrigger className="w-40 border-zinc-700 bg-zinc-800 text-sm text-white">
-                  <span>{DocTypeLabels[selectedDocType]}</span>
-                </SelectTrigger>
-                <SelectContent className="border-zinc-700 bg-zinc-800">
-                  {Object.entries(DocTypeLabels).map(([value, label]) => (
-                    <SelectItem
-                      key={value}
-                      value={value}
-                      className="text-zinc-300"
-                    >
-                      {label}
-                    </SelectItem>
                   ))}
-                </SelectContent>
-              </Select>
-              <Button
-                type="button"
-                variant="outline"
-                className="gap-2 border-zinc-700 text-zinc-300 hover:bg-zinc-800"
-                onClick={() => document.getElementById("docUpload")?.click()}
-              >
-                <Upload className="h-4 w-4" />
-                Add Document
-              </Button>
-              <input
-                id="docUpload"
-                type="file"
-                accept="image/*,application/pdf"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    setDocFiles([
-                      ...docFiles,
-                      { file, docType: selectedDocType },
-                    ]);
+                </div>
+              )}
+
+              <div className="flex items-center gap-2">
+                <Select
+                  value={selectedDocType}
+                  onValueChange={(value) =>
+                    setSelectedDocType(value ?? "OTHER")
                   }
-                }}
-              />
+                >
+                  <SelectTrigger className="w-40 border-zinc-700 bg-zinc-800 text-sm text-white">
+                    <span>{DocTypeLabels[selectedDocType]}</span>
+                  </SelectTrigger>
+                  <SelectContent className="border-zinc-700 bg-zinc-800">
+                    {Object.entries(DocTypeLabels).map(([value, label]) => (
+                      <SelectItem
+                        key={value}
+                        value={value}
+                        className="text-zinc-300"
+                      >
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="gap-2 border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                  onClick={() => document.getElementById("docUpload")?.click()}
+                >
+                  <Upload className="h-4 w-4" />
+                  Add Document
+                </Button>
+                <input
+                  id="docUpload"
+                  type="file"
+                  accept="image/*,application/pdf"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setDocFiles([
+                        ...docFiles,
+                        { file, docType: selectedDocType },
+                      ]);
+                    }
+                  }}
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Submit */}
           <div className="flex gap-3 pt-2">

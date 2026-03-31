@@ -8,12 +8,18 @@ import type {
 
 export const useProducts = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(false);
 
   const getAllProducts = async (search?: string) => {
-    const res = await api.get("/api/products", {
-      params: search ? { search } : {},
-    });
-    setProducts(res.data);
+    setLoading(true);
+    try {
+      const res = await api.get("/api/products", {
+        params: search ? { search } : {},
+      });
+      setProducts(res.data);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getProductById = async (id: string) => {
@@ -53,6 +59,7 @@ export const useProducts = () => {
 
   return {
     products,
+    loading,
     getAllProducts,
     getProductById,
     createProduct,

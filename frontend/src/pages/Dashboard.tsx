@@ -18,9 +18,10 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import { useProducts } from "../hooks/useProducts";
 import ProductForm from "../components/ProductForm";
+import { Skeleton } from "../components/ui/skeleton";
 
 const Dashboard = () => {
-  const { products, getAllProducts } = useProducts();
+  const { products, loading, getAllProducts } = useProducts();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("ALL");
   const [showAddProduct, setShowAddProduct] = useState(false);
@@ -168,96 +169,127 @@ const Dashboard = () => {
 
         {/* Product Grid */}
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredProducts.map((product, index) => (
-            <motion.div
-              key={product.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 + index * 0.05 }}
-            >
-              <Card
-                className="group cursor-pointer border-zinc-800 bg-zinc-900 p-5 transition-all hover:border-zinc-700 hover:shadow-lg hover:shadow-zinc-900/50"
-                onClick={() => navigate(`/product/${product.id}`)}
-              >
-                {/* Status Badge */}
-                <div className="flex items-start justify-between">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-800">
-                    {product.picture ? (
-                      <img
-                        src={product.picture}
-                        alt={product.name}
-                        className="h-10 w-10 rounded-lg object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-800">
-                        <Package className="h-5 w-5 text-zinc-400" />
-                      </div>
-                    )}
+          {loading
+            ? [...Array(6)].map((_, index) => (
+                <div
+                  key={index}
+                  className="border border-zinc-800 bg-zinc-900 p-5 rounded-lg"
+                >
+                  {/* Header */}
+                  <div className="flex items-start justify-between">
+                    <Skeleton className="h-10 w-10 rounded-lg" />
+                    <Skeleton className="h-5 w-20 rounded" />
                   </div>
-                  <Badge
-                    className={`${statusConfig[product.status as keyof typeof statusConfig].color} border-0`}
+
+                  {/* Title */}
+                  <div className="mt-4 space-y-2">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-3 w-20" />
+                  </div>
+
+                  {/* Details */}
+                  <div className="mt-4 space-y-2">
+                    <Skeleton className="h-3 w-28" />
+                    <Skeleton className="h-3 w-36" />
+                  </div>
+
+                  {/* Progress */}
+                  <Skeleton className="mt-4 h-1.5 w-full rounded-full" />
+                </div>
+              ))
+            : filteredProducts.map((product, index) => (
+                <motion.div
+                  key={product.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 + index * 0.05 }}
+                >
+                  <Card
+                    className="group cursor-pointer border-zinc-800 bg-zinc-900 p-5 transition-all hover:border-zinc-700 hover:shadow-lg hover:shadow-zinc-900/50"
+                    onClick={() => navigate(`/product/${product.id}`)}
                   >
-                    {
-                      statusConfig[product.status as keyof typeof statusConfig]
-                        .label
-                    }
-                  </Badge>
-                </div>
+                    {/* Status Badge */}
+                    <div className="flex items-start justify-between">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-800">
+                        {product.picture ? (
+                          <img
+                            src={product.picture}
+                            alt={product.name}
+                            className="h-10 w-10 rounded-lg object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-800">
+                            <Package className="h-5 w-5 text-zinc-400" />
+                          </div>
+                        )}
+                      </div>
+                      <Badge
+                        className={`${statusConfig[product.status as keyof typeof statusConfig].color} border-0`}
+                      >
+                        {
+                          statusConfig[
+                            product.status as keyof typeof statusConfig
+                          ].label
+                        }
+                      </Badge>
+                    </div>
 
-                {/* Product Info */}
-                <div className="mt-4">
-                  <h3 className="text-lg font-semibold text-white group-hover:text-emerald-400 transition-colors">
-                    {product.name}
-                  </h3>
-                  <p className="mt-1 text-xs text-zinc-500">
-                    {product.category}
-                  </p>
-                </div>
+                    {/* Product Info */}
+                    <div className="mt-4">
+                      <h3 className="text-lg font-semibold text-white group-hover:text-emerald-400 transition-colors">
+                        {product.name}
+                      </h3>
+                      <p className="mt-1 text-xs text-zinc-500">
+                        {product.category}
+                      </p>
+                    </div>
 
-                {/* Details */}
-                <div className="mt-4 space-y-2">
-                  <div className="flex items-center gap-2 text-sm text-zinc-400">
-                    <Store className="h-3.5 w-3.5" />
-                    <span>{product.store}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-zinc-400">
-                    <Calendar className="h-3.5 w-3.5" />
-                    <span>
-                      Expires{" "}
-                      {new Date(product.warrantyExpiry).toLocaleDateString()}
-                    </span>
-                  </div>
-                </div>
+                    {/* Details */}
+                    <div className="mt-4 space-y-2">
+                      <div className="flex items-center gap-2 text-sm text-zinc-400">
+                        <Store className="h-3.5 w-3.5" />
+                        <span>{product.store}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-zinc-400">
+                        <Calendar className="h-3.5 w-3.5" />
+                        <span>
+                          Expires{" "}
+                          {new Date(
+                            product.warrantyExpiry,
+                          ).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
 
-                {/* Progress bar */}
-                <div className="mt-4">
-                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-800">
-                    <div
-                      className={`h-full rounded-full ${
-                        product.status === "ACTIVE"
-                          ? "bg-emerald-500"
-                          : product.status === "EXPIRING_SOON"
-                            ? "bg-amber-500"
-                            : "bg-red-500"
-                      }`}
-                      style={{
-                        width:
-                          product.status === "ACTIVE"
-                            ? "75%"
-                            : product.status === "EXPIRING_SOON"
-                              ? "90%"
-                              : "100%",
-                      }}
-                    />
-                  </div>
-                </div>
-              </Card>
-            </motion.div>
-          ))}
+                    {/* Progress bar */}
+                    <div className="mt-4">
+                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-800">
+                        <div
+                          className={`h-full rounded-full ${
+                            product.status === "ACTIVE"
+                              ? "bg-emerald-500"
+                              : product.status === "EXPIRING_SOON"
+                                ? "bg-amber-500"
+                                : "bg-red-500"
+                          }`}
+                          style={{
+                            width:
+                              product.status === "ACTIVE"
+                                ? "75%"
+                                : product.status === "EXPIRING_SOON"
+                                  ? "90%"
+                                  : "100%",
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </Card>
+                </motion.div>
+              ))}
         </div>
 
         {/* Empty state */}
-        {filteredProducts.length === 0 && (
+        {!loading && filteredProducts.length === 0 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
