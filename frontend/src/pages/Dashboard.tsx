@@ -1,14 +1,9 @@
 import Navbar from "../components/Navbar";
 import { useNavigate } from "react-router-dom";
 import { Card } from "../components/ui/card";
-import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import {
-  ShieldCheck,
-  AlertTriangle,
-  ShieldX,
-  Search,
   Plus,
   Package,
   Calendar,
@@ -21,6 +16,7 @@ import ProductForm from "../components/ProductForm";
 import { Skeleton } from "../components/ui/skeleton";
 import ProductFilters from "../components/ProductFilters";
 import { CategoryLabels } from "../types";
+import DashboardStats from "../components/DashboardStats";
 
 const Dashboard = () => {
   const { products, loading, getAllProducts } = useProducts();
@@ -95,61 +91,11 @@ const Dashboard = () => {
         </motion.div>
 
         {/* Stats Cards */}
-        <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          {[
-            {
-              icon: ShieldCheck,
-              count: stats.active,
-              label: "Active",
-              key: "ACTIVE",
-              bg: "bg-emerald-500/10",
-              text: "text-emerald-500",
-              delay: 0.1,
-            },
-            {
-              icon: AlertTriangle,
-              count: stats.expiringSoon,
-              label: "Expiring Soon",
-              key: "EXPIRING_SOON",
-              bg: "bg-amber-500/10",
-              text: "text-amber-500",
-              delay: 0.2,
-            },
-            {
-              icon: ShieldX,
-              count: stats.expired,
-              label: "Expired",
-              key: "EXPIRED",
-              bg: "bg-red-500/10",
-              text: "text-red-500",
-              delay: 0.3,
-            },
-          ].map((stat) => (
-            <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: stat.delay }}
-            >
-              <Card
-                className="cursor-pointer border-zinc-800 bg-zinc-900 p-6 transition-colors hover:border-zinc-700"
-                onClick={() => setActiveFilter(stat.key)}
-              >
-                <div className="flex items-center gap-4">
-                  <div className={`rounded-xl ${stat.bg} p-3`}>
-                    <stat.icon className={`h-6 w-6 ${stat.text}`} />
-                  </div>
-                  <div>
-                    <p className="text-3xl font-bold text-white">
-                      {stat.count}
-                    </p>
-                    <p className="text-sm text-zinc-400">{stat.label}</p>
-                  </div>
-                </div>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
+        <DashboardStats
+          stats={stats}
+          statusFilter={activeFilter}
+          setStatusFilter={setActiveFilter}
+        />
 
         {/* Search + Filter + Add Button */}
         <motion.div
