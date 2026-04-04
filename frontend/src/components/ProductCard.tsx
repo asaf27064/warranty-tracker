@@ -2,6 +2,7 @@ import { CategoryLabels, type Product } from "../types/index";
 import { Package, Store, Calendar } from "lucide-react";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
+import WarrantyProgressBar from "./WarrantyProgressBar";
 
 type Props = {
   product: Product;
@@ -40,9 +41,7 @@ const ProductCard = ({ product, onClick }: Props) => {
           )}
         </div>
 
-        <Badge className={`${status.color} border-0`}>
-          {status.label}
-        </Badge>
+        <Badge className={`${status.color} border-0`}>{status.label}</Badge>
       </div>
 
       <div className="mt-4">
@@ -67,33 +66,12 @@ const ProductCard = ({ product, onClick }: Props) => {
         </div>
       </div>
 
-      <div className="mt-4">
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-800">
-          <div
-            className={`h-full rounded-full ${
-              product.status === "ACTIVE"
-                ? "bg-emerald-500"
-                : product.status === "EXPIRING_SOON"
-                  ? "bg-amber-500"
-                  : "bg-red-500"
-            }`}
-            style={{
-              width: `${Math.max(
-                0,
-                Math.min(
-                  100,
-                  Math.round(
-                    ((Date.now() - new Date(product.purchaseDate).getTime()) /
-                      (new Date(product.warrantyExpiry).getTime() -
-                        new Date(product.purchaseDate).getTime())) *
-                      100,
-                  ),
-                ),
-              )}%`,
-            }}
-          />
-        </div>
-      </div>
+      {/* Progress Bar */}
+      <WarrantyProgressBar
+        purchaseDate={product.purchaseDate}
+        warrantyExpiry={product.warrantyExpiry}
+        status={product.status}
+      />
     </Card>
   );
 };

@@ -31,6 +31,7 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import ProductForm from "../components/ProductForm";
+import WarrantyProgressBar from "../components/WarrantyProgressBar";
 
 const ProductDetails = () => {
   const { getProductById, deleteProduct } = useProducts();
@@ -74,15 +75,6 @@ const ProductDetails = () => {
       </div>
     );
   }
-
-  const totalWarranty =
-    new Date(product.warrantyExpiry).getTime() -
-    new Date(product.purchaseDate).getTime();
-  const timeUsed = Date.now() - new Date(product.purchaseDate).getTime();
-  const percentUsed = Math.max(
-    0,
-    Math.min(100, Math.round((timeUsed / totalWarranty) * 100)),
-  );
 
   const statusConfig = {
     ACTIVE: { color: "bg-emerald-500/10 text-emerald-500", label: "Active" },
@@ -210,24 +202,11 @@ const ProductDetails = () => {
                 </div>
 
                 {/* Progress Bar */}
-                <div className="mt-4">
-                  <div className="mb-1 flex justify-between text-xs text-zinc-500">
-                    <span>Warranty used</span>
-                    <span>{percentUsed}%</span>
-                  </div>
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-800">
-                    <div
-                      className={`h-full rounded-full transition-all ${
-                        product.status === "ACTIVE"
-                          ? "bg-emerald-500"
-                          : product.status === "EXPIRING_SOON"
-                            ? "bg-amber-500"
-                            : "bg-red-500"
-                      }`}
-                      style={{ width: `${percentUsed}%` }}
-                    />
-                  </div>
-                </div>
+                <WarrantyProgressBar
+                  purchaseDate={product.purchaseDate}
+                  warrantyExpiry={product.warrantyExpiry}
+                  status={product.status}
+                />
               </div>
             </div>
 
