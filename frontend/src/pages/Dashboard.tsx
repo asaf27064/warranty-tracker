@@ -2,6 +2,7 @@ import Navbar from "../components/Navbar";
 import { Button } from "../components/ui/button";
 import { Plus, Package } from "lucide-react";
 import { motion } from "framer-motion";
+import type { Variants } from "framer-motion";
 import { useState } from "react";
 import { useProducts } from "../hooks/useProducts";
 import ProductForm from "../components/ProductForm";
@@ -59,6 +60,27 @@ const Dashboard = () => {
     }
   });
 
+  const containerVariants = {
+    hidden: {},
+    show: {
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants: Variants = {
+    hidden: { opacity: 0, y: 15 },
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: "spring",
+        stiffness: 100,
+      },
+    },
+  };
+
   return (
     <div className="min-h-screen bg-zinc-950">
       <Navbar />
@@ -110,7 +132,12 @@ const Dashboard = () => {
         </motion.div>
 
         {/* Product Grid */}
-        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <motion.div
+          className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
+        >
           {loading
             ? [...Array(6)].map((_, index) => (
                 <div
@@ -139,20 +166,15 @@ const Dashboard = () => {
                   <Skeleton className="mt-4 h-1.5 w-full rounded-full" />
                 </div>
               ))
-            : sortedProducts.map((product, index) => (
-                <motion.div
-                  key={product.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 + index * 0.05 }}
-                >
+            : sortedProducts.map((product) => (
+                <motion.div key={product.id} variants={itemVariants}>
                   <ProductCard
                     product={product}
                     onClick={() => navigate(`/product/${product.id}`)}
                   />
                 </motion.div>
               ))}
-        </div>
+        </motion.div>
 
         {/* Empty state */}
         {!loading && filteredProducts.length === 0 && (

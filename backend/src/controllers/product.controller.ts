@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import prisma from "../config/db";
+import { getWarrantyStatus } from "../utils/getWarrantyStatus";
 
 export const getAllProducts = async (req: Request, res: Response) => {
   try {
@@ -62,6 +63,7 @@ export const createProduct = async (req: Request, res: Response) => {
     warrantyExpiry.setMonth(
       warrantyExpiry.getMonth() + req.body.warrantyMonths,
     );
+    const status = getWarrantyStatus(purchaseDate, warrantyExpiry);
 
     const newProduct = await prisma.product.create({
       data: {
@@ -73,6 +75,7 @@ export const createProduct = async (req: Request, res: Response) => {
         warrantyExpiry: warrantyExpiry,
         warrantyMonths: req.body.warrantyMonths,
         category: req.body.category,
+        status,
       },
     });
 
@@ -113,6 +116,7 @@ export const updateProduct = async (req: Request, res: Response) => {
     const warrantyMonths = req.body.warrantyMonths ?? product.warrantyMonths;
     const warrantyExpiry = new Date(purchaseDate);
     warrantyExpiry.setMonth(warrantyExpiry.getMonth() + warrantyMonths);
+    const status = getWarrantyStatus(purchaseDate, warrantyExpiry);
 
     const updated = await prisma.product.update({
       where: { id },
@@ -125,6 +129,7 @@ export const updateProduct = async (req: Request, res: Response) => {
         warrantyExpiry: warrantyExpiry,
         warrantyMonths: warrantyMonths,
         category: req.body.category ?? product.category,
+        status,
       },
     });
     return res.status(200).json(updated);
