@@ -29,11 +29,11 @@ const ProductCard = ({ product, onClick }: Props) => {
       className="group"
     >
       <Card
-        className="border-zinc-800 bg-zinc-900 p-5 transition-all hover:shadow-xl hover:shadow-gray-500/10"
+        className="cursor-pointer border-border bg-card p-5 transition-all hover:shadow-xl"
         onClick={onClick}
       >
         <div className="flex items-start justify-between">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-800">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
             {product.picture ? (
               <img
                 src={product.picture}
@@ -41,9 +41,7 @@ const ProductCard = ({ product, onClick }: Props) => {
                 className="h-10 w-10 rounded-lg object-cover"
               />
             ) : (
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-800">
-                <Package className="h-5 w-5 text-zinc-400" />
-              </div>
+              <Package className="h-5 w-5 text-muted-foreground" />
             )}
           </div>
 
@@ -51,20 +49,20 @@ const ProductCard = ({ product, onClick }: Props) => {
         </div>
 
         <div className="mt-4">
-          <h3 className="text-lg font-semibold text-white transition-colors group-hover:text-emerald-400">
+          <h3 className="text-lg font-semibold text-foreground transition-colors group-hover:text-emerald-500">
             {product.name}
           </h3>
-          <p className="mt-1 text-xs text-zinc-500">
+          <p className="mt-1 text-xs text-muted-foreground">
             {CategoryLabels[product.category] || product.category}
           </p>
         </div>
 
         <div className="mt-4 space-y-2">
-          <div className="flex items-center gap-2 text-sm text-zinc-400">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Store className="h-3.5 w-3.5" />
             <span>{product.store}</span>
           </div>
-          <div className="flex items-center gap-2 text-sm text-zinc-400">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Calendar className="h-3.5 w-3.5" />
             <span>
               Expires {new Date(product.warrantyExpiry).toLocaleDateString()}
@@ -72,7 +70,6 @@ const ProductCard = ({ product, onClick }: Props) => {
           </div>
         </div>
 
-        {/* Progress Bar */}
         <WarrantyProgressBar
           purchaseDate={product.purchaseDate}
           warrantyExpiry={product.warrantyExpiry}

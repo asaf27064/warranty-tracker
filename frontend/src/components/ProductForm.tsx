@@ -21,7 +21,7 @@ import api from "../api/axios";
 type Props = {
   open: boolean;
   onClose: () => void;
-  product?: Product; // if provided = edit mode, if not = add mode
+  product?: Product;
   onSuccess: () => void;
 };
 
@@ -67,7 +67,6 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
     picture: "",
   });
 
-  // Populate form when editing
   useEffect(() => {
     if (!open) return;
 
@@ -159,7 +158,7 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
         });
         productId = res?.id;
       }
-      // Upload queued documents
+
       if (docFiles.length > 0 && productId) {
         for (const doc of docFiles) {
           const formData = new FormData();
@@ -180,16 +179,14 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogContent className="border-zinc-800 bg-zinc-900 text-white sm:max-w-xl">
+      <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>{isEdit ? "Edit Product" : "Add Product"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Product Name */}
           <div className="space-y-2">
-            <Label htmlFor="name" className="text-zinc-300">
-              Product Name *
-            </Label>
+            <Label htmlFor="name">Product Name *</Label>
             <Input
               id="name"
               name="name"
@@ -198,33 +195,28 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
               required
               value={form.name}
               onChange={handleChange}
-              className="border-zinc-700 bg-zinc-800 text-white placeholder:text-zinc-500"
             />
           </div>
 
           {/* Category + Store */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-zinc-300">Category</Label>
+              <Label>Category</Label>
               <Select
                 value={form.category}
                 onValueChange={(value) =>
                   setForm((prev) => ({ ...prev, category: value ?? "" }))
                 }
               >
-                <SelectTrigger className="border-zinc-700 bg-zinc-800 text-white">
+                <SelectTrigger>
                   <SelectValue placeholder="Select category">
                     {CategoryLabels[form.category]}
                   </SelectValue>
                 </SelectTrigger>
-                <SelectContent className="border-zinc-700 bg-zinc-800">
+                <SelectContent>
                   <SelectGroup>
                     {Object.entries(CategoryLabels).map(([value, label]) => (
-                      <SelectItem
-                        key={value}
-                        value={value}
-                        className="text-zinc-300 focus:bg-zinc-700 focus:text-white"
-                      >
+                      <SelectItem key={value} value={value}>
                         {label}
                       </SelectItem>
                     ))}
@@ -234,9 +226,7 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="store" className="text-zinc-300">
-                Store
-              </Label>
+              <Label htmlFor="store">Store</Label>
               <Input
                 id="store"
                 name="store"
@@ -244,7 +234,6 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
                 type="text"
                 value={form.store}
                 onChange={handleChange}
-                className="border-zinc-700 bg-zinc-800 text-white placeholder:text-zinc-500"
               />
             </div>
           </div>
@@ -252,9 +241,7 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
           {/* Purchase Date + Warranty Duration */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="purchaseDate" className="text-zinc-300">
-                Purchase Date *
-              </Label>
+              <Label htmlFor="purchaseDate">Purchase Date *</Label>
               <Input
                 id="purchaseDate"
                 name="purchaseDate"
@@ -262,12 +249,11 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
                 required
                 value={form.purchaseDate}
                 onChange={handleChange}
-                className="border-zinc-700 bg-zinc-800 text-white"
               />
             </div>
 
             <div className="space-y-2">
-              <Label className="text-zinc-300">Warranty Duration *</Label>
+              <Label>Warranty Duration *</Label>
               <div className="flex gap-2">
                 <Input
                   id="warrantyDuration"
@@ -278,7 +264,7 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
                   max={120}
                   value={form.warrantyDuration}
                   onChange={handleChange}
-                  className="flex-1 border-zinc-700 bg-zinc-800 text-white"
+                  className="flex-1"
                 />
                 <Select
                   value={form.warrantyUnit}
@@ -289,16 +275,12 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
                     }))
                   }
                 >
-                  <SelectTrigger className="w-32 border-zinc-700 bg-zinc-800 text-white">
+                  <SelectTrigger className="w-32">
                     <span>{form.warrantyUnit}</span>
                   </SelectTrigger>
-                  <SelectContent className="border-zinc-700 bg-zinc-800">
-                    <SelectItem value="Months" className="text-zinc-300">
-                      Months
-                    </SelectItem>
-                    <SelectItem value="Years" className="text-zinc-300">
-                      Years
-                    </SelectItem>
+                  <SelectContent>
+                    <SelectItem value="Months">Months</SelectItem>
+                    <SelectItem value="Years">Years</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -307,10 +289,10 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
 
           {/* Product Image */}
           <div className="space-y-3">
-            <Label className="text-zinc-300">Product Image</Label>
+            <Label>Product Image</Label>
 
             {imagePreview ? (
-              <div className="relative h-32 w-32 overflow-hidden rounded-lg border border-zinc-700">
+              <div className="relative h-32 w-32 overflow-hidden rounded-lg border border-border">
                 <img
                   src={imagePreview}
                   alt="Preview"
@@ -318,10 +300,8 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
                 />
                 <button
                   type="button"
-                  onClick={() => {
-                    clearImage();
-                  }}
-                  className="absolute right-1 top-1 rounded-full bg-zinc-900/80 p-1 text-zinc-400 hover:text-white"
+                  onClick={clearImage}
+                  className="absolute right-1 top-1 rounded-full bg-background/80 p-1 text-muted-foreground hover:text-foreground"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -331,7 +311,6 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
                 <Button
                   type="button"
                   variant="outline"
-                  className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
                   onClick={() =>
                     document.getElementById("imageUpload")?.click()
                   }
@@ -342,7 +321,6 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
                 <Button
                   type="button"
                   variant="outline"
-                  className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
                   onClick={() => setShowImageSearch(true)}
                 >
                   <Search className="mr-2 h-4 w-4" />
@@ -368,21 +346,21 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
           {/* Documents */}
           {!isEdit && (
             <div className="space-y-3">
-              <Label className="text-zinc-300">Documents</Label>
+              <Label>Documents</Label>
 
               {docFiles.length > 0 && (
                 <div className="flex flex-col gap-2">
                   {docFiles.map((doc, i) => (
                     <div
                       key={i}
-                      className="flex items-center justify-between rounded-lg bg-zinc-800/50 px-3 py-2"
+                      className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2"
                     >
                       <div className="flex items-center gap-2">
-                        <FileText className="h-4 w-4 text-zinc-400" />
-                        <span className="text-sm text-white">
+                        <FileText className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm text-foreground">
                           {doc.file.name}
                         </span>
-                        <span className="text-xs text-zinc-500">
+                        <span className="text-xs text-muted-foreground">
                           {DocTypeLabels[doc.docType]}
                         </span>
                       </div>
@@ -391,7 +369,7 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
                         onClick={() =>
                           setDocFiles(docFiles.filter((_, j) => j !== i))
                         }
-                        className="text-red-400 hover:text-red-300"
+                        className="text-red-500 hover:text-red-600"
                       >
                         <X className="h-3.5 w-3.5" />
                       </button>
@@ -407,16 +385,12 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
                     setSelectedDocType(value ?? "OTHER")
                   }
                 >
-                  <SelectTrigger className="w-40 border-zinc-700 bg-zinc-800 text-sm text-white">
+                  <SelectTrigger className="w-40 text-sm">
                     <span>{DocTypeLabels[selectedDocType]}</span>
                   </SelectTrigger>
-                  <SelectContent className="border-zinc-700 bg-zinc-800">
+                  <SelectContent>
                     {Object.entries(DocTypeLabels).map(([value, label]) => (
-                      <SelectItem
-                        key={value}
-                        value={value}
-                        className="text-zinc-300"
-                      >
+                      <SelectItem key={value} value={value}>
                         {label}
                       </SelectItem>
                     ))}
@@ -425,7 +399,7 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
                 <Button
                   type="button"
                   variant="outline"
-                  className="gap-2 border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                  className="gap-2"
                   onClick={() => document.getElementById("docUpload")?.click()}
                 >
                   <Upload className="h-4 w-4" />
@@ -455,7 +429,7 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
             <Button
               type="submit"
               disabled={loading}
-              className="gap-2 bg-emerald-600 hover:bg-emerald-700"
+              className="gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
             >
               <Save className="h-4 w-4" />
               {loading

@@ -51,10 +51,10 @@ const DashboardStats = ({ stats, statusFilter, setStatusFilter }: Props) => {
             onClick={() =>
               setStatusFilter(statusFilter === stat.key ? "ALL" : stat.key)
             }
-            className={`cursor-pointer border-zinc-800 bg-zinc-900 p-6 transition-all ${
+            className={`cursor-pointer border-border bg-card p-6 transition-all ${
               statusFilter === stat.key
-                ? "ring-1 ring-emerald-500 border-emerald-500"
-                : "hover:border-zinc-700"
+                ? "border-emerald-500 ring-1 ring-emerald-500"
+                : "hover:border-muted-foreground/30"
             }`}
           >
             <div className="flex items-center gap-4">
@@ -62,8 +62,10 @@ const DashboardStats = ({ stats, statusFilter, setStatusFilter }: Props) => {
                 <stat.icon className={`h-6 w-6 ${stat.text}`} />
               </div>
               <div>
-                <p className="text-3xl font-bold text-white">{stat.count}</p>
-                <p className="text-sm text-zinc-400">{stat.label}</p>
+                <p className="text-3xl font-bold text-foreground">
+                  {stat.count}
+                </p>
+                <p className="text-sm text-muted-foreground">{stat.label}</p>
               </div>
             </div>
           </Card>

@@ -49,14 +49,10 @@ const ProductDetails = () => {
   useEffect(() => {
     const fetchAll = async () => {
       if (!id) return;
-      console.log("fetchAll called with id:", id);
       try {
         const data = await getProductById(id);
-        console.log("product fetched:", data);
         setProduct(data);
-        console.log("calling getAllDocs");
         await getAllDocs(id);
-        console.log("calling getAllReminders");
         await getAllReminders(id);
       } catch (err) {
         console.error("fetchAll error:", err);
@@ -70,8 +66,8 @@ const ProductDetails = () => {
   if (loading) return null;
   if (!product) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-950">
-        <p className="text-zinc-400">Product not found</p>
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <p className="text-muted-foreground">Product not found</p>
       </div>
     );
   }
@@ -114,7 +110,7 @@ const ProductDetails = () => {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950">
+    <div className="min-h-screen bg-background">
       <Navbar />
       <main className="mx-auto max-w-3xl p-6">
         {/* Back button */}
@@ -125,22 +121,21 @@ const ProductDetails = () => {
         >
           <button
             onClick={() => navigate("/dashboard")}
-            className="flex items-center gap-2 text-sm text-zinc-400 transition-colors hover:text-white"
+            className="flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Dashboard
           </button>
         </motion.div>
 
-        {/* ════════ Product Info Card ════════ */}
+        {/* Product Info Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <Card className="border-zinc-800 bg-zinc-900 p-6">
+          <Card className="border-border bg-card p-6">
             <div className="flex gap-5">
-              {/* Image */}
               {product.picture ? (
                 <img
                   src={product.picture}
@@ -148,20 +143,18 @@ const ProductDetails = () => {
                   className="h-20 w-20 shrink-0 rounded-lg object-cover"
                 />
               ) : (
-                <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-lg bg-zinc-800">
-                  <Package className="h-8 w-8 text-zinc-500" />
+                <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-lg bg-muted">
+                  <Package className="h-8 w-8 text-muted-foreground" />
                 </div>
               )}
 
-              {/* Details */}
               <div className="flex-1">
-                {/* Name + Status */}
                 <div className="flex items-start justify-between">
                   <div>
-                    <h1 className="text-xl font-bold text-white">
+                    <h1 className="text-xl font-bold text-foreground">
                       {product.name}
                     </h1>
-                    <p className="mt-0.5 text-sm text-zinc-400">
+                    <p className="mt-0.5 text-sm text-muted-foreground">
                       {CategoryLabels[product.category] || product.category}
                     </p>
                   </div>
@@ -175,33 +168,33 @@ const ProductDetails = () => {
                   </Badge>
                 </div>
 
-                {/* Info Grid */}
                 <div className="mt-4 grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
                   <div>
-                    <span className="text-zinc-400">Store: </span>
-                    <span className="text-white">{product.store || "N/A"}</span>
+                    <span className="text-muted-foreground">Store: </span>
+                    <span className="text-foreground">
+                      {product.store || "N/A"}
+                    </span>
                   </div>
                   <div>
-                    <span className="text-zinc-400">Purchased: </span>
-                    <span className="text-white">
+                    <span className="text-muted-foreground">Purchased: </span>
+                    <span className="text-foreground">
                       {new Date(product.purchaseDate).toLocaleDateString()}
                     </span>
                   </div>
                   <div>
-                    <span className="text-zinc-400">Warranty: </span>
-                    <span className="text-white">
+                    <span className="text-muted-foreground">Warranty: </span>
+                    <span className="text-foreground">
                       {product.warrantyMonths} months
                     </span>
                   </div>
                   <div>
-                    <span className="text-zinc-400">Expires: </span>
-                    <span className="text-white">
+                    <span className="text-muted-foreground">Expires: </span>
+                    <span className="text-foreground">
                       {new Date(product.warrantyExpiry).toLocaleDateString()}
                     </span>
                   </div>
                 </div>
 
-                {/* Progress Bar */}
                 <WarrantyProgressBar
                   purchaseDate={product.purchaseDate}
                   warrantyExpiry={product.warrantyExpiry}
@@ -210,21 +203,18 @@ const ProductDetails = () => {
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="mt-5 flex gap-3 border-t border-zinc-800 pt-4">
+            <div className="mt-5 flex gap-3 border-t border-border pt-4">
               <Button
                 variant="outline"
-                className="gap-2 border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
-                onClick={() => {
-                  setShowProductModal(true);
-                }}
+                className="gap-2"
+                onClick={() => setShowProductModal(true)}
               >
                 <Pencil className="h-4 w-4" />
                 Edit Product
               </Button>
               <Button
                 variant="outline"
-                className="gap-2 border-zinc-700 text-red-400 hover:bg-red-500/10 hover:text-red-400"
+                className="gap-2 text-red-500 hover:bg-red-500/10 hover:text-red-500"
                 onClick={handleDelete}
               >
                 <Trash2 className="h-4 w-4" />
@@ -234,16 +224,18 @@ const ProductDetails = () => {
           </Card>
         </motion.div>
 
-        {/* ════════ Documents Card ════════ */}
+        {/* Documents Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
           className="mt-4"
         >
-          <Card className="border-zinc-800 bg-zinc-900 p-6">
+          <Card className="border-border bg-card p-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-white">Documents</h2>
+              <h2 className="text-lg font-semibold text-foreground">
+                Documents
+              </h2>
               <div className="flex items-center gap-2">
                 <Select
                   value={selectedDocType}
@@ -251,16 +243,12 @@ const ProductDetails = () => {
                     setSelectedDocType(value ?? "OTHER")
                   }
                 >
-                  <SelectTrigger className="w-40 border-zinc-700 bg-zinc-800 text-sm text-white">
+                  <SelectTrigger className="w-40 text-sm">
                     <SelectValue>{DocTypeLabels[selectedDocType]}</SelectValue>
                   </SelectTrigger>
-                  <SelectContent className="border-zinc-700 bg-zinc-800">
+                  <SelectContent>
                     {Object.entries(DocTypeLabels).map(([value, label]) => (
-                      <SelectItem
-                        key={value}
-                        value={value}
-                        className="text-zinc-300"
-                      >
+                      <SelectItem key={value} value={value}>
                         {label}
                       </SelectItem>
                     ))}
@@ -269,7 +257,7 @@ const ProductDetails = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="gap-2 border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                  className="gap-2"
                   onClick={() => document.getElementById("docUpload")?.click()}
                 >
                   <Upload className="h-3.5 w-3.5" />
@@ -287,7 +275,7 @@ const ProductDetails = () => {
             </div>
             <div className="mt-4 flex flex-col gap-2">
               {documents.length === 0 ? (
-                <p className="py-4 text-center text-sm text-zinc-500">
+                <p className="py-4 text-center text-sm text-muted-foreground">
                   No documents yet
                 </p>
               ) : (
@@ -296,17 +284,17 @@ const ProductDetails = () => {
                   return (
                     <div
                       key={doc.id}
-                      className="flex items-center justify-between rounded-lg bg-zinc-800/50 px-4 py-3"
+                      className="flex items-center justify-between rounded-lg bg-muted/50 px-4 py-3"
                     >
                       <div className="flex items-center gap-3">
-                        <span className="rounded bg-zinc-700 px-1.5 py-0.5 text-[10px] uppercase text-zinc-400">
+                        <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] uppercase text-muted-foreground">
                           {DocTypeLabels[doc.docType] || doc.docType}
                         </span>
-                        <FileIcon className="h-4 w-4 text-zinc-400" />
-                        <span className="text-sm text-white">
+                        <FileIcon className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm text-foreground">
                           {doc.fileName}
                         </span>
-                        <span className="text-xs text-zinc-500">
+                        <span className="text-xs text-muted-foreground">
                           {formatFileSize(doc.fileSize)}
                         </span>
                       </div>
@@ -315,14 +303,14 @@ const ProductDetails = () => {
                           href={doc.fileUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300"
+                          className="flex items-center gap-1 text-xs text-emerald-500 hover:text-emerald-600"
                         >
                           <ExternalLink className="h-3 w-3" />
                           View
                         </a>
                         <button
                           onClick={() => deleteDoc(doc.id, product.id)}
-                          className="text-xs text-red-400 hover:text-red-300"
+                          className="text-xs text-red-500 hover:text-red-600"
                         >
                           Delete
                         </button>
@@ -335,16 +323,18 @@ const ProductDetails = () => {
           </Card>
         </motion.div>
 
-        {/* ════════ Reminders Card ════════ */}
+        {/* Reminders Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
           className="mt-4 mb-8"
         >
-          <Card className="border-zinc-800 bg-zinc-900 p-6">
+          <Card className="border-border bg-card p-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-white">Reminders</h2>
+              <h2 className="text-lg font-semibold text-foreground">
+                Reminders
+              </h2>
               <div className="flex items-center gap-2">
                 <Input
                   type="number"
@@ -352,13 +342,15 @@ const ProductDetails = () => {
                   max={365}
                   value={daysBefore}
                   onChange={(e) => setDaysBefore(Number(e.target.value))}
-                  className="w-20 border-zinc-700 bg-zinc-800 text-center text-sm text-white"
+                  className="w-20 text-center text-sm"
                 />
-                <span className="text-xs text-zinc-400">days before</span>
+                <span className="text-xs text-muted-foreground">
+                  days before
+                </span>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="gap-2 border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                  className="gap-2"
                   onClick={handleAddReminder}
                 >
                   <Plus className="h-3.5 w-3.5" />
@@ -369,7 +361,7 @@ const ProductDetails = () => {
 
             <div className="mt-4 flex flex-col gap-2">
               {reminders.length === 0 ? (
-                <p className="py-4 text-center text-sm text-zinc-500">
+                <p className="py-4 text-center text-sm text-muted-foreground">
                   No reminders yet
                 </p>
               ) : (
@@ -381,16 +373,16 @@ const ProductDetails = () => {
                   return (
                     <div
                       key={reminder.id}
-                      className="flex items-center justify-between rounded-lg bg-zinc-800/50 px-4 py-3"
+                      className="flex items-center justify-between rounded-lg bg-muted/50 px-4 py-3"
                     >
                       <div className="flex items-center gap-3">
                         <Bell
-                          className={`h-4 w-4 ${reminder.sent ? "text-emerald-400" : "text-amber-400"}`}
+                          className={`h-4 w-4 ${reminder.sent ? "text-emerald-500" : "text-amber-500"}`}
                         />
-                        <span className="text-sm text-white">
+                        <span className="text-sm text-foreground">
                           {new Date(reminder.remindAt).toLocaleDateString()}
                         </span>
-                        <span className="text-xs text-zinc-500">
+                        <span className="text-xs text-muted-foreground">
                           {daysUntil > 0
                             ? `in ${daysUntil} days`
                             : reminder.sent
@@ -400,7 +392,7 @@ const ProductDetails = () => {
                       </div>
                       <button
                         onClick={() => deleteReminder(reminder.id, product.id)}
-                        className="text-xs text-red-400 hover:text-red-300"
+                        className="text-xs text-red-500 hover:text-red-600"
                       >
                         Delete
                       </button>

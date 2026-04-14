@@ -46,27 +46,27 @@ const ImageSearchModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="border-zinc-800 bg-zinc-900 sm:max-w-2xl">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="text-white">Search Product Image</DialogTitle>
+          <DialogTitle>Search Product Image</DialogTitle>
         </DialogHeader>
 
         {/* Search bar */}
         <div className="flex gap-2">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}
               placeholder="Search for product images..."
-              className="border-zinc-700 bg-zinc-800 pl-10 text-white placeholder:text-zinc-500"
+              className="pl-10"
             />
           </div>
           <Button
             onClick={handleSearch}
             disabled={loading}
-            className="bg-emerald-600 hover:bg-emerald-700"
+            className="bg-emerald-600 text-white hover:bg-emerald-700"
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Search"}
           </Button>
@@ -75,7 +75,7 @@ const ImageSearchModal = ({
         {/* Loading state */}
         {loading && (
           <div className="flex justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         )}
 
@@ -90,7 +90,7 @@ const ImageSearchModal = ({
                   onSelect(url);
                   onClose();
                 }}
-                className="overflow-hidden rounded-lg border border-zinc-700 transition-all hover:border-emerald-500 hover:shadow-lg hover:shadow-emerald-500/10"
+                className="overflow-hidden rounded-lg border border-border transition-all hover:border-emerald-500 hover:shadow-lg hover:shadow-emerald-500/10"
               >
                 <img src={url} alt="" className="h-32 w-full object-cover" />
               </button>
@@ -100,7 +100,9 @@ const ImageSearchModal = ({
 
         {/* Empty state */}
         {!loading && images.length === 0 && query && (
-          <div className="py-8 text-center text-zinc-500">No images found</div>
+          <div className="py-8 text-center text-muted-foreground">
+            No images found
+          </div>
         )}
       </DialogContent>
     </Dialog>

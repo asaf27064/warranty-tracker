@@ -50,7 +50,7 @@ const WarrantyProgressBar = ({
   return (
     <div className="mt-4">
       {showLabel && (
-        <div className="mb-1 flex justify-between text-xs text-zinc-500">
+        <div className="mb-1 flex justify-between text-xs text-muted-foreground">
           <span>Warranty used</span>
           <span>{percentUsed}%</span>
         </div>
@@ -78,7 +78,7 @@ const WarrantyProgressBar = ({
         className="rounded-full"
       >
         <div
-          className={`w-full overflow-hidden rounded-full bg-zinc-800 ${barHeightClassName}`}
+          className={`w-full overflow-hidden rounded-full bg-muted ${barHeightClassName}`}
         >
           <motion.div
             className={`h-full rounded-full ${colorClass}`}

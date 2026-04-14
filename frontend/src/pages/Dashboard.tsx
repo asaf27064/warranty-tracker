@@ -41,13 +41,9 @@ const Dashboard = () => {
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     switch (sortBy) {
       case "newest":
-        return (
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       case "oldest":
-        return (
-          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-        );
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
       case "expiring":
         return (
           new Date(a.warrantyExpiry).getTime() -
@@ -62,11 +58,7 @@ const Dashboard = () => {
 
   const containerVariants = {
     hidden: {},
-    show: {
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
+    show: { transition: { staggerChildren: 0.1 } },
   };
 
   const itemVariants: Variants = {
@@ -74,37 +66,31 @@ const Dashboard = () => {
     show: {
       opacity: 1,
       y: 0,
-      transition: {
-        type: "spring",
-        stiffness: 100,
-      },
+      transition: { type: "spring", stiffness: 100 },
     },
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950">
+    <div className="min-h-screen bg-background">
       <Navbar />
       <main className="mx-auto max-w-6xl p-6">
-        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           className="mt-4"
         >
-          <h1 className="text-3xl font-bold text-white">Dashboard</h1>
-          <p className="mt-1 text-zinc-400">
+          <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+          <p className="mt-1 text-muted-foreground">
             Track and manage your product warranties
           </p>
         </motion.div>
 
-        {/* Stats Cards */}
         <DashboardStats
           stats={stats}
           statusFilter={activeFilter}
           setStatusFilter={setActiveFilter}
         />
 
-        {/* Search + Filter + Add Button */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -121,9 +107,8 @@ const Dashboard = () => {
             sortBy={sortBy}
             setSortBy={setSortBy}
           />
-          {/* Add Product Button */}
           <Button
-            className="gap-2 bg-emerald-600 hover:bg-emerald-700"
+            className="gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
             onClick={() => setShowAddProduct(true)}
           >
             <Plus className="h-4 w-4" />
@@ -131,7 +116,6 @@ const Dashboard = () => {
           </Button>
         </motion.div>
 
-        {/* Product Grid */}
         <motion.div
           className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
           variants={containerVariants}
@@ -142,27 +126,20 @@ const Dashboard = () => {
             ? [...Array(6)].map((_, index) => (
                 <div
                   key={index}
-                  className="border border-zinc-800 bg-zinc-900 p-5 rounded-lg"
+                  className="rounded-lg border border-border bg-card p-5"
                 >
-                  {/* Header */}
                   <div className="flex items-start justify-between">
                     <Skeleton className="h-10 w-10 rounded-lg" />
                     <Skeleton className="h-5 w-20 rounded" />
                   </div>
-
-                  {/* Title */}
                   <div className="mt-4 space-y-2">
                     <Skeleton className="h-4 w-32" />
                     <Skeleton className="h-3 w-20" />
                   </div>
-
-                  {/* Details */}
                   <div className="mt-4 space-y-2">
                     <Skeleton className="h-3 w-28" />
                     <Skeleton className="h-3 w-36" />
                   </div>
-
-                  {/* Progress */}
                   <Skeleton className="mt-4 h-1.5 w-full rounded-full" />
                 </div>
               ))
@@ -176,20 +153,22 @@ const Dashboard = () => {
               ))}
         </motion.div>
 
-        {/* Empty state */}
         {!loading && filteredProducts.length === 0 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="mt-12 text-center"
           >
-            <Package className="mx-auto h-12 w-12 text-zinc-600" />
-            <p className="mt-4 text-lg text-zinc-400">No products found</p>
-            <p className="mt-1 text-sm text-zinc-500">
+            <Package className="mx-auto h-12 w-12 text-muted-foreground" />
+            <p className="mt-4 text-lg text-muted-foreground">
+              No products found
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
               Try a different search or add a new product
             </p>
           </motion.div>
         )}
+
         <ProductForm
           open={showAddProduct}
           onClose={() => setShowAddProduct(false)}
