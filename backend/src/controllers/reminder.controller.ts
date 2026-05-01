@@ -85,3 +85,31 @@ export const deleteReminder = async (req: Request, res: Response) => {
     return res.status(500).json({ error: "Failed to delete reminder" });
   }
 };
+
+export const getUserReminders = async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ error: "Unautorized" });
+    }
+    const reminders = await prisma.reminder.findMany({
+      where: {
+        product: { userId: req.user.id },
+      },
+      include: { product: { select: { id: true, name: true, picture: true } } },
+      orderBy: { remindAt: "asc" },
+    });
+    return res.status(200).json(reminders);
+  } catch (error) {
+    console.error(error);
+    return res
+      .status(500)
+      .json({ error: `Failed to fetch reminders of ${req.user?.name}` });
+  }
+};
+
+export const markReminderRead = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id as string;
+    await prisma.reminder.update({ where: { id }, data: { isRead: true } });
+  } catch (error) {}
+};
