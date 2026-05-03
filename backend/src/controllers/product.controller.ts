@@ -79,15 +79,21 @@ export const createProduct = async (req: Request, res: Response) => {
       },
     });
 
-    const reminderDate = new Date(warrantyExpiry);
-    reminderDate.setDate(reminderDate.getDate() - 30);
+    const reminderDays = [30, 7, 1];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-    await prisma.reminder.create({
-      data: {
-        remindAt: reminderDate,
-        productId: newProduct.id,
-      },
-    });
+    for (const days of reminderDays) {
+      const remindAt = new Date(warrantyExpiry);
+      remindAt.setDate(remindAt.getDate() - days);
+      remindAt.setHours(8, 0, 0, 0); // set to 08:00
+
+      if (remindAt >= today) {
+        await prisma.reminder.create({
+          data: { remindAt, productId: newProduct.id },
+        });
+      }
+    }
 
     return res.status(201).json(newProduct);
   } catch (error) {

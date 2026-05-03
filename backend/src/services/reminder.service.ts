@@ -1,7 +1,7 @@
 import cron from "node-cron";
 import prisma from "../config/db";
 
-const processReminders = async () => {
+export const processReminders = async () => {
   const now = new Date();
   const thirtyDaysFromNow = new Date();
   thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);

@@ -5,6 +5,7 @@ import { Switch } from "../components/ui/switch";
 import { Button } from "../components/ui/button";
 import { LogOut, Sun, Moon } from "lucide-react";
 import logo from "../assets/logo.png";
+import NotificationBell from "./NotificationBell";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -30,10 +31,12 @@ const Navbar = () => {
           />
           <Moon className="h-4 w-4 text-muted-foreground" />
         </div>
+        <NotificationBell />
         <Avatar className="h-8 w-8">
           <AvatarImage src={user?.avatarUrl} />
           <AvatarFallback>{user?.name?.charAt(0)}</AvatarFallback>
         </Avatar>
+
         <Button
           variant="ghost"
           size="icon"

@@ -36,10 +36,7 @@ export const createReminder = async (req: Request, res: Response) => {
     }
 
     const product = await prisma.product.findFirst({
-      where: {
-        id: productId,
-        userId: req.user!.id,
-      },
+      where: { id: productId, userId: req.user!.id },
     });
 
     if (!product) {
@@ -49,12 +46,20 @@ export const createReminder = async (req: Request, res: Response) => {
     const remindAt = new Date(product.warrantyExpiry);
     remindAt.setDate(remindAt.getDate() - daysBefore);
 
-    const newReminder = await prisma.reminder.create({
-      data: {
-        remindAt,
-        productId,
-      },
+    const existing = await prisma.reminder.findFirst({
+      where: { productId, remindAt },
     });
+
+    if (existing) {
+      return res
+        .status(409)
+        .json({ error: "Reminder already exists for this date" });
+    }
+
+    const newReminder = await prisma.reminder.create({
+      data: { remindAt, productId },
+    });
+
     return res.status(201).json(newReminder);
   } catch (error) {
     console.error(error);
@@ -95,7 +100,11 @@ export const getUserReminders = async (req: Request, res: Response) => {
       where: {
         product: { userId: req.user.id },
       },
-      include: { product: { select: { id: true, name: true, picture: true } } },
+      include: {
+        product: {
+          select: { id: true, name: true, picture: true, warrantyExpiry: true },
+        },
+      },
       orderBy: { remindAt: "asc" },
     });
     return res.status(200).json(reminders);
@@ -111,5 +120,9 @@ export const markReminderRead = async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
     await prisma.reminder.update({ where: { id }, data: { isRead: true } });
-  } catch (error) {}
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Failed to mark reminder as read" });
+  }
 };

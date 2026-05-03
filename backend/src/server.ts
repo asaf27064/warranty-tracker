@@ -10,7 +10,7 @@ import authRoutes from "./routes/auth.routes";
 import productRoutes from "./routes/product.routes";
 import documentRoutes from "./routes/document.routes";
 import reminderRoutes from "./routes/reminder.routes";
-import { startReminderCron } from "./services/reminder.service";
+import { processReminders, startReminderCron } from "./services/reminder.service";
 import imageRoutes from "./routes/image.routes";
 
 initializePassport();
@@ -35,6 +35,12 @@ app.use("/api/reminders", reminderRoutes);
 app.use("/api/images", imageRoutes);
 
 startReminderCron();
+
+//Testing Cron
+app.get("/api/test/cron", async (req, res) => {
+  await processReminders();
+  res.json({ done: true });
+});
 
 app.listen(PORT, () => {
   console.log(`server running on port: ${PORT}`);
