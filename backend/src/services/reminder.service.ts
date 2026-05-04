@@ -1,5 +1,6 @@
 import cron from "node-cron";
 import prisma from "../config/db";
+import { sendReminderEmail } from "./email.service";
 
 export const processReminders = async () => {
   const now = new Date();
@@ -24,14 +25,40 @@ export const processReminders = async () => {
     data: { status: "EXPIRING_SOON" },
   });
 
-  // 3. mark due reminders as sent
-  await prisma.reminder.updateMany({
+  // 3. find due reminders and send emails
+  const dueReminders = await prisma.reminder.findMany({
     where: {
       remindAt: { lte: now },
       sent: false,
     },
-    data: { sent: true, sentAt: now },
+    include: {
+      product: {
+        include: { user: true },
+      },
+    },
   });
+
+  for (const reminder of dueReminders) {
+    const daysLeft = Math.ceil(
+      (new Date(reminder.product.warrantyExpiry).getTime() - now.getTime()) /
+        (1000 * 60 * 60 * 24),
+    );
+
+    try {
+      await sendReminderEmail(
+        reminder.product.user.email,
+        reminder.product.name,
+        daysLeft,
+      );
+    } catch (error) {
+      console.error(`Failed to send email for reminder ${reminder.id}:`, error);
+    }
+
+    await prisma.reminder.update({
+      where: { id: reminder.id },
+      data: { sent: true, sentAt: now },
+    });
+  }
 };
 
 export const startReminderCron = () => {
