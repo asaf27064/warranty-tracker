@@ -9,19 +9,18 @@ WarrantyTracker is a full-stack web application that helps users manage product 
  
 ## ✨ Features
  
-- **Google OAuth Authentication** — secure sign-in with JWT access tokens and refresh token rotation
-- **Product Management** — add, edit, and delete products with warranty tracking
-- **Smart Status Tracking** — automatic status updates (Active → Expiring Soon → Expired)
-- **Document Storage** — upload receipts, invoices, and warranty certificates to Cloudflare R2
-- **Image Search** — find product images via SerpAPI Google Images integration
-- **Image Upload** — upload product images directly to cloud storage
-- **Automated Reminders** — auto-created at 30, 7, and 1 day before warranty expiry
-- **In-App Notifications** — notification bell with unread count and click-to-navigate
-- **Daily Cron Job** — background service that updates warranty statuses and triggers reminders
-- **Advanced Filtering** — search by name/store, filter by status and category, sort by date or name
-- **Dark / Light Theme** — full theme support with smooth toggle
-- **Responsive Design** — works on desktop and mobile
-- **Duplicate Prevention** — blocks duplicate reminders for the same date
+- **Google OAuth Authentication** - secure sign-in with JWT access tokens and refresh token rotation
+- **Product Management** - add, edit, and delete products with warranty tracking
+- **Smart Status Tracking** - automatic status updates (Active → Expiring Soon → Expired)
+- **Document Storage** - upload receipts, invoices, and warranty certificates to Cloudflare R2
+- **Image Search** - find product images via SerpAPI Google Images integration
+- **Image Upload** - upload product images directly to cloud storage
+- **Automated Reminders** - auto-created at 30, 7, and 1 day before warranty expiry
+- **In-App Notifications** - notification bell with unread count and click-to-navigate
+- **Daily Cron Job** - background service that updates warranty statuses and triggers reminders
+- **Advanced Filtering** - search by name/store, filter by status and category, sort by date or name
+- **Dark / Light Theme** - full theme support with smooth toggle
+- **Responsive Design** - works on desktop and mobile
 ---
  
 ## 🛠️ Tech Stack
