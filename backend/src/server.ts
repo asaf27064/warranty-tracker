@@ -1,4 +1,5 @@
 import app from "./app";
+import prisma from "./config/db";
 import { processReminders, startReminderCron } from "./services/reminder.service";
 
 const PORT = process.env.PORT;
@@ -10,6 +11,17 @@ app.get("/api/test/cron", async (req, res) => {
   res.json({ done: true });
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`server running on port: ${PORT}`);
 });
+
+const shutdown = async (signal: string) => {
+  console.log(`${signal} received, shutting down`);
+  server.close(async () => {
+    await prisma.$disconnect();
+    process.exit(0);
+  });
+};
+
+process.on("SIGINT", () => shutdown("SIGINT"));
+process.on("SIGTERM", () => shutdown("SIGTERM"));
