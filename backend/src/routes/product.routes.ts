@@ -7,15 +7,31 @@ import {
   updateProduct,
   deleteProduct,
 } from "../controllers/product.controller";
+import { idParamSchema } from "../schemas/common.schema";
+import { validateRequest } from "../middlewares/validate";
+import {
+  getAllProductsQuerySchema,
+  updateProductSchema,
+  createProductSchema,
+} from "../schemas/product.schema";
 
 const router = Router();
 
 router.use(verifyJWT);
 
-router.get("/", getAllProducts);
-router.get("/:id", getProductById);
-router.post("/", createProduct);
-router.put("/:id", updateProduct);
-router.delete("/:id", deleteProduct);
+router.get(
+  "/",
+  validateRequest(getAllProductsQuerySchema, "query"),
+  getAllProducts,
+);
+router.get("/:id", validateRequest(idParamSchema, "params"), getProductById);
+router.post("/", validateRequest(createProductSchema, "body"), createProduct);
+router.put(
+  "/:id",
+  validateRequest(idParamSchema, "params"),
+  validateRequest(updateProductSchema, "body"),
+  updateProduct,
+);
+router.delete("/:id", validateRequest(idParamSchema, "params"), deleteProduct);
 
 export default router;
