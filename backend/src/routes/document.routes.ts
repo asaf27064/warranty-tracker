@@ -6,6 +6,9 @@ import {
   uploadDoc,
   deleteDoc,
 } from "../controllers/document.controller";
+import { validateRequest } from "../middlewares/validate";
+import { idParamSchema, productIdParamSchema } from "../schemas/common.schema";
+import { uploadDocSchema } from "../schemas/document.schema";
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -16,8 +19,18 @@ const router = Router();
 
 router.use(verifyJWT);
 
-router.get("/product/:productId", getAllDocs);
-router.post("/product/:productId", upload.single("file"), uploadDoc);
-router.delete("/:id", deleteDoc);
+router.get(
+  "/product/:productId",
+  validateRequest(productIdParamSchema, "params"),
+  getAllDocs,
+);
+router.post(
+  "/product/:productId",
+  validateRequest(productIdParamSchema, "params"),
+  upload.single("file"),
+  validateRequest(uploadDocSchema, "body"),
+  uploadDoc,
+);
+router.delete("/:id", validateRequest(idParamSchema, "params"), deleteDoc);
 
 export default router;
