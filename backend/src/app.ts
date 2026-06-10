@@ -11,6 +11,7 @@ import productRoutes from "./routes/product.routes";
 import documentRoutes from "./routes/document.routes";
 import reminderRoutes from "./routes/reminder.routes";
 import imageRoutes from "./routes/image.routes";
+import aiRoutes from "./routes/ai.routes";
 
 initializePassport();
 
@@ -31,5 +32,6 @@ app.use("/api/products", productRoutes);
 app.use("/api/documents", documentRoutes);
 app.use("/api/reminders", reminderRoutes);
 app.use("/api/images", imageRoutes);
+app.use("/api/ai", aiRoutes);
 
 export default app;

@@ -37,6 +37,11 @@ enum DocumentType {
   OTHER
 }
 
+enum MessageRole {
+  USER
+  ASSISTANT
+}
+
 model User {
   id            String         @id @default(uuid())
   googleId      String         @unique
@@ -45,6 +50,7 @@ model User {
   email         String         @unique
   products      Product[]
   refreshTokens RefreshToken[]
+  conversations Conversation[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 }
@@ -93,6 +99,28 @@ model Document {
   uploadedAt DateTime     @default(now())
 
   @@index([productId])
+}
+
+model Conversation {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages  Message[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           MessageRole
+  content        String
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId])
 }
 
 model Reminder {
