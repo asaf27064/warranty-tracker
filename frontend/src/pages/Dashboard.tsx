@@ -10,6 +10,7 @@ import { Skeleton } from "../components/ui/skeleton";
 import ProductFilters from "../components/ProductFilters";
 import DashboardStats from "../components/DashboardStats";
 import ProductCard from "../components/ProductCard";
+import ChatWidget from "../components/ChatWidget";
 import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
@@ -178,6 +179,8 @@ const Dashboard = () => {
           }}
         />
       </main>
+
+      <ChatWidget />
     </div>
   );
 };
