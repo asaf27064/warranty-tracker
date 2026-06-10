@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Button } from "./ui/button";
@@ -45,6 +45,12 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
     [],
   );
   const [selectedDocType, setSelectedDocType] = useState("OTHER");
+  const [aiText, setAiText] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [missingFields, setMissingFields] = useState<string[]>([]);
+  const [aiHint, setAiHint] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const submittingRef = useRef(false);
 
   const isEdit = !!product;
 
@@ -102,6 +108,11 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
     setLoading(false);
     setDocFiles([]);
     setSelectedDocType("OTHER");
+    setAiText("");
+    setMissingFields([]);
+    setAiHint(false);
+    setSaveError(null);
+    submittingRef.current = false;
   }, [product, open]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -110,12 +121,27 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
       ...prev,
       [name]: type === "number" ? Number(value) : value,
     }));
+    setMissingFields((prev) => prev.filter((f) => f !== name));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name || !form.purchaseDate || !form.warrantyDuration) return;
 
+    // Block re-entry while a save is already in flight (ref updates synchronously,
+    // so rapid double-clicks are caught before `loading` re-renders).
+    if (submittingRef.current) return;
+
+    const missing: string[] = [];
+    if (!form.name) missing.push("name");
+    if (!form.purchaseDate) missing.push("purchaseDate");
+    if (!form.warrantyDuration) missing.push("warrantyDuration");
+    if (missing.length > 0) {
+      setMissingFields(missing);
+      return;
+    }
+
+    submittingRef.current = true;
+    setSaveError(null);
     setLoading(true);
 
     const warrantyMonths =
@@ -154,7 +180,7 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
           purchaseDate: new Date(form.purchaseDate).toISOString(),
           warrantyMonths,
           store: form.store || undefined,
-          picture: pictureUrl,
+          picture: pictureUrl || undefined,
         });
         productId = res?.id;
       }
@@ -170,10 +196,68 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
         }
       }
       onSuccess();
+      // On success, intentionally leave `loading` and the submit guard set:
+      // the dialog closes via onSuccess, and both reset when it reopens
+      // (see the open effect). This prevents a duplicate submit during the
+      // async gap before the dialog actually closes.
     } catch (error) {
       console.error(error);
-    } finally {
+      setSaveError("Failed to save product. Please try again.");
       setLoading(false);
+      submittingRef.current = false;
+    }
+  };
+
+  const handleAiFill = async () => {
+    if (!aiText.trim()) return;
+
+    setAiLoading(true);
+    setMissingFields([]);
+    setAiHint(false);
+    try {
+      const res = await api.post("/api/ai/extract-product", { text: aiText });
+      // Partial product: any field may be missing.
+      const p = res.data as {
+        name?: string;
+        store?: string | null;
+        category?: string;
+        purchaseDate?: string;
+        warrantyMonths?: number;
+      };
+
+      const hasMonths = typeof p.warrantyMonths === "number";
+      const isYears =
+        hasMonths && p.warrantyMonths! >= 12 && p.warrantyMonths! % 12 === 0;
+
+      setForm((prev) => ({
+        ...prev,
+        name: p.name ?? prev.name,
+        store: p.store ?? prev.store,
+        category: p.category ?? prev.category,
+        purchaseDate: p.purchaseDate ?? prev.purchaseDate,
+        warrantyDuration: hasMonths
+          ? isYears
+            ? p.warrantyMonths! / 12
+            : p.warrantyMonths!
+          : prev.warrantyDuration,
+        warrantyUnit: hasMonths
+          ? isYears
+            ? "Years"
+            : "Months"
+          : prev.warrantyUnit,
+      }));
+
+      // Flag required fields the model could not determine.
+      const missing: string[] = [];
+      if (!p.name) missing.push("name");
+      if (!p.purchaseDate) missing.push("purchaseDate");
+      if (!hasMonths) missing.push("warrantyDuration");
+      setMissingFields(missing);
+      setAiHint(missing.length > 0);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setAiLoading(false);
     }
   };
 
@@ -183,7 +267,32 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
         <DialogHeader>
           <DialogTitle>{isEdit ? "Edit Product" : "Add Product"}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        {!isEdit && (
+          <div className="space-y-2 rounded-lg border border-border bg-muted/40 p-3">
+            <Label htmlFor="aiText">✨ Quick add with AI</Label>
+            <div className="flex gap-2">
+              <Input
+                id="aiText"
+                placeholder="e.g. bought a MacBook last month, 3 year warranty"
+                value={aiText}
+                onChange={(e) => setAiText(e.target.value)}
+              />
+              <Button
+                type="button"
+                onClick={handleAiFill}
+                disabled={aiLoading || !aiText.trim()}
+              >
+                {aiLoading ? "Thinking..." : "Fill"}
+              </Button>
+            </div>
+            {aiHint && missingFields.length > 0 && (
+              <p className="text-sm text-amber-600">
+                Filled what I could — please complete the highlighted fields.
+              </p>
+            )}
+          </div>
+        )}
+        <form onSubmit={handleSubmit} noValidate className="space-y-6">
           {/* Product Name */}
           <div className="space-y-2">
             <Label htmlFor="name">Product Name *</Label>
@@ -195,6 +304,11 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
               required
               value={form.name}
               onChange={handleChange}
+              className={
+                missingFields.includes("name")
+                  ? "border-amber-500 ring-1 ring-amber-500"
+                  : ""
+              }
             />
           </div>
 
@@ -249,6 +363,11 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
                 required
                 value={form.purchaseDate}
                 onChange={handleChange}
+                className={
+                  missingFields.includes("purchaseDate")
+                    ? "border-amber-500 ring-1 ring-amber-500"
+                    : ""
+                }
               />
             </div>
 
@@ -264,7 +383,11 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
                   max={120}
                   value={form.warrantyDuration}
                   onChange={handleChange}
-                  className="flex-1"
+                  className={`flex-1 ${
+                    missingFields.includes("warrantyDuration")
+                      ? "border-amber-500 ring-1 ring-amber-500"
+                      : ""
+                  }`}
                 />
                 <Select
                   value={form.warrantyUnit}
@@ -425,19 +548,24 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
           )}
 
           {/* Submit */}
-          <div className="flex gap-3 pt-2">
-            <Button
-              type="submit"
-              disabled={loading}
-              className="gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
-            >
-              <Save className="h-4 w-4" />
-              {loading
-                ? "Saving..."
-                : isEdit
-                  ? "Update Product"
-                  : "Save Product"}
-            </Button>
+          <div className="space-y-2 pt-2">
+            <div className="flex gap-3">
+              <Button
+                type="submit"
+                disabled={loading}
+                className="gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
+              >
+                <Save className="h-4 w-4" />
+                {loading
+                  ? "Saving..."
+                  : isEdit
+                    ? "Update Product"
+                    : "Save Product"}
+              </Button>
+            </div>
+            {saveError && (
+              <p className="text-sm text-red-500">{saveError}</p>
+            )}
           </div>
         </form>
 
