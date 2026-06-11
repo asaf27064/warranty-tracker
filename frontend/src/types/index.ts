@@ -78,6 +78,8 @@ export type Stats = {
   active: number;
   expiringSoon: number;
   expired: number;
+  total?: number;
+  byCategory?: Record<string, number>;
 };
 
 export type Document = {

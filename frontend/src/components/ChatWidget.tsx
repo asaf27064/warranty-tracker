@@ -45,6 +45,13 @@ const ChatWidget = () => {
     });
   }, [messages, loading]);
 
+  // Let other parts of the app (e.g. the sidebar "Ask assistant") open the chat.
+  useEffect(() => {
+    const open = () => setOpen(true);
+    window.addEventListener("wt-open-chat", open);
+    return () => window.removeEventListener("wt-open-chat", open);
+  }, []);
+
   const handleSend = async () => {
     if (!input.trim() || loading) return;
     const text = input;
@@ -95,7 +102,7 @@ const ChatWidget = () => {
             {/* Messages */}
             <div
               ref={scrollRef}
-              className="flex-1 space-y-3 overflow-y-auto p-4"
+              className="nice-scroll flex-1 space-y-3 overflow-y-auto p-4"
             >
               {messages.length === 0 && (
                 <div className="mt-8 text-center text-sm text-muted-foreground">

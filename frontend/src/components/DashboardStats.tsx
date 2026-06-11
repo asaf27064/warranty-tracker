@@ -1,76 +1,75 @@
 import { motion } from "framer-motion";
-import { ShieldCheck, AlertTriangle, ShieldX } from "lucide-react";
-import { Card } from "./ui/card";
+import { CircleCheck, ClockAlert, CircleX } from "lucide-react";
+import type { Stats } from "../types";
 
 type Props = {
-  stats: { active: number; expiringSoon: number; expired: number };
+  stats: Stats;
   statusFilter: string;
   setStatusFilter: (value: string) => void;
 };
 
 const DashboardStats = ({ stats, statusFilter, setStatusFilter }: Props) => {
+  const total =
+    stats.total ?? stats.active + stats.expiringSoon + stats.expired;
+  const coverage = total ? Math.round((stats.active / total) * 100) : 0;
+
   const items = [
     {
-      icon: ShieldCheck,
-      count: stats.active,
-      label: "Active",
       key: "ACTIVE",
-      bg: "bg-emerald-500/10",
-      text: "text-emerald-500",
-      delay: 0.1,
+      label: "Active",
+      count: stats.active,
+      sub: `${coverage}% of all products`,
+      icon: CircleCheck,
+      color: "text-emerald-500",
     },
     {
-      icon: AlertTriangle,
-      count: stats.expiringSoon,
-      label: "Expiring Soon",
       key: "EXPIRING_SOON",
-      bg: "bg-amber-500/10",
-      text: "text-amber-500",
-      delay: 0.2,
+      label: "Expiring soon",
+      count: stats.expiringSoon,
+      sub: "within 30 days",
+      icon: ClockAlert,
+      color: "text-amber-500",
     },
     {
-      icon: ShieldX,
-      count: stats.expired,
-      label: "Expired",
       key: "EXPIRED",
-      bg: "bg-red-500/10",
-      text: "text-red-500",
-      delay: 0.3,
+      label: "Expired",
+      count: stats.expired,
+      sub: "needs review",
+      icon: CircleX,
+      color: "text-red-500",
     },
   ];
+
   return (
-    <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
-      {items.map((stat) => (
-        <motion.div
-          key={stat.label}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: stat.delay }}
-        >
-          <Card
+    <div className="mt-2 grid grid-cols-1 gap-4 sm:grid-cols-3">
+      {items.map((stat, i) => {
+        const selected = statusFilter === stat.key;
+        return (
+          <motion.button
+            key={stat.key}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 * (i + 1) }}
             onClick={() =>
-              setStatusFilter(statusFilter === stat.key ? "ALL" : stat.key)
+              setStatusFilter(selected ? "ALL" : stat.key)
             }
-            className={`cursor-pointer border-border bg-card p-6 transition-all ${
-              statusFilter === stat.key
-                ? "border-emerald-500 ring-1 ring-emerald-500"
-                : "hover:border-muted-foreground/30"
+            className={`rounded-xl border p-4 text-left transition-colors ${
+              selected
+                ? "border-foreground/20 bg-muted"
+                : "border-border bg-card hover:bg-muted/40"
             }`}
           >
-            <div className="flex items-center gap-4">
-              <div className={`rounded-xl ${stat.bg} p-3`}>
-                <stat.icon className={`h-6 w-6 ${stat.text}`} />
-              </div>
-              <div>
-                <p className="text-3xl font-bold text-foreground">
-                  {stat.count}
-                </p>
-                <p className="text-sm text-muted-foreground">{stat.label}</p>
-              </div>
+            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <stat.icon className={`h-4 w-4 ${stat.color}`} />
+              {stat.label}
             </div>
-          </Card>
-        </motion.div>
-      ))}
+            <div className="mt-1 text-3xl font-bold text-foreground">
+              {stat.count}
+            </div>
+            <div className={`mt-0.5 text-xs ${stat.color}`}>{stat.sub}</div>
+          </motion.button>
+        );
+      })}
     </div>
   );
 };

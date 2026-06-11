@@ -123,20 +123,39 @@ export async function listProducts(
   };
 }
 
-// Status counts across ALL of the user's products (independent of filters),
-// for the dashboard stat cards.
+// Counts across ALL of the user's products (independent of filters): status
+// counts for the stat cards + sidebar Views, and per-category counts + total
+// for the sidebar Categories nav.
 export async function getProductStats(userId: string) {
-  const grouped = await prisma.product.groupBy({
-    by: ["status"],
-    where: { userId },
-    _count: { _all: true },
-  });
-  const stats = { active: 0, expiringSoon: 0, expired: 0 };
-  for (const g of grouped) {
+  const [byStatus, byCategory] = await Promise.all([
+    prisma.product.groupBy({
+      by: ["status"],
+      where: { userId },
+      _count: { _all: true },
+    }),
+    prisma.product.groupBy({
+      by: ["category"],
+      where: { userId },
+      _count: { _all: true },
+    }),
+  ]);
+
+  const stats = {
+    active: 0,
+    expiringSoon: 0,
+    expired: 0,
+    total: 0,
+    byCategory: {} as Record<string, number>,
+  };
+  for (const g of byStatus) {
     if (g.status === "ACTIVE") stats.active = g._count._all;
     else if (g.status === "EXPIRING_SOON") stats.expiringSoon = g._count._all;
     else if (g.status === "EXPIRED") stats.expired = g._count._all;
   }
+  for (const g of byCategory) {
+    stats.byCategory[g.category] = g._count._all;
+  }
+  stats.total = stats.active + stats.expiringSoon + stats.expired;
   return stats;
 }
 
