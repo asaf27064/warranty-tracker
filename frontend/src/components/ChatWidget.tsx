@@ -8,6 +8,7 @@ import {
   Loader2,
   SquarePen,
   Package,
+  Sparkles,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
@@ -30,8 +31,16 @@ const ChatWidget = () => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
+  const [announceSeen, setAnnounceSeen] = useState(
+    () => localStorage.getItem("wtChatAnnounceSeen") === "1",
+  );
   const { messages, sendMessage, loading, reset } = useChat();
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const dismissAnnounce = () => {
+    setAnnounceSeen(true);
+    localStorage.setItem("wtChatAnnounceSeen", "1");
+  };
 
   const openProduct = (p: Product) => {
     setOpen(false);
@@ -52,6 +61,12 @@ const ChatWidget = () => {
     return () => window.removeEventListener("wt-open-chat", open);
   }, []);
 
+  // Once the user opens the chat, the announcement has served its purpose.
+  useEffect(() => {
+    if (open && !announceSeen) dismissAnnounce();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
   const handleSend = async () => {
     if (!input.trim() || loading) return;
     const text = input;
@@ -61,6 +76,35 @@ const ChatWidget = () => {
 
   return (
     <>
+      {/* First-visit announcement */}
+      <AnimatePresence>
+        {!open && !announceSeen && (
+          <motion.div
+            initial={{ opacity: 0, y: 10, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.96 }}
+            className="fixed bottom-24 right-6 z-50 w-60 rounded-2xl border border-border bg-card p-3 pr-8 shadow-xl"
+          >
+            <button
+              onClick={dismissAnnounce}
+              aria-label="Dismiss"
+              className="absolute right-2 top-2 text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </button>
+            <button onClick={() => setOpen(true)} className="text-left">
+              <p className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+                <Sparkles className="h-4 w-4 text-sky-500" />
+                Meet your AI assistant
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Ask about your warranties or add a product just by chatting.
+              </p>
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Floating toggle button */}
       <motion.button
         whileHover={{ scale: 1.05 }}
