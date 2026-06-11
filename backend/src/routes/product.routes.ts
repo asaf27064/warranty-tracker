@@ -2,6 +2,7 @@ import { Router } from "express";
 import { verifyJWT } from "../middlewares/auth";
 import {
   getAllProducts,
+  getProductStats,
   getProductById,
   createProduct,
   updateProduct,
@@ -24,6 +25,7 @@ router.get(
   validateRequest(getAllProductsQuerySchema, "query"),
   getAllProducts,
 );
+router.get("/stats", getProductStats);
 router.get("/:id", validateRequest(idParamSchema, "params"), getProductById);
 router.post("/", validateRequest(createProductSchema, "body"), createProduct);
 router.put(

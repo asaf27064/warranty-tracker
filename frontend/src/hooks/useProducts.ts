@@ -1,25 +1,49 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import api from "../api/axios";
 import type {
   CreateProductData,
   Product,
   UpdateProductData,
+  Stats,
 } from "../types/index";
+
+export type ProductQuery = {
+  search?: string;
+  status?: string;
+  category?: string;
+  sort?: string;
+};
 
 export const useProducts = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [stats, setStats] = useState<Stats>({
+    active: 0,
+    expiringSoon: 0,
+    expired: 0,
+  });
   const [loading, setLoading] = useState(false);
 
-  const getAllProducts = async (search?: string) => {
+  const getAllProducts = async (params: ProductQuery = {}) => {
     setLoading(true);
     try {
-      const res = await api.get("/api/products", {
-        params: search ? { search } : {},
-      });
+      // Only send meaningful params; "ALL"/empty mean "no filter".
+      const query: Record<string, string> = {};
+      if (params.search) query.search = params.search;
+      if (params.status && params.status !== "ALL") query.status = params.status;
+      if (params.category && params.category !== "ALL")
+        query.category = params.category;
+      if (params.sort) query.sort = params.sort;
+
+      const res = await api.get("/api/products", { params: query });
       setProducts(res.data);
     } finally {
       setLoading(false);
     }
+  };
+
+  const getStats = async () => {
+    const res = await api.get("/api/products/stats");
+    setStats(res.data);
   };
 
   const getProductById = async (id: string) => {
@@ -29,38 +53,24 @@ export const useProducts = () => {
 
   const createProduct = async (data: CreateProductData) => {
     const res = await api.post("/api/products", data);
-    setProducts([...products, res.data]);
     return res.data;
   };
 
   const updateProduct = async (id: string, data: UpdateProductData) => {
-    try {
-      const res = await api.put(`/api/products/${id}`, data);
-
-      setProducts((prev) =>
-        prev.map((product) => (product.id === id ? res.data : product)),
-      );
-
-      return res.data;
-    } catch (error) {
-      console.error(error);
-      throw error;
-    }
+    const res = await api.put(`/api/products/${id}`, data);
+    return res.data;
   };
 
   const deleteProduct = async (id: string) => {
     await api.delete(`/api/products/${id}`);
-    setProducts(products.filter((p) => p.id !== id));
   };
-
-  useEffect(() => {
-    getAllProducts();
-  }, []);
 
   return {
     products,
+    stats,
     loading,
     getAllProducts,
+    getStats,
     getProductById,
     createProduct,
     updateProduct,
