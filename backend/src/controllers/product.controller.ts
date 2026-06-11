@@ -1,33 +1,15 @@
 import { Request, Response } from "express";
-import prisma from "../config/db";
-import { getWarrantyStatus } from "../utils/getWarrantyStatus";
+import * as productService from "../services/product.service";
 
 export const getAllProducts = async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({ error: "Unauthorized" });
     }
-
-    const rawSearch = req.query.search as string | undefined;
-    const search = rawSearch?.trim();
-
-    const products = await prisma.product.findMany({
-      where: {
-        userId: req.user.id,
-        ...(search
-          ? {
-              OR: [
-                { name: { contains: search, mode: "insensitive" } },
-                { store: { contains: search, mode: "insensitive" } },
-              ],
-            }
-          : {}),
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
+    const search = (req.query.search as string | undefined)?.trim();
+    const products = await productService.searchProducts(req.user.id, {
+      query: search,
     });
-
     return res.status(200).json(products);
   } catch (error) {
     console.error(error);
@@ -41,14 +23,10 @@ export const getProductById = async (req: Request, res: Response) => {
     if (!id) {
       return res.status(400).json({ error: "id parameter is required" });
     }
-    const product = await prisma.product.findFirst({
-      where: { id, userId: req.user!.id },
-    });
-
+    const product = await productService.getProductById(req.user!.id, id);
     if (!product) {
       return res.status(404).json({ error: "Product not found" });
     }
-
     return res.status(200).json(product);
   } catch (error) {
     console.error(error);
@@ -58,43 +36,7 @@ export const getProductById = async (req: Request, res: Response) => {
 
 export const createProduct = async (req: Request, res: Response) => {
   try {
-    const purchaseDate = new Date(req.body.purchaseDate);
-    const warrantyExpiry = new Date(purchaseDate);
-    warrantyExpiry.setMonth(
-      warrantyExpiry.getMonth() + req.body.warrantyMonths,
-    );
-    const status = getWarrantyStatus(purchaseDate, warrantyExpiry);
-
-    const newProduct = await prisma.product.create({
-      data: {
-        name: req.body.name,
-        store: req.body.store,
-        picture: req.body.picture,
-        userId: req.user!.id,
-        purchaseDate: purchaseDate,
-        warrantyExpiry: warrantyExpiry,
-        warrantyMonths: req.body.warrantyMonths,
-        category: req.body.category,
-        status,
-      },
-    });
-
-    const reminderDays = [30, 7, 1];
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    for (const days of reminderDays) {
-      const remindAt = new Date(warrantyExpiry);
-      remindAt.setDate(remindAt.getDate() - days);
-      remindAt.setHours(8, 0, 0, 0); // set to 08:00
-
-      if (remindAt >= today) {
-        await prisma.reminder.create({
-          data: { remindAt, productId: newProduct.id },
-        });
-      }
-    }
-
+    const newProduct = await productService.createProduct(req.user!.id, req.body);
     return res.status(201).json(newProduct);
   } catch (error) {
     console.error(error);
@@ -108,36 +50,10 @@ export const updateProduct = async (req: Request, res: Response) => {
     if (!id) {
       return res.status(400).json({ error: "id parameter is required" });
     }
-    const product = await prisma.product.findFirst({
-      where: { id, userId: req.user!.id },
-    });
-
-    if (!product) {
+    const updated = await productService.updateProduct(req.user!.id, id, req.body);
+    if (!updated) {
       return res.status(404).json({ error: "Product not found" });
     }
-
-    const purchaseDate = req.body.purchaseDate
-      ? new Date(req.body.purchaseDate)
-      : product.purchaseDate;
-    const warrantyMonths = req.body.warrantyMonths ?? product.warrantyMonths;
-    const warrantyExpiry = new Date(purchaseDate);
-    warrantyExpiry.setMonth(warrantyExpiry.getMonth() + warrantyMonths);
-    const status = getWarrantyStatus(purchaseDate, warrantyExpiry);
-
-    const updated = await prisma.product.update({
-      where: { id },
-      data: {
-        name: req.body.name ?? product.name,
-        store: req.body.store !== undefined ? req.body.store : product.store,
-        picture:
-          req.body.picture !== undefined ? req.body.picture : product.picture,
-        purchaseDate: purchaseDate,
-        warrantyExpiry: warrantyExpiry,
-        warrantyMonths: warrantyMonths,
-        category: req.body.category ?? product.category,
-        status,
-      },
-    });
     return res.status(200).json(updated);
   } catch (error) {
     console.error(error);
@@ -151,15 +67,10 @@ export const deleteProduct = async (req: Request, res: Response) => {
     if (!id) {
       return res.status(400).json({ error: "id parameter is required" });
     }
-    const product = await prisma.product.findFirst({
-      where: { id, userId: req.user!.id },
-    });
-
-    if (!product) {
+    const deleted = await productService.deleteProduct(req.user!.id, id);
+    if (!deleted) {
       return res.status(404).json({ error: "Product not found" });
     }
-
-    await prisma.product.delete({ where: { id } });
     return res.status(204).json({ message: "Product deleted" });
   } catch (error) {
     console.error(error);

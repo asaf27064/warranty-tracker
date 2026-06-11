@@ -6,6 +6,7 @@ import {
   extractProduct,
   extractProductImage,
   chat,
+  getConversation,
 } from "../controllers/ai.controller";
 import { validateRequest } from "../middlewares/validate";
 import { extractProductSchema, chatSchema } from "../schemas/ai.schema";
@@ -18,6 +19,10 @@ const upload = multer({
 });
 
 router.use(verifyJWT);
+
+// Reading history is not an AI call — keep it out of the rate limiter.
+router.get("/conversations/:id", getConversation);
+
 router.use(aiRateLimit);
 
 router.post(
