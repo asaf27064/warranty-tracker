@@ -58,21 +58,18 @@ const timeLeft = (expiry: string): string => {
 
 const ProductCard = ({ product, onClick }: Props) => {
   const statusConfig = {
-    ACTIVE: { color: "bg-emerald-500/10 text-emerald-500", label: "Active" },
-    EXPIRING_SOON: {
-      color: "bg-amber-500/10 text-amber-500",
-      label: "Expiring",
-    },
-    EXPIRED: { color: "bg-red-500/10 text-red-500", label: "Expired" },
+    ACTIVE: { color: "badge-active", label: "Active" },
+    EXPIRING_SOON: { color: "badge-expiring", label: "Expiring" },
+    EXPIRED: { color: "badge-expired", label: "Expired" },
   };
 
   const status = statusConfig[product.status as keyof typeof statusConfig];
   const CategoryIcon = categoryIcons[product.category] ?? Package;
 
   const timeLeftColor = {
-    ACTIVE: "text-emerald-500",
-    EXPIRING_SOON: "text-amber-500",
-    EXPIRED: "text-red-500",
+    ACTIVE: "c-active",
+    EXPIRING_SOON: "c-expiring",
+    EXPIRED: "c-expired",
   }[product.status as "ACTIVE" | "EXPIRING_SOON" | "EXPIRED"];
 
   return (

@@ -20,7 +20,7 @@ const DashboardStats = ({ stats, statusFilter, setStatusFilter }: Props) => {
       count: stats.active,
       sub: `${coverage}% of all products`,
       icon: CircleCheck,
-      color: "text-emerald-500",
+      color: "c-active",
     },
     {
       key: "EXPIRING_SOON",
@@ -28,7 +28,7 @@ const DashboardStats = ({ stats, statusFilter, setStatusFilter }: Props) => {
       count: stats.expiringSoon,
       sub: "within 30 days",
       icon: ClockAlert,
-      color: "text-amber-500",
+      color: "c-expiring",
     },
     {
       key: "EXPIRED",
@@ -36,7 +36,7 @@ const DashboardStats = ({ stats, statusFilter, setStatusFilter }: Props) => {
       count: stats.expired,
       sub: "needs review",
       icon: CircleX,
-      color: "text-red-500",
+      color: "c-expired",
     },
   ];
 

@@ -41,9 +41,9 @@ const categoryIcons: Record<string, LucideIcon> = {
 };
 
 const timeLeftColor: Record<string, string> = {
-  ACTIVE: "text-emerald-500",
-  EXPIRING_SOON: "text-amber-500",
-  EXPIRED: "text-red-500",
+  ACTIVE: "c-active",
+  EXPIRING_SOON: "c-expiring",
+  EXPIRED: "c-expired",
 };
 
 const timeLeft = (expiry: string): string => {

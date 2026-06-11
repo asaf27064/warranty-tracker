@@ -41,22 +41,22 @@
 }
 
 .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
+    --background: oklch(0.165 0.006 255);
+    --foreground: oklch(0.97 0 0);
+    --card: oklch(0.205 0.006 255);
+    --card-foreground: oklch(0.97 0 0);
+    --popover: oklch(0.205 0.006 255);
+    --popover-foreground: oklch(0.97 0 0);
     --primary: oklch(0.922 0 0);
     --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
+    --secondary: oklch(0.255 0.006 255);
     --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
+    --muted: oklch(0.255 0.006 255);
+    --muted-foreground: oklch(0.712 0.005 255);
+    --accent: oklch(0.255 0.006 255);
     --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
+    --destructive: oklch(0.65 0.16 25);
+    --border: oklch(1 0 0 / 12%);
     --input: oklch(1 0 0 / 15%);
     --ring: oklch(0.556 0 0);
     --chart-1: oklch(0.809 0.105 251.813);
@@ -127,6 +127,28 @@
     @apply font-sans;
     }
 }
+
+/* Status palette — softer/more premium than raw Tailwind 500s, but still
+   clearly green / amber / red with strong contrast on the dark theme. */
+:root {
+  --status-active: oklch(0.55 0.11 158);
+  --status-expiring: oklch(0.62 0.12 72);
+  --status-expired: oklch(0.55 0.16 25);
+}
+.dark {
+  --status-active: oklch(0.74 0.1 162);
+  --status-expiring: oklch(0.8 0.1 82);
+  --status-expired: oklch(0.7 0.14 22);
+}
+.c-active { color: var(--status-active); }
+.c-expiring { color: var(--status-expiring); }
+.c-expired { color: var(--status-expired); }
+.badge-active { background-color: color-mix(in oklch, var(--status-active) 14%, transparent); color: var(--status-active); }
+.badge-expiring { background-color: color-mix(in oklch, var(--status-expiring) 16%, transparent); color: var(--status-expiring); }
+.badge-expired { background-color: color-mix(in oklch, var(--status-expired) 14%, transparent); color: var(--status-expired); }
+.bar-active { background-color: var(--status-active); }
+.bar-expiring { background-color: var(--status-expiring); }
+.bar-expired { background-color: var(--status-expired); }
 
 .nice-scroll {
   scrollbar-width: thin;

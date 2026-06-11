@@ -55,9 +55,9 @@ const Sidebar = ({
 }: Props) => {
   const views = [
     { key: "ALL", label: "All products", icon: LayoutGrid, count: stats.total ?? 0, color: "" },
-    { key: "ACTIVE", label: "Active", icon: CircleCheck, count: stats.active, color: "text-emerald-500" },
-    { key: "EXPIRING_SOON", label: "Expiring soon", icon: ClockAlert, count: stats.expiringSoon, color: "text-amber-500" },
-    { key: "EXPIRED", label: "Expired", icon: CircleX, count: stats.expired, color: "text-red-500" },
+    { key: "ACTIVE", label: "Active", icon: CircleCheck, count: stats.active, color: "c-active" },
+    { key: "EXPIRING_SOON", label: "Expiring soon", icon: ClockAlert, count: stats.expiringSoon, color: "c-expiring" },
+    { key: "EXPIRED", label: "Expired", icon: CircleX, count: stats.expired, color: "c-expired" },
   ];
 
   const byCategory = stats.byCategory ?? {};
