@@ -1,10 +1,14 @@
 import Navbar from "../components/Navbar";
 import { Button } from "../components/ui/button";
-import { Plus, Package } from "lucide-react";
+import { Plus, Package, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import type { Variants } from "framer-motion";
-import { useState } from "react";
-import { useProducts } from "../hooks/useProducts";
+import { useState, useEffect, useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteProducts,
+  useProductStats,
+} from "../hooks/useProductsQuery";
 import ProductForm from "../components/ProductForm";
 import { Skeleton } from "../components/ui/skeleton";
 import ProductFilters from "../components/ProductFilters";
@@ -15,47 +19,57 @@ import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  const { products, loading, getAllProducts } = useProducts();
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState("ALL");
   const [categoryFilter, setCategoryFilter] = useState("ALL");
   const [sortBy, setSortBy] = useState("newest");
   const [showAddProduct, setShowAddProduct] = useState(false);
 
-  const stats = {
-    active: products.filter((p) => p.status === "ACTIVE").length,
-    expiringSoon: products.filter((p) => p.status === "EXPIRING_SOON").length,
-    expired: products.filter((p) => p.status === "EXPIRED").length,
+  // Debounce the search box so we don't fire a request per keystroke.
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchQuery), 300);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
+
+  const filters = {
+    search: debouncedSearch,
+    status: activeFilter,
+    category: categoryFilter,
+    sort: sortBy,
   };
 
-  const filteredProducts = products.filter((p) => {
-    const matchesSearch =
-      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.store?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = activeFilter === "ALL" || p.status === activeFilter;
-    const matchesCategory =
-      categoryFilter === "ALL" || p.category === categoryFilter;
-    return matchesSearch && matchesStatus && matchesCategory;
-  });
+  const {
+    data,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteProducts(filters);
+  const { data: stats } = useProductStats();
 
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
-    switch (sortBy) {
-      case "newest":
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      case "oldest":
-        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-      case "expiring":
-        return (
-          new Date(a.warrantyExpiry).getTime() -
-          new Date(b.warrantyExpiry).getTime()
-        );
-      case "name":
-        return a.name.localeCompare(b.name);
-      default:
-        return 0;
-    }
-  });
+  const products = data?.pages.flatMap((p) => p.items) ?? [];
+
+  // Infinite scroll: load the next page when the sentinel scrolls into view.
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = loadMoreRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+        fetchNextPage();
+      }
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  const refreshAfterMutation = async () => {
+    await queryClient.invalidateQueries({ queryKey: ["products"] });
+    await queryClient.invalidateQueries({ queryKey: ["product-stats"] });
+  };
 
   const containerVariants = {
     hidden: {},
@@ -87,7 +101,7 @@ const Dashboard = () => {
         </motion.div>
 
         <DashboardStats
-          stats={stats}
+          stats={stats ?? { active: 0, expiringSoon: 0, expired: 0 }}
           statusFilter={activeFilter}
           setStatusFilter={setActiveFilter}
         />
@@ -123,7 +137,7 @@ const Dashboard = () => {
           initial="hidden"
           animate="show"
         >
-          {loading
+          {isLoading
             ? [...Array(6)].map((_, index) => (
                 <div
                   key={index}
@@ -144,7 +158,7 @@ const Dashboard = () => {
                   <Skeleton className="mt-4 h-1.5 w-full rounded-full" />
                 </div>
               ))
-            : sortedProducts.map((product) => (
+            : products.map((product) => (
                 <motion.div key={product.id} variants={itemVariants}>
                   <ProductCard
                     product={product}
@@ -154,7 +168,7 @@ const Dashboard = () => {
               ))}
         </motion.div>
 
-        {!loading && filteredProducts.length === 0 && (
+        {!isLoading && products.length === 0 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -170,11 +184,18 @@ const Dashboard = () => {
           </motion.div>
         )}
 
+        {/* Infinite-scroll sentinel + loading indicator */}
+        <div ref={loadMoreRef} className="mt-6 flex justify-center">
+          {isFetchingNextPage && (
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          )}
+        </div>
+
         <ProductForm
           open={showAddProduct}
           onClose={() => setShowAddProduct(false)}
           onSuccess={async () => {
-            await getAllProducts();
+            await refreshAfterMutation();
             setShowAddProduct(false);
           }}
         />

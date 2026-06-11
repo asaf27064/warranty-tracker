@@ -6,14 +6,36 @@ export const getAllProducts = async (req: Request, res: Response) => {
     if (!req.user) {
       return res.status(401).json({ error: "Unauthorized" });
     }
-    const search = (req.query.search as string | undefined)?.trim();
-    const products = await productService.searchProducts(req.user.id, {
-      query: search,
-    });
-    return res.status(200).json(products);
+    const page = await productService.listProducts(
+      req.user.id,
+      {
+        query: (req.query.search as string | undefined)?.trim(),
+        status: req.query.status as never,
+        category: req.query.category as string | undefined,
+        sort: req.query.sort as never,
+      },
+      {
+        limit: req.query.limit ? Number(req.query.limit) : undefined,
+        cursor: req.query.cursor as string | undefined,
+      },
+    );
+    return res.status(200).json(page);
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Failed to fetch products" });
+  }
+};
+
+export const getProductStats = async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    const stats = await productService.getProductStats(req.user.id);
+    return res.status(200).json(stats);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Failed to fetch stats" });
   }
 };
 

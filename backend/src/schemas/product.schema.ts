@@ -39,4 +39,25 @@ export const updateProductSchema = createProductSchema.partial();
 
 export const getAllProductsQuerySchema = z.object({
   search: z.string().optional(),
+  status: z.enum(["ACTIVE", "EXPIRING_SOON", "EXPIRED"]).optional(),
+  category: z
+    .enum([
+      "NONE",
+      "ELECTRONICS",
+      "HOME_KITCHEN",
+      "PHONES",
+      "JEWELRY",
+      "KIDS_TOYS",
+      "APPLIANCES",
+      "FURNITURE",
+      "FASHION",
+      "AUTOMOTIVE",
+      "SPORTS",
+      "TOOLS",
+      "OTHER",
+    ])
+    .optional(),
+  sort: z.enum(["newest", "oldest", "expiring", "name"]).optional(),
+  limit: z.coerce.number().int().positive().max(100).optional(),
+  cursor: z.string().optional(),
 });

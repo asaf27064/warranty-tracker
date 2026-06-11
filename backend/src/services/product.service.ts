@@ -9,11 +9,27 @@ import { getWarrantyStatus } from "../utils/getWarrantyStatus";
 export type CreateProductInput = z.infer<typeof createProductSchema>;
 export type UpdateProductInput = Partial<CreateProductInput>;
 
+export type SortOption = "newest" | "oldest" | "expiring" | "name";
+
 export type ProductFilters = {
   query?: string;
   status?: "ACTIVE" | "EXPIRING_SOON" | "EXPIRED";
   category?: string;
+  sort?: SortOption;
 };
+
+// A unique `id` tiebreaker is appended so cursor pagination is deterministic
+// even when the primary sort field has ties.
+const ORDER_BY: Record<SortOption, object[]> = {
+  newest: [{ createdAt: "desc" }, { id: "desc" }],
+  oldest: [{ createdAt: "asc" }, { id: "asc" }],
+  expiring: [{ warrantyExpiry: "asc" }, { id: "asc" }],
+  name: [{ name: "asc" }, { id: "asc" }],
+};
+
+// Cap on how many products the agent pulls in one tool call (avoids huge
+// tool results / token blowups when a user has thousands of products).
+const AGENT_LIMIT = 100;
 
 const REMINDER_DAYS = [30, 7, 1];
 
@@ -57,24 +73,71 @@ export async function createProduct(userId: string, input: CreateProductInput) {
   return product;
 }
 
-export async function searchProducts(userId: string, filters: ProductFilters = {}) {
+function buildWhere(userId: string, filters: ProductFilters) {
   const query = filters.query?.trim();
+  return {
+    userId,
+    ...(filters.status ? { status: filters.status } : {}),
+    ...(filters.category ? { category: filters.category as never } : {}),
+    ...(query
+      ? {
+          OR: [
+            { name: { contains: query, mode: "insensitive" as const } },
+            { store: { contains: query, mode: "insensitive" as const } },
+          ],
+        }
+      : {}),
+  };
+}
+
+// Used by the agent — returns a bounded array of matching products.
+export async function searchProducts(userId: string, filters: ProductFilters = {}) {
   return prisma.product.findMany({
-    where: {
-      userId,
-      ...(filters.status ? { status: filters.status } : {}),
-      ...(filters.category ? { category: filters.category as never } : {}),
-      ...(query
-        ? {
-            OR: [
-              { name: { contains: query, mode: "insensitive" } },
-              { store: { contains: query, mode: "insensitive" } },
-            ],
-          }
-        : {}),
-    },
-    orderBy: { createdAt: "desc" },
+    where: buildWhere(userId, filters),
+    orderBy: ORDER_BY[filters.sort ?? "newest"],
+    take: AGENT_LIMIT,
   });
+}
+
+// Used by the HTTP list endpoint — cursor-paginated. Fetches `limit + 1` rows
+// to detect whether another page exists, then returns the page + next cursor.
+export async function listProducts(
+  userId: string,
+  filters: ProductFilters = {},
+  page: { limit?: number; cursor?: string } = {},
+) {
+  const limit = Math.min(Math.max(page.limit ?? 20, 1), 100);
+
+  const rows = await prisma.product.findMany({
+    where: buildWhere(userId, filters),
+    orderBy: ORDER_BY[filters.sort ?? "newest"],
+    take: limit + 1,
+    ...(page.cursor ? { cursor: { id: page.cursor }, skip: 1 } : {}),
+  });
+
+  const hasMore = rows.length > limit;
+  const items = hasMore ? rows.slice(0, limit) : rows;
+  return {
+    items,
+    nextCursor: hasMore ? items[items.length - 1].id : null,
+  };
+}
+
+// Status counts across ALL of the user's products (independent of filters),
+// for the dashboard stat cards.
+export async function getProductStats(userId: string) {
+  const grouped = await prisma.product.groupBy({
+    by: ["status"],
+    where: { userId },
+    _count: { _all: true },
+  });
+  const stats = { active: 0, expiringSoon: 0, expired: 0 };
+  for (const g of grouped) {
+    if (g.status === "ACTIVE") stats.active = g._count._all;
+    else if (g.status === "EXPIRING_SOON") stats.expiringSoon = g._count._all;
+    else if (g.status === "EXPIRED") stats.expired = g._count._all;
+  }
+  return stats;
 }
 
 export async function getExpiringWarranties(userId: string, withinDays: number) {

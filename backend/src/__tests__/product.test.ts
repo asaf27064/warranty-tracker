@@ -59,8 +59,9 @@ describe("Product API", () => {
       .set("Authorization", `Bearer ${token}`);
 
     expect(res.status).toBe(200);
-    expect(Array.isArray(res.body)).toBe(true);
-    expect(res.body.length).toBeGreaterThan(0);
+    expect(Array.isArray(res.body.items)).toBe(true);
+    expect(res.body.items.length).toBeGreaterThan(0);
+    expect(res.body).toHaveProperty("nextCursor");
   });
 
   it("should get product by id", async () => {
