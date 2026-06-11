@@ -1,22 +1,19 @@
 import { Request, Response } from "express";
-import prisma from "../config/db";
+import * as reminderService from "../services/reminder.service";
 
 export const getAllReminders = async (req: Request, res: Response) => {
   try {
     if (!req.user) {
-      res.status(401).json({ error: "Unauthorized" });
+      return res.status(401).json({ error: "Unauthorized" });
     }
-
     const productId = req.params.productId as string;
-
-    const product = await prisma.product.findFirst({
-      where: { id: productId, userId: req.user!.id },
-    });
-    if (!product) {
+    const reminders = await reminderService.getProductReminders(
+      req.user.id,
+      productId,
+    );
+    if (reminders === null) {
       return res.status(404).json({ error: "Product not found" });
     }
-
-    const reminders = await prisma.reminder.findMany({ where: { productId } });
     return res.status(200).json(reminders);
   } catch (error) {
     console.error(error);
@@ -35,32 +32,21 @@ export const createReminder = async (req: Request, res: Response) => {
         .json({ error: "productId / daysBefore parameter is required" });
     }
 
-    const product = await prisma.product.findFirst({
-      where: { id: productId, userId: req.user!.id },
-    });
+    const result = await reminderService.createReminder(
+      req.user!.id,
+      productId,
+      daysBefore,
+    );
 
-    if (!product) {
+    if (result.status === "not_found") {
       return res.status(404).json({ error: "Product not found" });
     }
-
-    const remindAt = new Date(product.warrantyExpiry);
-    remindAt.setDate(remindAt.getDate() - daysBefore);
-
-    const existing = await prisma.reminder.findFirst({
-      where: { productId, remindAt },
-    });
-
-    if (existing) {
+    if (result.status === "exists") {
       return res
         .status(409)
         .json({ error: "Reminder already exists for this date" });
     }
-
-    const newReminder = await prisma.reminder.create({
-      data: { remindAt, productId },
-    });
-
-    return res.status(201).json(newReminder);
+    return res.status(201).json(result.reminder);
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Failed to create reminder" });
@@ -73,17 +59,10 @@ export const deleteReminder = async (req: Request, res: Response) => {
     if (!id) {
       return res.status(400).json({ error: "id parameter is required" });
     }
-
-    const reminder = await prisma.reminder.findUnique({
-      where: { id },
-      include: { product: { select: { userId: true } } },
-    });
-
-    if (!reminder || reminder.product.userId !== req.user!.id) {
+    const deleted = await reminderService.deleteReminder(req.user!.id, id);
+    if (!deleted) {
       return res.status(404).json({ error: "Reminder not found" });
     }
-
-    await prisma.reminder.delete({ where: { id } });
     return res.sendStatus(204);
   } catch (error) {
     console.error(error);
@@ -94,32 +73,23 @@ export const deleteReminder = async (req: Request, res: Response) => {
 export const getUserReminders = async (req: Request, res: Response) => {
   try {
     if (!req.user) {
-      return res.status(401).json({ error: "Unautorized" });
+      return res.status(401).json({ error: "Unauthorized" });
     }
-    const reminders = await prisma.reminder.findMany({
-      where: {
-        product: { userId: req.user.id },
-      },
-      include: {
-        product: {
-          select: { id: true, name: true, picture: true, warrantyExpiry: true },
-        },
-      },
-      orderBy: { remindAt: "asc" },
-    });
+    const reminders = await reminderService.getUserReminders(req.user.id);
     return res.status(200).json(reminders);
   } catch (error) {
     console.error(error);
-    return res
-      .status(500)
-      .json({ error: `Failed to fetch reminders of ${req.user?.name}` });
+    return res.status(500).json({ error: "Failed to fetch reminders" });
   }
 };
 
 export const markReminderRead = async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
-    await prisma.reminder.update({ where: { id }, data: { isRead: true } });
+    const marked = await reminderService.markReminderRead(req.user!.id, id);
+    if (!marked) {
+      return res.status(404).json({ error: "Reminder not found" });
+    }
     return res.status(200).json({ success: true });
   } catch (error) {
     console.error(error);

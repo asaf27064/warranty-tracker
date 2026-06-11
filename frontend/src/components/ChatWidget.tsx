@@ -1,15 +1,42 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageCircle, Send, X, Bot, Loader2, SquarePen } from "lucide-react";
+import {
+  MessageCircle,
+  Send,
+  X,
+  Bot,
+  Loader2,
+  SquarePen,
+  Package,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import ReactMarkdown from "react-markdown";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useChat } from "../hooks/useChat";
+import { StatusLabels } from "../types";
+import type { Product } from "../types";
+
+const statusColor: Record<string, string> = {
+  ACTIVE: "bg-emerald-100 text-emerald-700",
+  EXPIRING_SOON: "bg-amber-100 text-amber-700",
+  EXPIRED: "bg-red-100 text-red-700",
+};
+
+// Max product cards to render inline before collapsing into a "+N more" note.
+const MAX_CARDS = 8;
 
 const ChatWidget = () => {
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const { messages, sendMessage, loading, reset } = useChat();
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const openProduct = (p: Product) => {
+    setOpen(false);
+    navigate(`/product/${p.id}`);
+  };
 
   useEffect(() => {
     scrollRef.current?.scrollTo({
@@ -83,17 +110,94 @@ const ChatWidget = () => {
               {messages.map((m, i) => (
                 <div
                   key={i}
-                  className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
+                  className={`flex flex-col ${
+                    m.role === "user" ? "items-end" : "items-start"
+                  }`}
                 >
                   <div
-                    className={`max-w-[80%] whitespace-pre-wrap rounded-2xl px-3 py-2 text-sm ${
+                    className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm ${
                       m.role === "user"
-                        ? "bg-emerald-600 text-white"
+                        ? "whitespace-pre-wrap bg-emerald-600 text-white"
                         : "bg-muted text-foreground"
                     }`}
                   >
-                    {m.content}
+                    {m.role === "assistant" ? (
+                      <ReactMarkdown
+                        components={{
+                          p: ({ children }) => (
+                            <p className="mb-1 last:mb-0">{children}</p>
+                          ),
+                          ul: ({ children }) => (
+                            <ul className="my-1 list-disc pl-4">{children}</ul>
+                          ),
+                          ol: ({ children }) => (
+                            <ol className="my-1 list-decimal pl-4">{children}</ol>
+                          ),
+                          li: ({ children }) => (
+                            <li className="mb-0.5">{children}</li>
+                          ),
+                          strong: ({ children }) => (
+                            <strong className="font-semibold">{children}</strong>
+                          ),
+                        }}
+                      >
+                        {m.content}
+                      </ReactMarkdown>
+                    ) : (
+                      m.content
+                    )}
                   </div>
+
+                  {m.role === "assistant" &&
+                    m.products &&
+                    m.products.length > 0 && (
+                      <div className="mt-2 flex w-full flex-col gap-2">
+                        {m.products.slice(0, MAX_CARDS).map((p) => (
+                          <button
+                            key={p.id}
+                            type="button"
+                            onClick={() => openProduct(p)}
+                            className="flex items-center gap-3 rounded-xl border border-border bg-background p-2 text-left transition hover:bg-muted"
+                          >
+                            {p.picture ? (
+                              <img
+                                src={p.picture}
+                                alt={p.name}
+                                className="h-10 w-10 flex-shrink-0 rounded object-cover"
+                              />
+                            ) : (
+                              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded bg-muted">
+                                <Package className="h-5 w-5 text-muted-foreground" />
+                              </div>
+                            )}
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-sm font-medium text-foreground">
+                                {p.name}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                Expires{" "}
+                                {new Date(
+                                  p.warrantyExpiry,
+                                ).toLocaleDateString()}
+                              </p>
+                            </div>
+                            <span
+                              className={`flex-shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                                statusColor[p.status] ??
+                                "bg-muted text-muted-foreground"
+                              }`}
+                            >
+                              {StatusLabels[p.status]}
+                            </span>
+                          </button>
+                        ))}
+                        {m.products.length > MAX_CARDS && (
+                          <p className="px-1 text-xs text-muted-foreground">
+                            + {m.products.length - MAX_CARDS} more
+                          </p>
+                        )}
+                      </div>
+                    )}
                 </div>
               ))}
               {loading && (

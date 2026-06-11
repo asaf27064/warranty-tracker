@@ -6,7 +6,7 @@ import {
   isSupportedMediaType,
 } from "../services/ai.service";
 import { runAgent } from "../services/agent.service";
-import prisma from "../config/db";
+import * as conversationService from "../services/conversation.service";
 
 export const extractProduct = async (req: Request, res: Response) => {
   try {
@@ -49,6 +49,26 @@ export const extractProductImage = async (req: Request, res: Response) => {
   }
 };
 
+export const getConversation = async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    const id = req.params.id as string;
+    const messages = await conversationService.getConversationForClient(
+      req.user.id,
+      id,
+    );
+    if (messages === null) {
+      return res.status(404).json({ error: "Conversation not found" });
+    }
+    return res.status(200).json(messages);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Failed to fetch conversation" });
+  }
+};
+
 export const chat = async (req: Request, res: Response) => {
   try {
     if (!req.user) {
@@ -61,35 +81,30 @@ export const chat = async (req: Request, res: Response) => {
     // Load or create the conversation (scoped to this user)
     let history: Anthropic.MessageParam[] = [];
     if (conversationId) {
-      const conversation = await prisma.conversation.findFirst({
-        where: { id: conversationId, userId },
-        include: { messages: { orderBy: { createdAt: "asc" } } },
-      });
-      if (!conversation) {
+      const loaded = await conversationService.getConversationHistory(
+        userId,
+        conversationId,
+      );
+      if (loaded === null) {
         return res.status(404).json({ error: "Conversation not found" });
       }
-      history = conversation.messages.map((m) => ({
-        role: m.role === "USER" ? "user" : "assistant",
-        content: m.content,
-      }));
+      history = loaded;
     } else {
-      const conversation = await prisma.conversation.create({
-        data: { userId },
-      });
-      conversationId = conversation.id;
+      conversationId = await conversationService.createConversation(userId);
     }
 
-    const reply = await runAgent(userId, history, message);
+    const { reply, products } = await runAgent(userId, history, message);
+    const productIds = (products as { id: string }[]).map((p) => p.id);
 
-    // Persist both turns
-    await prisma.message.createMany({
-      data: [
-        { conversationId, role: "USER", content: message },
-        { conversationId, role: "ASSISTANT", content: reply },
-      ],
-    });
+    // Persist both turns (assistant message keeps the ids of the cards shown).
+    await conversationService.saveTurn(
+      conversationId,
+      message,
+      reply,
+      productIds,
+    );
 
-    return res.status(200).json({ conversationId, reply });
+    return res.status(200).json({ conversationId, reply, products });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Failed to process chat" });
