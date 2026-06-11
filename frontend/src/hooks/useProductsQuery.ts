@@ -7,6 +7,7 @@ export type ProductFilters = {
   status?: string;
   category?: string;
   sort?: string;
+  dir?: string;
 };
 
 type ProductsPage = { items: Product[]; nextCursor: string | null };
@@ -19,6 +20,7 @@ const buildParams = (f: ProductFilters, cursor?: string) => {
   if (f.status && f.status !== "ALL") params.status = f.status;
   if (f.category && f.category !== "ALL") params.category = f.category;
   if (f.sort) params.sort = f.sort;
+  if (f.dir) params.dir = f.dir;
   if (cursor) params.cursor = cursor;
   return params;
 };

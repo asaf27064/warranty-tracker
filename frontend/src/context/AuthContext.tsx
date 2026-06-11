@@ -43,7 +43,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           const res = await api.get("/auth/me", {
             headers: { Authorization: `Bearer ${tokenFromUrl}` },
           });
-          setUser(res.data);
+          setUser(res.data.user);
           navigate("/dashboard");
         } catch {
           setAccessToken(null);
@@ -57,7 +57,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           const meRes = await api.get("/auth/me", {
             headers: { Authorization: `Bearer ${res.data.accessToken}` },
           });
-          setUser(meRes.data);
+          setUser(meRes.data.user);
         } catch {
           // not logged in
         }

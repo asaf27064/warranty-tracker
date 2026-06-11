@@ -7,6 +7,7 @@ type Props = {
   status: WarrantyStatus;
   showLabel?: boolean;
   barHeightClassName?: string;
+  containerClassName?: string;
 };
 
 const WarrantyProgressBar = ({
@@ -15,6 +16,7 @@ const WarrantyProgressBar = ({
   status,
   showLabel = true,
   barHeightClassName = "h-2",
+  containerClassName = "mt-4",
 }: Props) => {
   const start = new Date(purchaseDate).getTime();
   const end = new Date(warrantyExpiry).getTime();
@@ -35,20 +37,20 @@ const WarrantyProgressBar = ({
 
   const colorClass =
     status === "ACTIVE"
-      ? "bg-emerald-500"
+      ? "bar-active"
       : status === "EXPIRING_SOON"
-        ? "bg-amber-500"
-        : "bg-red-500";
+        ? "bar-expiring"
+        : "bar-expired";
 
   const glowColor =
     status === "ACTIVE"
-      ? "rgba(16,185,129,0.45)"
+      ? "rgba(45,150,110,0.28)"
       : status === "EXPIRING_SOON"
-        ? "rgba(245,158,11,0.45)"
-        : "rgba(239,68,68,0.45)";
+        ? "rgba(200,150,40,0.28)"
+        : "rgba(200,80,80,0.3)";
 
   return (
-    <div className="mt-4">
+    <div className={containerClassName}>
       {showLabel && (
         <div className="mb-1 flex justify-between text-xs text-muted-foreground">
           <span>Warranty used</span>

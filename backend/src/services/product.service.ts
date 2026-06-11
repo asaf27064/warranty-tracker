@@ -9,23 +9,33 @@ import { getWarrantyStatus } from "../utils/getWarrantyStatus";
 export type CreateProductInput = z.infer<typeof createProductSchema>;
 export type UpdateProductInput = Partial<CreateProductInput>;
 
-export type SortOption = "newest" | "oldest" | "expiring" | "name";
+export type SortField = "created" | "name" | "store" | "category" | "expiry";
+export type SortDir = "asc" | "desc";
 
 export type ProductFilters = {
   query?: string;
   status?: "ACTIVE" | "EXPIRING_SOON" | "EXPIRED";
   category?: string;
-  sort?: SortOption;
+  sort?: SortField;
+  dir?: SortDir;
 };
 
-// A unique `id` tiebreaker is appended so cursor pagination is deterministic
-// even when the primary sort field has ties.
-const ORDER_BY: Record<SortOption, object[]> = {
-  newest: [{ createdAt: "desc" }, { id: "desc" }],
-  oldest: [{ createdAt: "asc" }, { id: "asc" }],
-  expiring: [{ warrantyExpiry: "asc" }, { id: "asc" }],
-  name: [{ name: "asc" }, { id: "asc" }],
+const SORT_COLUMN: Record<SortField, string> = {
+  created: "createdAt",
+  name: "name",
+  store: "store",
+  category: "category",
+  expiry: "warrantyExpiry",
 };
+
+// A unique `id` tiebreaker (same direction) keeps cursor pagination
+// deterministic even when the primary sort field has ties.
+function buildOrderBy(sort?: SortField, dir?: SortDir): object[] {
+  const field = sort ?? "created";
+  const direction = dir ?? (sort ? "asc" : "desc");
+  const column = SORT_COLUMN[field];
+  return [{ [column]: direction }, { id: direction }];
+}
 
 // Cap on how many products the agent pulls in one tool call (avoids huge
 // tool results / token blowups when a user has thousands of products).
@@ -94,7 +104,7 @@ function buildWhere(userId: string, filters: ProductFilters) {
 export async function searchProducts(userId: string, filters: ProductFilters = {}) {
   return prisma.product.findMany({
     where: buildWhere(userId, filters),
-    orderBy: ORDER_BY[filters.sort ?? "newest"],
+    orderBy: buildOrderBy(filters.sort, filters.dir),
     take: AGENT_LIMIT,
   });
 }
@@ -110,7 +120,7 @@ export async function listProducts(
 
   const rows = await prisma.product.findMany({
     where: buildWhere(userId, filters),
-    orderBy: ORDER_BY[filters.sort ?? "newest"],
+    orderBy: buildOrderBy(filters.sort, filters.dir),
     take: limit + 1,
     ...(page.cursor ? { cursor: { id: page.cursor }, skip: 1 } : {}),
   });
@@ -123,20 +133,39 @@ export async function listProducts(
   };
 }
 
-// Status counts across ALL of the user's products (independent of filters),
-// for the dashboard stat cards.
+// Counts across ALL of the user's products (independent of filters): status
+// counts for the stat cards + sidebar Views, and per-category counts + total
+// for the sidebar Categories nav.
 export async function getProductStats(userId: string) {
-  const grouped = await prisma.product.groupBy({
-    by: ["status"],
-    where: { userId },
-    _count: { _all: true },
-  });
-  const stats = { active: 0, expiringSoon: 0, expired: 0 };
-  for (const g of grouped) {
+  const [byStatus, byCategory] = await Promise.all([
+    prisma.product.groupBy({
+      by: ["status"],
+      where: { userId },
+      _count: { _all: true },
+    }),
+    prisma.product.groupBy({
+      by: ["category"],
+      where: { userId },
+      _count: { _all: true },
+    }),
+  ]);
+
+  const stats = {
+    active: 0,
+    expiringSoon: 0,
+    expired: 0,
+    total: 0,
+    byCategory: {} as Record<string, number>,
+  };
+  for (const g of byStatus) {
     if (g.status === "ACTIVE") stats.active = g._count._all;
     else if (g.status === "EXPIRING_SOON") stats.expiringSoon = g._count._all;
     else if (g.status === "EXPIRED") stats.expired = g._count._all;
   }
+  for (const g of byCategory) {
+    stats.byCategory[g.category] = g._count._all;
+  }
+  stats.total = stats.active + stats.expiringSoon + stats.expired;
   return stats;
 }
 
