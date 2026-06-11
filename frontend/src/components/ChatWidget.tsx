@@ -108,8 +108,11 @@ const ChatWidget = () => {
                 </div>
               )}
               {messages.map((m, i) => (
-                <div
+                <motion.div
                   key={i}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2 }}
                   className={`flex flex-col ${
                     m.role === "user" ? "items-end" : "items-start"
                   }`}
@@ -198,7 +201,7 @@ const ChatWidget = () => {
                         )}
                       </div>
                     )}
-                </div>
+                </motion.div>
               ))}
               {loading && (
                 <div className="flex justify-start">

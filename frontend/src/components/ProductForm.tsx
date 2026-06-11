@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { toast } from "sonner";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Button } from "./ui/button";
@@ -195,6 +196,7 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
           });
         }
       }
+      toast.success(isEdit ? "Product updated" : "Product added");
       onSuccess();
       // On success, intentionally leave `loading` and the submit guard set:
       // the dialog closes via onSuccess, and both reset when it reopens
@@ -203,6 +205,7 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
     } catch (error) {
       console.error(error);
       setSaveError("Failed to save product. Please try again.");
+      toast.error("Failed to save product");
       setLoading(false);
       submittingRef.current = false;
     }
@@ -256,6 +259,7 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
       applyExtracted(res.data);
     } catch (e) {
       console.error(e);
+      toast.error("Couldn't extract details from that text");
     } finally {
       setAiLoading(false);
     }
@@ -272,8 +276,10 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
         headers: { "Content-Type": "multipart/form-data" },
       });
       applyExtracted(res.data);
+      toast.success("Filled from your receipt — please review");
     } catch (e) {
       console.error(e);
+      toast.error("Couldn't read that file. Try a clearer image or PDF.");
     } finally {
       setAiLoading(false);
     }

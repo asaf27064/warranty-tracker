@@ -5,12 +5,14 @@ import LoginPage from "./pages/LoginPage";
 import Dashboard from "./pages/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ProductDetails from "./pages/ProductDetails"
+import { Toaster } from "./components/ui/sonner";
 
 function App() {
   return (
     <ThemeProvider>
       <BrowserRouter>
         <AuthProvider>
+          <Toaster />
           <Routes>
             <Route path="/" element={<LoginPage />} />
             <Route
