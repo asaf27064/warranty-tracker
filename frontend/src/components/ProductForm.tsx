@@ -208,6 +208,43 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
     }
   };
 
+  // Partial product returned by both extraction endpoints (any field may be missing).
+  type ExtractedProduct = {
+    name?: string;
+    store?: string | null;
+    category?: string;
+    purchaseDate?: string;
+    warrantyMonths?: number;
+  };
+
+  // Apply an extracted partial product to the form and flag missing required fields.
+  const applyExtracted = (p: ExtractedProduct) => {
+    const hasMonths = typeof p.warrantyMonths === "number";
+    const isYears =
+      hasMonths && p.warrantyMonths! >= 12 && p.warrantyMonths! % 12 === 0;
+
+    setForm((prev) => ({
+      ...prev,
+      name: p.name ?? prev.name,
+      store: p.store ?? prev.store,
+      category: p.category ?? prev.category,
+      purchaseDate: p.purchaseDate ?? prev.purchaseDate,
+      warrantyDuration: hasMonths
+        ? isYears
+          ? p.warrantyMonths! / 12
+          : p.warrantyMonths!
+        : prev.warrantyDuration,
+      warrantyUnit: hasMonths ? (isYears ? "Years" : "Months") : prev.warrantyUnit,
+    }));
+
+    const missing: string[] = [];
+    if (!p.name) missing.push("name");
+    if (!p.purchaseDate) missing.push("purchaseDate");
+    if (!hasMonths) missing.push("warrantyDuration");
+    setMissingFields(missing);
+    setAiHint(missing.length > 0);
+  };
+
   const handleAiFill = async () => {
     if (!aiText.trim()) return;
 
@@ -216,44 +253,25 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
     setAiHint(false);
     try {
       const res = await api.post("/api/ai/extract-product", { text: aiText });
-      // Partial product: any field may be missing.
-      const p = res.data as {
-        name?: string;
-        store?: string | null;
-        category?: string;
-        purchaseDate?: string;
-        warrantyMonths?: number;
-      };
+      applyExtracted(res.data);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
-      const hasMonths = typeof p.warrantyMonths === "number";
-      const isYears =
-        hasMonths && p.warrantyMonths! >= 12 && p.warrantyMonths! % 12 === 0;
-
-      setForm((prev) => ({
-        ...prev,
-        name: p.name ?? prev.name,
-        store: p.store ?? prev.store,
-        category: p.category ?? prev.category,
-        purchaseDate: p.purchaseDate ?? prev.purchaseDate,
-        warrantyDuration: hasMonths
-          ? isYears
-            ? p.warrantyMonths! / 12
-            : p.warrantyMonths!
-          : prev.warrantyDuration,
-        warrantyUnit: hasMonths
-          ? isYears
-            ? "Years"
-            : "Months"
-          : prev.warrantyUnit,
-      }));
-
-      // Flag required fields the model could not determine.
-      const missing: string[] = [];
-      if (!p.name) missing.push("name");
-      if (!p.purchaseDate) missing.push("purchaseDate");
-      if (!hasMonths) missing.push("warrantyDuration");
-      setMissingFields(missing);
-      setAiHint(missing.length > 0);
+  const handleReceiptUpload = async (file: File) => {
+    setAiLoading(true);
+    setMissingFields([]);
+    setAiHint(false);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await api.post("/api/ai/extract-product-image", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      applyExtracted(res.data);
     } catch (e) {
       console.error(e);
     } finally {
@@ -285,6 +303,35 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
                 {aiLoading ? "Thinking..." : "Fill"}
               </Button>
             </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">or</span>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={aiLoading}
+                onClick={() =>
+                  document.getElementById("receiptUpload")?.click()
+                }
+              >
+                <FileText className="mr-2 h-4 w-4" />
+                Upload receipt / invoice
+              </Button>
+              <span className="text-xs text-muted-foreground">image or PDF</span>
+              <input
+                id="receiptUpload"
+                type="file"
+                accept="image/*,application/pdf"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleReceiptUpload(file);
+                  e.target.value = ""; // allow re-selecting the same file
+                }}
+              />
+            </div>
+
             {aiHint && missingFields.length > 0 && (
               <p className="text-sm text-amber-600">
                 Filled what I could — please complete the highlighted fields.

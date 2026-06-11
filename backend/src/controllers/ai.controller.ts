@@ -1,6 +1,10 @@
 import { Request, Response } from "express";
 import type Anthropic from "@anthropic-ai/sdk";
-import { extractProductService } from "../services/ai.service";
+import {
+  extractProductService,
+  extractProductFromFile,
+  isSupportedMediaType,
+} from "../services/ai.service";
 import { runAgent } from "../services/agent.service";
 import prisma from "../config/db";
 
@@ -12,6 +16,31 @@ export const extractProduct = async (req: Request, res: Response) => {
     const text = req.body.text as string;
 
     const product = await extractProductService(text);
+
+    return res.status(200).json(product);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Failed to extract product" });
+  }
+};
+
+export const extractProductImage = async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    const file = req.file;
+    if (!file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+    if (!isSupportedMediaType(file.mimetype)) {
+      return res.status(400).json({
+        error: "Unsupported file type. Use an image (JPEG/PNG/GIF/WebP) or PDF.",
+      });
+    }
+
+    const base64 = file.buffer.toString("base64");
+    const product = await extractProductFromFile(base64, file.mimetype);
 
     return res.status(200).json(product);
   } catch (error) {
