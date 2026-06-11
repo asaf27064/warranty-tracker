@@ -3,35 +3,35 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "./ui/select";
 import { ArrowUpDown } from "lucide-react";
 
-const sortLabels: Record<string, string> = {
-  newest: "Newest first",
-  oldest: "Oldest first",
-  expiring: "Expiring soon",
-  name: "Name A-Z",
-};
+const options = [
+  { value: "created:desc", label: "Newest first" },
+  { value: "created:asc", label: "Oldest first" },
+  { value: "expiry:asc", label: "Expiring soon" },
+  { value: "name:asc", label: "Name A–Z" },
+];
 
 type Props = {
-  sortBy: string;
-  setSortBy: (value: string) => void;
+  value: string;
+  onChange: (value: string) => void;
 };
 
-const ProductFilters = ({ sortBy, setSortBy }: Props) => {
+const ProductFilters = ({ value, onChange }: Props) => {
+  const label = options.find((o) => o.value === value)?.label ?? "Sort";
   return (
-    <Select value={sortBy} onValueChange={(value) => setSortBy(value ?? "newest")}>
+    <Select value={value} onValueChange={(v) => onChange(v ?? "created:desc")}>
       <SelectTrigger className="w-44 text-sm">
         <span className="flex items-center gap-2">
           <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
-          <SelectValue>{sortLabels[sortBy]}</SelectValue>
+          {label}
         </span>
       </SelectTrigger>
       <SelectContent>
-        {Object.entries(sortLabels).map(([value, label]) => (
-          <SelectItem key={value} value={value}>
-            {label}
+        {options.map((o) => (
+          <SelectItem key={o.value} value={o.value}>
+            {o.label}
           </SelectItem>
         ))}
       </SelectContent>

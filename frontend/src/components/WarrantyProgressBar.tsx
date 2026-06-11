@@ -7,6 +7,7 @@ type Props = {
   status: WarrantyStatus;
   showLabel?: boolean;
   barHeightClassName?: string;
+  containerClassName?: string;
 };
 
 const WarrantyProgressBar = ({
@@ -15,6 +16,7 @@ const WarrantyProgressBar = ({
   status,
   showLabel = true,
   barHeightClassName = "h-2",
+  containerClassName = "mt-4",
 }: Props) => {
   const start = new Date(purchaseDate).getTime();
   const end = new Date(warrantyExpiry).getTime();
@@ -48,7 +50,7 @@ const WarrantyProgressBar = ({
         : "rgba(239,68,68,0.45)";
 
   return (
-    <div className="mt-4">
+    <div className={containerClassName}>
       {showLabel && (
         <div className="mb-1 flex justify-between text-xs text-muted-foreground">
           <span>Warranty used</span>

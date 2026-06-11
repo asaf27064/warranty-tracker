@@ -9,23 +9,33 @@ import { getWarrantyStatus } from "../utils/getWarrantyStatus";
 export type CreateProductInput = z.infer<typeof createProductSchema>;
 export type UpdateProductInput = Partial<CreateProductInput>;
 
-export type SortOption = "newest" | "oldest" | "expiring" | "name";
+export type SortField = "created" | "name" | "store" | "category" | "expiry";
+export type SortDir = "asc" | "desc";
 
 export type ProductFilters = {
   query?: string;
   status?: "ACTIVE" | "EXPIRING_SOON" | "EXPIRED";
   category?: string;
-  sort?: SortOption;
+  sort?: SortField;
+  dir?: SortDir;
 };
 
-// A unique `id` tiebreaker is appended so cursor pagination is deterministic
-// even when the primary sort field has ties.
-const ORDER_BY: Record<SortOption, object[]> = {
-  newest: [{ createdAt: "desc" }, { id: "desc" }],
-  oldest: [{ createdAt: "asc" }, { id: "asc" }],
-  expiring: [{ warrantyExpiry: "asc" }, { id: "asc" }],
-  name: [{ name: "asc" }, { id: "asc" }],
+const SORT_COLUMN: Record<SortField, string> = {
+  created: "createdAt",
+  name: "name",
+  store: "store",
+  category: "category",
+  expiry: "warrantyExpiry",
 };
+
+// A unique `id` tiebreaker (same direction) keeps cursor pagination
+// deterministic even when the primary sort field has ties.
+function buildOrderBy(sort?: SortField, dir?: SortDir): object[] {
+  const field = sort ?? "created";
+  const direction = dir ?? (sort ? "asc" : "desc");
+  const column = SORT_COLUMN[field];
+  return [{ [column]: direction }, { id: direction }];
+}
 
 // Cap on how many products the agent pulls in one tool call (avoids huge
 // tool results / token blowups when a user has thousands of products).
@@ -94,7 +104,7 @@ function buildWhere(userId: string, filters: ProductFilters) {
 export async function searchProducts(userId: string, filters: ProductFilters = {}) {
   return prisma.product.findMany({
     where: buildWhere(userId, filters),
-    orderBy: ORDER_BY[filters.sort ?? "newest"],
+    orderBy: buildOrderBy(filters.sort, filters.dir),
     take: AGENT_LIMIT,
   });
 }
@@ -110,7 +120,7 @@ export async function listProducts(
 
   const rows = await prisma.product.findMany({
     where: buildWhere(userId, filters),
-    orderBy: ORDER_BY[filters.sort ?? "newest"],
+    orderBy: buildOrderBy(filters.sort, filters.dir),
     take: limit + 1,
     ...(page.cursor ? { cursor: { id: page.cursor }, skip: 1 } : {}),
   });

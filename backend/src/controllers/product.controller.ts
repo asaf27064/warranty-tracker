@@ -13,6 +13,7 @@ export const getAllProducts = async (req: Request, res: Response) => {
         status: req.query.status as never,
         category: req.query.category as string | undefined,
         sort: req.query.sort as never,
+        dir: req.query.dir as never,
       },
       {
         limit: req.query.limit ? Number(req.query.limit) : undefined,

@@ -1,6 +1,6 @@
 import Navbar from "../components/Navbar";
 import { Button } from "../components/ui/button";
-import { Plus, Package, Loader2 } from "lucide-react";
+import { Plus, Package, Loader2, LayoutGrid, List } from "lucide-react";
 import { motion } from "framer-motion";
 import type { Variants } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
@@ -14,6 +14,7 @@ import { Skeleton } from "../components/ui/skeleton";
 import ProductFilters from "../components/ProductFilters";
 import DashboardStats from "../components/DashboardStats";
 import ProductCard from "../components/ProductCard";
+import ProductList from "../components/ProductList";
 import Sidebar from "../components/Sidebar";
 import ChatWidget from "../components/ChatWidget";
 import { useNavigate } from "react-router-dom";
@@ -26,7 +27,8 @@ const Dashboard = () => {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState("ALL");
   const [categoryFilter, setCategoryFilter] = useState("ALL");
-  const [sortBy, setSortBy] = useState("newest");
+  const [sortField, setSortField] = useState("created");
+  const [sortDir, setSortDir] = useState("desc");
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(
     () => localStorage.getItem("wtSidebarCollapsed") === "1",
@@ -38,6 +40,14 @@ const Dashboard = () => {
       return !c;
     });
 
+  const [view, setView] = useState<"cards" | "list">(() =>
+    localStorage.getItem("wtView") === "list" ? "list" : "cards",
+  );
+  const changeView = (v: "cards" | "list") => {
+    setView(v);
+    localStorage.setItem("wtView", v);
+  };
+
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(searchQuery), 300);
     return () => clearTimeout(t);
@@ -47,7 +57,17 @@ const Dashboard = () => {
     search: debouncedSearch,
     status: activeFilter,
     category: categoryFilter,
-    sort: sortBy,
+    sort: sortField,
+    dir: sortDir,
+  };
+
+  const handleSort = (field: string) => {
+    if (field === sortField) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortField(field);
+      setSortDir("asc");
+    }
   };
 
   const hasActiveFilters =
@@ -123,13 +143,47 @@ const Dashboard = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4 }}
-              className="mt-8 flex items-center justify-end"
+              className="mt-8 flex items-center justify-between gap-3"
             >
-              <ProductFilters sortBy={sortBy} setSortBy={setSortBy} />
+              <div className="flex overflow-hidden rounded-md border border-border">
+                <button
+                  onClick={() => changeView("cards")}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-sm ${
+                    view === "cards"
+                      ? "bg-muted text-foreground"
+                      : "text-muted-foreground hover:bg-muted/50"
+                  }`}
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                  Cards
+                </button>
+                <button
+                  onClick={() => changeView("list")}
+                  className={`flex items-center gap-1.5 border-l border-border px-3 py-1.5 text-sm ${
+                    view === "list"
+                      ? "bg-muted text-foreground"
+                      : "text-muted-foreground hover:bg-muted/50"
+                  }`}
+                >
+                  <List className="h-4 w-4" />
+                  List
+                </button>
+              </div>
+              {view === "cards" && (
+                <ProductFilters
+                  value={`${sortField}:${sortDir}`}
+                  onChange={(v) => {
+                    const [f, d] = v.split(":");
+                    setSortField(f);
+                    setSortDir(d);
+                  }}
+                />
+              )}
             </motion.div>
 
+            {view === "cards" && (
             <motion.div
-              className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+              className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2 2xl:grid-cols-3"
               variants={containerVariants}
               initial="hidden"
               animate="show"
@@ -138,21 +192,21 @@ const Dashboard = () => {
                 ? [...Array(6)].map((_, index) => (
                     <div
                       key={index}
-                      className="rounded-lg border border-border bg-card p-5"
+                      className="flex overflow-hidden rounded-lg border border-border bg-card"
                     >
-                      <div className="flex items-start justify-between">
-                        <Skeleton className="h-10 w-10 rounded-lg" />
-                        <Skeleton className="h-5 w-20 rounded" />
+                      <Skeleton className="h-[116px] w-24 shrink-0 rounded-none" />
+                      <div className="flex-1 space-y-2 p-4">
+                        <div className="flex items-center justify-between">
+                          <Skeleton className="h-4 w-28" />
+                          <Skeleton className="h-5 w-16 rounded-full" />
+                        </div>
+                        <Skeleton className="h-3 w-24" />
+                        <div className="flex items-center justify-between pt-2">
+                          <Skeleton className="h-3 w-24" />
+                          <Skeleton className="h-3 w-16" />
+                        </div>
+                        <Skeleton className="mt-2 h-1.5 w-full rounded-full" />
                       </div>
-                      <div className="mt-4 space-y-2">
-                        <Skeleton className="h-4 w-32" />
-                        <Skeleton className="h-3 w-20" />
-                      </div>
-                      <div className="mt-4 space-y-2">
-                        <Skeleton className="h-3 w-28" />
-                        <Skeleton className="h-3 w-36" />
-                      </div>
-                      <Skeleton className="mt-4 h-1.5 w-full rounded-full" />
                     </div>
                   ))
                 : products.map((product) => (
@@ -164,6 +218,25 @@ const Dashboard = () => {
                     </motion.div>
                   ))}
             </motion.div>
+            )}
+
+            {view === "list" && isLoading && (
+              <div className="mt-6 flex justify-center py-10">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            )}
+
+            {view === "list" && !isLoading && products.length > 0 && (
+              <div className="mt-6">
+                <ProductList
+                  products={products}
+                  sortField={sortField}
+                  sortDir={sortDir}
+                  onSort={handleSort}
+                  onRowClick={(p) => navigate(`/product/${p.id}`)}
+                />
+              </div>
+            )}
 
             {!isLoading && products.length === 0 && (
               <motion.div

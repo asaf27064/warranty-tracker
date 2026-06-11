@@ -57,7 +57,8 @@ export const getAllProductsQuerySchema = z.object({
       "OTHER",
     ])
     .optional(),
-  sort: z.enum(["newest", "oldest", "expiring", "name"]).optional(),
+  sort: z.enum(["created", "name", "store", "category", "expiry"]).optional(),
+  dir: z.enum(["asc", "desc"]).optional(),
   limit: z.coerce.number().int().positive().max(100).optional(),
   cursor: z.string().optional(),
 });
