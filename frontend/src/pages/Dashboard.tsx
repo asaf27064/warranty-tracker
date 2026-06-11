@@ -41,6 +41,11 @@ const Dashboard = () => {
     sort: sortBy,
   };
 
+  const hasActiveFilters =
+    debouncedSearch !== "" ||
+    activeFilter !== "ALL" ||
+    categoryFilter !== "ALL";
+
   const {
     data,
     isLoading,
@@ -170,17 +175,50 @@ const Dashboard = () => {
 
         {!isLoading && products.length === 0 && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="mt-12 text-center"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-16 flex flex-col items-center text-center"
           >
-            <Package className="mx-auto h-12 w-12 text-muted-foreground" />
-            <p className="mt-4 text-lg text-muted-foreground">
-              No products found
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Try a different search or add a new product
-            </p>
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted">
+              <Package className="h-8 w-8 text-muted-foreground" />
+            </div>
+            {hasActiveFilters ? (
+              <>
+                <p className="mt-4 text-lg font-medium text-foreground">
+                  No products match your filters
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Try adjusting your search, status, or category.
+                </p>
+                <Button
+                  variant="outline"
+                  className="mt-4"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setActiveFilter("ALL");
+                    setCategoryFilter("ALL");
+                  }}
+                >
+                  Clear filters
+                </Button>
+              </>
+            ) : (
+              <>
+                <p className="mt-4 text-lg font-medium text-foreground">
+                  No products yet
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Add your first product to start tracking warranties.
+                </p>
+                <Button
+                  className="mt-4 gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
+                  onClick={() => setShowAddProduct(true)}
+                >
+                  <Plus className="h-4 w-4" />
+                  Add your first product
+                </Button>
+              </>
+            )}
           </motion.div>
         )}
 

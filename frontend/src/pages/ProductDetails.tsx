@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { useProducts } from "../hooks/useProducts";
 import { useDocuments } from "../hooks/useDocuments";
 import { useReminders } from "../hooks/useReminders";
@@ -83,8 +84,13 @@ const ProductDetails = () => {
 
   const handleDelete = async () => {
     if (!confirm("Are you sure you want to delete this product?")) return;
-    await deleteProduct(product.id);
-    navigate("/dashboard");
+    try {
+      await deleteProduct(product.id);
+      toast.success("Product deleted");
+      navigate("/dashboard");
+    } catch {
+      toast.error("Failed to delete product");
+    }
   };
 
   const handleUploadDoc = async (e: React.ChangeEvent<HTMLInputElement>) => {
