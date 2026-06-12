@@ -33,7 +33,12 @@ export const useNotifications = () => {
     );
   };
 
-  const activeNotifications = reminders.filter((r) => r.sent);
+  // Show reminders that have come due (remindAt in the past) regardless of
+  // whether the email went out, so the bell works even if email is down.
+  const now = Date.now();
+  const activeNotifications = reminders.filter(
+    (r) => new Date(r.remindAt).getTime() <= now,
+  );
   const unreadCount = activeNotifications.filter((r) => !r.isRead).length;
 
   useEffect(() => {
