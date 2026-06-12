@@ -38,6 +38,7 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import ProductForm from "../components/ProductForm";
+import ConfirmDialog from "../components/ConfirmDialog";
 import WarrantyProgressBar from "../components/WarrantyProgressBar";
 import { Skeleton } from "../components/ui/skeleton";
 import {
@@ -124,9 +125,9 @@ const DocumentPreview = ({
       <iframe
         title={doc.fileName}
         src={doc.fileUrl}
-        // Sandboxed: render the PDF but block scripts/popups/top-navigation in
-        // case a user uploads a maliciously crafted file.
-        sandbox=""
+        // No sandbox: Chrome's PDF viewer needs scripting, so a sandbox without
+        // allow-scripts blocks it. The file is served from R2 on a different
+        // origin, so the browser already isolates it from the app.
         className={`w-full rounded-lg border border-border bg-muted ${
           compact ? "h-[360px]" : "h-[72vh]"
         }`}
@@ -161,6 +162,9 @@ const ProductDetails = () => {
   const [showProductModal, setShowProductModal] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState<ProductDocument | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [docToDelete, setDocToDelete] = useState<ProductDocument | null>(null);
+  const [reminderToDelete, setReminderToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -204,14 +208,24 @@ const ProductDetails = () => {
   };
 
   const handleDelete = async () => {
-    if (!confirm("Are you sure you want to delete this product?")) return;
     try {
       await deleteProduct(product.id);
       toast.success("Product deleted");
       navigate("/dashboard");
-    } catch {
+    } catch (e) {
       toast.error("Failed to delete product");
+      throw e; // keep the confirm dialog open
     }
+  };
+
+  const handleDeleteDoc = async () => {
+    if (!docToDelete) return;
+    await deleteDoc(docToDelete.id, product.id);
+  };
+
+  const handleDeleteReminder = async () => {
+    if (!reminderToDelete) return;
+    await deleteReminder(reminderToDelete, product.id);
   };
 
   const handleUploadDoc = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -393,7 +407,7 @@ const ProductDetails = () => {
                 <Button
                   variant="outline"
                   className="gap-2 text-red-500 hover:bg-red-500/10 hover:text-red-500"
-                  onClick={handleDelete}
+                  onClick={() => setDeleteOpen(true)}
                 >
                   <Trash2 className="h-4 w-4" />
                   Delete
@@ -497,7 +511,7 @@ const ProductDetails = () => {
                           type="button"
                           onClick={(event) => {
                             event.stopPropagation();
-                            deleteDoc(doc.id, product.id);
+                            setDocToDelete(doc);
                           }}
                           className="text-xs text-red-500 hover:text-red-600"
                         >
@@ -625,7 +639,7 @@ const ProductDetails = () => {
                         </span>
                       </div>
                       <button
-                        onClick={() => deleteReminder(reminder.id, product.id)}
+                        onClick={() => setReminderToDelete(reminder.id)}
                         className="text-xs text-red-500 hover:text-red-600"
                       >
                         Delete
@@ -686,6 +700,44 @@ const ProductDetails = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title="Delete product?"
+        description={
+          <>
+            This permanently deletes{" "}
+            <span className="font-medium text-foreground">{product.name}</span>{" "}
+            and its documents and reminders. This can't be undone.
+          </>
+        }
+        onConfirm={handleDelete}
+      />
+
+      <ConfirmDialog
+        open={docToDelete !== null}
+        onOpenChange={(open) => !open && setDocToDelete(null)}
+        title="Delete document?"
+        description={
+          <>
+            This removes{" "}
+            <span className="font-medium text-foreground">
+              {docToDelete?.fileName}
+            </span>
+            . This can't be undone.
+          </>
+        }
+        onConfirm={handleDeleteDoc}
+      />
+
+      <ConfirmDialog
+        open={reminderToDelete !== null}
+        onOpenChange={(open) => !open && setReminderToDelete(null)}
+        title="Delete reminder?"
+        description="This removes the reminder for this product."
+        onConfirm={handleDeleteReminder}
+      />
     </div>
   );
 };

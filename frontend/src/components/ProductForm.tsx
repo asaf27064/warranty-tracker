@@ -14,6 +14,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import {
   Calendar,
+  Eye,
   FileText,
   ImagePlus,
   Package,
@@ -66,6 +67,28 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
   const submittingRef = useRef(false);
 
   const isEdit = !!product;
+
+  // Client-side preview of a staged (not-yet-uploaded) document via object URL.
+  const [previewDoc, setPreviewDoc] = useState<{
+    name: string;
+    type: string;
+    url: string;
+  } | null>(null);
+
+  const openDocPreview = (file: File) => {
+    setPreviewDoc({
+      name: file.name,
+      type: file.type,
+      url: URL.createObjectURL(file),
+    });
+  };
+
+  const closeDocPreview = () => {
+    setPreviewDoc((p) => {
+      if (p) URL.revokeObjectURL(p.url);
+      return null;
+    });
+  };
 
   const clearImage = () => {
     if (imagePreview && imageFile) {
@@ -316,7 +339,7 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent className="max-h-[92vh] overflow-hidden p-0 sm:max-w-4xl">
-        <div className="grid max-h-[92vh] grid-cols-1 overflow-hidden md:grid-cols-[300px_1fr]">
+        <div className="nice-scroll grid max-h-[92vh] grid-cols-1 overflow-y-auto md:grid-cols-[300px_1fr] md:overflow-hidden">
           <aside className="border-b border-border bg-muted/35 p-5 md:border-b-0 md:border-r">
             <DialogHeader>
               <DialogTitle className="text-xl">
@@ -325,7 +348,7 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
             </DialogHeader>
 
             <div className="mt-5 overflow-hidden rounded-lg border border-border bg-card">
-              <div className="flex aspect-square items-center justify-center bg-muted">
+              <div className="flex aspect-video items-center justify-center bg-muted md:aspect-square">
                 {imagePreview ? (
                   <img
                     src={imagePreview}
@@ -336,7 +359,7 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
                   <Package className="h-14 w-14 text-muted-foreground" />
                 )}
               </div>
-              <div className="space-y-3 p-4">
+              <div className="hidden space-y-3 p-4 md:block">
                 <div>
                   <p className="truncate text-lg font-semibold text-foreground">
                     {displayName}
@@ -411,7 +434,7 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
             )}
           </aside>
 
-          <div className="nice-scroll overflow-y-auto p-5">
+          <div className="nice-scroll p-5 md:overflow-y-auto">
             {!isEdit && (
               <section className="rounded-lg border border-border bg-sky-500/5 p-4">
                 <div className="flex items-center gap-2">
@@ -621,17 +644,28 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
                               {DocTypeLabels[doc.docType]}
                             </span>
                           </div>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon-sm"
-                            onClick={() =>
-                              setDocFiles(docFiles.filter((_, j) => j !== i))
-                            }
-                            aria-label="Remove document"
-                          >
-                            <X className="h-4 w-4 text-red-500" />
-                          </Button>
+                          <div className="flex shrink-0 items-center gap-1">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon-sm"
+                              onClick={() => openDocPreview(doc.file)}
+                              aria-label="Preview document"
+                            >
+                              <Eye className="h-4 w-4 text-muted-foreground" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon-sm"
+                              onClick={() =>
+                                setDocFiles(docFiles.filter((_, j) => j !== i))
+                              }
+                              aria-label="Remove document"
+                            >
+                              <X className="h-4 w-4 text-red-500" />
+                            </Button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -719,6 +753,43 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
             setForm((prev) => ({ ...prev, picture: url }));
           }}
         />
+
+        <Dialog
+          open={previewDoc !== null}
+          onOpenChange={(o) => !o && closeDocPreview()}
+        >
+          <DialogContent className="max-h-[92vh] overflow-hidden p-0 sm:max-w-3xl">
+            <DialogHeader className="border-b border-border p-4 pr-12">
+              <DialogTitle className="truncate">
+                {previewDoc?.name ?? "Document preview"}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="nice-scroll max-h-[calc(92vh-72px)] overflow-auto p-4">
+              {previewDoc?.type.startsWith("image/") ? (
+                <img
+                  src={previewDoc.url}
+                  alt={previewDoc.name}
+                  className="mx-auto max-h-[70vh] w-auto object-contain"
+                />
+              ) : previewDoc?.type === "application/pdf" ? (
+                <iframe
+                  title={previewDoc.name}
+                  src={previewDoc.url}
+                  // No sandbox: a blob: PDF can't load in an opaque-origin
+                  // sandbox, and this is the user's own just-selected file.
+                  className="h-[70vh] w-full rounded-lg border border-border bg-muted"
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <FileText className="h-10 w-10 text-muted-foreground" />
+                  <p className="mt-3 text-sm text-muted-foreground">
+                    No preview available for this file type.
+                  </p>
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
       </DialogContent>
     </Dialog>
   );

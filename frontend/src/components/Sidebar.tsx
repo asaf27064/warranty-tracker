@@ -105,8 +105,8 @@ const Sidebar = ({
 
   return (
     <aside
-      className={`flex shrink-0 flex-col overflow-hidden border-r border-border bg-card/40 p-3 transition-[width] duration-200 ${
-        collapsed ? "w-[60px]" : "w-56"
+      className={`fixed inset-y-0 left-0 z-40 flex w-56 shrink-0 flex-col overflow-hidden border-r border-border bg-card p-3 transition-transform duration-200 md:static md:z-auto md:translate-x-0 md:bg-card/40 md:transition-[width] ${
+        collapsed ? "-translate-x-full md:w-[60px]" : "translate-x-0 md:w-56"
       }`}
     >
       {!collapsed && (
@@ -138,6 +138,12 @@ const Sidebar = ({
           )}
           {collapsed && <div className="my-3 border-t border-border" />}
           <nav className="flex flex-col gap-0.5">
+            <Item
+              active={categoryFilter === "ALL"}
+              onClick={() => setCategoryFilter("ALL")}
+              Icon={LayoutGrid}
+              label="All categories"
+            />
             {categories.map((c) => (
               <Item
                 key={c}
