@@ -7,6 +7,8 @@ import {
   createProduct,
   updateProduct,
   deleteProduct,
+  exportProducts,
+  bulkDeleteProducts,
 } from "../controllers/product.controller";
 import { idParamSchema } from "../schemas/common.schema";
 import { validateRequest } from "../middlewares/validate";
@@ -14,6 +16,7 @@ import {
   getAllProductsQuerySchema,
   updateProductSchema,
   createProductSchema,
+  bulkDeleteSchema,
 } from "../schemas/product.schema";
 
 const router = Router();
@@ -26,6 +29,16 @@ router.get(
   getAllProducts,
 );
 router.get("/stats", getProductStats);
+router.get(
+  "/export",
+  validateRequest(getAllProductsQuerySchema, "query"),
+  exportProducts,
+);
+router.post(
+  "/bulk-delete",
+  validateRequest(bulkDeleteSchema, "body"),
+  bulkDeleteProducts,
+);
 router.get("/:id", validateRequest(idParamSchema, "params"), getProductById);
 router.post("/", validateRequest(createProductSchema, "body"), createProduct);
 router.put(

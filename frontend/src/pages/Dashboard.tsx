@@ -1,6 +1,16 @@
 import Navbar from "../components/Navbar";
 import { Button } from "../components/ui/button";
-import { Plus, Package, Loader2, LayoutGrid, List } from "lucide-react";
+import {
+  Plus,
+  Package,
+  Loader2,
+  LayoutGrid,
+  List,
+  Download,
+  CheckSquare,
+  Trash2,
+  X,
+} from "lucide-react";
 import { motion } from "framer-motion";
 import type { Variants } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
@@ -9,7 +19,11 @@ import {
   useInfiniteProducts,
   useProductStats,
 } from "../hooks/useProductsQuery";
+import { useProducts } from "../hooks/useProducts";
+import { toCsv, downloadCsv } from "../lib/csv";
+import { toast } from "sonner";
 import ProductForm from "../components/ProductForm";
+import ConfirmDialog from "../components/ConfirmDialog";
 import { Skeleton } from "../components/ui/skeleton";
 import ProductFilters from "../components/ProductFilters";
 import DashboardStats from "../components/DashboardStats";
@@ -31,6 +45,11 @@ const Dashboard = () => {
   const [sortField, setSortField] = useState("created");
   const [sortDir, setSortDir] = useState("desc");
   const [showAddProduct, setShowAddProduct] = useState(false);
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const { bulkDeleteProducts, fetchForExport } = useProducts();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     const stored = localStorage.getItem("wtSidebarCollapsed");
     // On phones the sidebar is an overlay drawer, so start it closed.
@@ -122,6 +141,72 @@ const Dashboard = () => {
     await queryClient.invalidateQueries({ queryKey: ["product-stats"] });
   };
 
+  // Same filter params the list query sends, for the export endpoint.
+  const exportParams = () => {
+    const params: Record<string, string> = {};
+    if (debouncedSearch) params.search = debouncedSearch;
+    if (activeFilter !== "ALL") params.status = activeFilter;
+    if (categoryFilter !== "ALL") params.category = categoryFilter;
+    params.sort = sortField;
+    params.dir = sortDir;
+    return params;
+  };
+
+  const exportAll = async () => {
+    setExporting(true);
+    try {
+      const all = await fetchForExport(exportParams());
+      if (all.length === 0) {
+        toast.info("No products to export");
+        return;
+      }
+      downloadCsv("warranties.csv", toCsv(all));
+    } catch {
+      toast.error("Export failed");
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const exportSelected = () => {
+    const rows = products.filter((p) => selectedIds.has(p.id));
+    if (rows.length === 0) return;
+    downloadCsv("warranties-selected.csv", toCsv(rows));
+  };
+
+  const toggleSelect = (id: string) =>
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+
+  const allLoadedSelected =
+    products.length > 0 && products.every((p) => selectedIds.has(p.id));
+
+  const toggleSelectAll = () =>
+    setSelectedIds(
+      allLoadedSelected ? new Set() : new Set(products.map((p) => p.id)),
+    );
+
+  const exitSelectMode = () => {
+    setSelectMode(false);
+    setSelectedIds(new Set());
+  };
+
+  const handleBulkDelete = async () => {
+    const ids = [...selectedIds];
+    try {
+      const deleted = await bulkDeleteProducts(ids);
+      toast.success(`Deleted ${deleted} product${deleted === 1 ? "" : "s"}`);
+      exitSelectMode();
+      await refreshAfterMutation();
+    } catch (e) {
+      toast.error("Failed to delete products");
+      throw e;
+    }
+  };
+
   const openChat = () => window.dispatchEvent(new CustomEvent("wt-open-chat"));
 
   const containerVariants = {
@@ -207,14 +292,37 @@ const Dashboard = () => {
                   List
                 </button>
               </div>
-              <ProductFilters
-                value={`${sortField}:${sortDir}`}
-                onChange={(v) => {
-                  const [f, d] = v.split(":");
-                  setSortField(f);
-                  setSortDir(d);
-                }}
-              />
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={exportAll}
+                  disabled={exporting}
+                >
+                  <Download className="h-4 w-4" />
+                  {exporting ? "Exporting..." : "Export"}
+                </Button>
+                <Button
+                  variant={selectMode ? "default" : "outline"}
+                  size="sm"
+                  className="gap-2"
+                  onClick={() =>
+                    selectMode ? exitSelectMode() : setSelectMode(true)
+                  }
+                >
+                  <CheckSquare className="h-4 w-4" />
+                  Select
+                </Button>
+                <ProductFilters
+                  value={`${sortField}:${sortDir}`}
+                  onChange={(v) => {
+                    const [f, d] = v.split(":");
+                    setSortField(f);
+                    setSortDir(d);
+                  }}
+                />
+              </div>
             </motion.div>
 
             <ActiveFilters
@@ -230,6 +338,52 @@ const Dashboard = () => {
                 setCategoryFilter("ALL");
               }}
             />
+
+            {selectMode && (
+              <div className="mt-4 flex flex-wrap items-center gap-3 rounded-lg border border-border bg-muted/40 px-3 py-2">
+                <button
+                  type="button"
+                  onClick={toggleSelectAll}
+                  className="text-sm font-medium text-foreground hover:underline"
+                >
+                  {allLoadedSelected ? "Deselect all" : "Select all"}
+                </button>
+                <span className="text-sm text-muted-foreground">
+                  {selectedIds.size} selected
+                </span>
+                <div className="ml-auto flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                    disabled={selectedIds.size === 0}
+                    onClick={exportSelected}
+                  >
+                    <Download className="h-4 w-4" />
+                    Export
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2 text-red-500 hover:bg-red-500/10 hover:text-red-500"
+                    disabled={selectedIds.size === 0}
+                    onClick={() => setBulkDeleteOpen(true)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="gap-1"
+                    onClick={exitSelectMode}
+                  >
+                    <X className="h-4 w-4" />
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
 
             {view === "cards" && (
             <motion.div
@@ -263,7 +417,13 @@ const Dashboard = () => {
                     <motion.div key={product.id} variants={itemVariants}>
                       <ProductCard
                         product={product}
-                        onClick={() => navigate(`/product/${product.id}`)}
+                        selectable={selectMode}
+                        selected={selectedIds.has(product.id)}
+                        onClick={() =>
+                          selectMode
+                            ? toggleSelect(product.id)
+                            : navigate(`/product/${product.id}`)
+                        }
                       />
                     </motion.div>
                   ))}
@@ -283,7 +443,15 @@ const Dashboard = () => {
                   sortField={sortField}
                   sortDir={sortDir}
                   onSort={handleSort}
-                  onRowClick={(p) => navigate(`/product/${p.id}`)}
+                  selectable={selectMode}
+                  selectedIds={selectedIds}
+                  allSelected={allLoadedSelected}
+                  onToggleSelectAll={toggleSelectAll}
+                  onRowClick={(p) =>
+                    selectMode
+                      ? toggleSelect(p.id)
+                      : navigate(`/product/${p.id}`)
+                  }
                 />
               </div>
             )}
@@ -381,6 +549,21 @@ const Dashboard = () => {
           </div>
         </main>
       </div>
+
+      <ConfirmDialog
+        open={bulkDeleteOpen}
+        onOpenChange={setBulkDeleteOpen}
+        title="Delete selected products?"
+        description={
+          <>
+            This permanently deletes {selectedIds.size} product
+            {selectedIds.size === 1 ? "" : "s"} and their documents and
+            reminders. This can't be undone.
+          </>
+        }
+        confirmLabel={`Delete ${selectedIds.size}`}
+        onConfirm={handleBulkDelete}
+      />
 
       <ChatWidget />
     </div>

@@ -23,6 +23,8 @@ import { motion } from "framer-motion";
 type Props = {
   product: Product;
   onClick: () => void;
+  selectable?: boolean;
+  selected?: boolean;
 };
 
 const categoryIcons: Record<string, LucideIcon> = {
@@ -56,7 +58,7 @@ const timeLeft = (expiry: string): string => {
   return `~${years < 2 ? years.toFixed(1) : Math.round(years)} years left`;
 };
 
-const ProductCard = ({ product, onClick }: Props) => {
+const ProductCard = ({ product, onClick, selectable, selected }: Props) => {
   const statusConfig = {
     ACTIVE: { color: "badge-active", label: "Active" },
     EXPIRING_SOON: { color: "badge-expiring", label: "Expiring" },
@@ -79,9 +81,20 @@ const ProductCard = ({ product, onClick }: Props) => {
       className="group"
     >
       <Card
-        className="flex flex-row gap-0 cursor-pointer overflow-hidden border-border bg-card p-0 transition-all hover:shadow-xl"
+        className={`relative flex flex-row gap-0 cursor-pointer overflow-hidden border-border bg-card p-0 transition-all hover:shadow-xl ${
+          selected ? "ring-2 ring-emerald-500" : ""
+        }`}
         onClick={onClick}
       >
+        {selectable && (
+          <input
+            type="checkbox"
+            checked={!!selected}
+            readOnly
+            aria-label={`Select ${product.name}`}
+            className="pointer-events-none absolute left-2 top-2 z-10 h-4 w-4 accent-emerald-600"
+          />
+        )}
         <div className="flex w-24 shrink-0 items-center justify-center bg-muted p-2">
           {product.picture ? (
             <img

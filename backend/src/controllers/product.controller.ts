@@ -45,6 +45,37 @@ export const getProductStats = async (req: Request, res: Response) => {
   }
 };
 
+export const exportProducts = async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    const query = (req.validated?.query ?? req.query) as ProductListQuery;
+    const products = await productService.getProductsForExport(req.user.id, {
+      query: query.search?.trim(),
+      status: query.status,
+      category: query.category,
+      sort: query.sort,
+      dir: query.dir,
+    });
+    return res.status(200).json(products);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Failed to export products" });
+  }
+};
+
+export const bulkDeleteProducts = async (req: Request, res: Response) => {
+  try {
+    const { ids } = req.body as { ids: string[] };
+    const deleted = await productService.deleteProducts(req.user!.id, ids);
+    return res.status(200).json({ deleted });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Failed to delete products" });
+  }
+};
+
 export const getProductById = async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
