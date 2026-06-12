@@ -34,7 +34,7 @@ const Navbar = ({ onToggleSidebar, searchValue, onSearchChange, onAdd }: Props) 
       )}
 
       <div className="flex items-center gap-2.5">
-        <img src={logo} alt="logo" className="h-8 w-8 rounded-lg" />
+        <img src={logo} alt="logo" className="h-9 w-auto object-contain" />
         <span className="hidden text-lg font-bold text-foreground sm:inline">
           Warranty Tracker
         </span>

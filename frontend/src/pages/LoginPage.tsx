@@ -34,23 +34,26 @@ const LoginPage = () => {
         transition={{ duration: 0.45, ease: "easeOut" }}
         className="relative z-10 w-full max-w-sm"
       >
-        <div className="rounded-xl border border-border bg-card p-8 shadow-lg">
+        <div className="rounded-2xl border border-border bg-card p-9 shadow-lg">
           <div className="flex flex-col items-center text-center">
-            <img
+            <motion.img
               src={logo}
               alt="Warranty Tracker"
-              className="mb-5 h-24 w-24 rounded-xl shadow-sm"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.1, duration: 0.4, ease: "easeOut" }}
+              className="mb-5 h-32 w-auto object-contain"
             />
-            <h1 className="text-2xl font-semibold text-foreground">
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">
               Warranty Tracker
             </h1>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              Track purchases, receipts, warranty dates, and reminders in one
-              place.
+              Keep your purchases, receipts, warranty dates, and reminders in
+              one place.
             </p>
           </div>
 
-          <div className="mt-7 space-y-3">
+          <div className="mt-8 space-y-3">
             {lastUser ? (
               <>
                 <Button
