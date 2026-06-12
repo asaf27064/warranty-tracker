@@ -106,6 +106,26 @@ function buildWhere(userId: string, filters: ProductFilters) {
   };
 }
 
+// Used by the CSV export — all matching products for the user, no pagination.
+export async function getProductsForExport(
+  userId: string,
+  filters: ProductFilters = {},
+) {
+  return prisma.product.findMany({
+    where: buildWhere(userId, filters),
+    orderBy: buildOrderBy(filters.sort, filters.dir),
+  });
+}
+
+// Bulk delete. Scoped by userId so a user can only delete their own products;
+// documents and reminders cascade at the DB level. Returns the count deleted.
+export async function deleteProducts(userId: string, ids: string[]) {
+  const result = await prisma.product.deleteMany({
+    where: { id: { in: ids }, userId },
+  });
+  return result.count;
+}
+
 // Used by the agent — returns a bounded array of matching products.
 export async function searchProducts(userId: string, filters: ProductFilters = {}) {
   return prisma.product.findMany({

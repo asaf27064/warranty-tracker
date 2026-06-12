@@ -21,11 +21,27 @@ export const useProducts = () => {
     await api.delete(`/api/products/${id}`);
   };
 
+  const bulkDeleteProducts = async (ids: string[]) => {
+    const res = await api.post<{ deleted: number }>(
+      "/api/products/bulk-delete",
+      { ids },
+    );
+    return res.data.deleted;
+  };
+
+  // All products matching the given filter params (no pagination), for export.
+  const fetchForExport = async (params: Record<string, string>) => {
+    const res = await api.get<Product[]>("/api/products/export", { params });
+    return res.data;
+  };
+
   return {
     getProductById,
     createProduct,
     updateProduct,
     deleteProduct,
+    bulkDeleteProducts,
+    fetchForExport,
   };
 };
 

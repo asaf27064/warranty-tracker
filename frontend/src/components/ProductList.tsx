@@ -24,6 +24,10 @@ type Props = {
   sortDir: string;
   onSort: (field: string) => void;
   onRowClick: (p: Product) => void;
+  selectable?: boolean;
+  selectedIds?: Set<string>;
+  allSelected?: boolean;
+  onToggleSelectAll?: () => void;
 };
 
 const categoryIcons: Record<string, LucideIcon> = {
@@ -63,6 +67,10 @@ const ProductList = ({
   sortDir,
   onSort,
   onRowClick,
+  selectable,
+  selectedIds,
+  allSelected,
+  onToggleSelectAll,
 }: Props) => {
   const Header = ({
     label,
@@ -95,6 +103,15 @@ const ProductList = ({
   return (
     <div className="overflow-hidden rounded-lg border border-border bg-card">
       <div className="flex items-center gap-3 border-b border-border px-4 py-2.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+        {selectable && (
+          <input
+            type="checkbox"
+            checked={!!allSelected}
+            onChange={onToggleSelectAll}
+            aria-label="Select all"
+            className="h-4 w-4 shrink-0 accent-emerald-600"
+          />
+        )}
         <Header label="Product" sortKey="name" className="flex-1" />
         <Header label="Store" sortKey="store" className="hidden w-28 lg:flex" />
         <Header
@@ -117,8 +134,20 @@ const ProductList = ({
           <button
             key={p.id}
             onClick={() => onRowClick(p)}
-            className="flex w-full items-center gap-3 border-b border-border px-4 py-2.5 text-left text-sm transition-colors last:border-b-0 hover:bg-muted/50"
+            className={`flex w-full items-center gap-3 border-b border-border px-4 py-2.5 text-left text-sm transition-colors last:border-b-0 hover:bg-muted/50 ${
+              selectable && selectedIds?.has(p.id) ? "bg-emerald-500/10" : ""
+            }`}
           >
+            {selectable && (
+              <input
+                type="checkbox"
+                checked={selectedIds?.has(p.id) ?? false}
+                readOnly
+                tabIndex={-1}
+                aria-hidden="true"
+                className="pointer-events-none h-4 w-4 shrink-0 accent-emerald-600"
+              />
+            )}
             <span className="flex min-w-0 flex-1 items-center gap-2.5">
               {p.picture ? (
                 <img
