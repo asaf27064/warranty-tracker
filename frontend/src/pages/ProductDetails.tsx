@@ -39,7 +39,6 @@ import {
 } from "../components/ui/select";
 import ProductForm from "../components/ProductForm";
 import ConfirmDialog from "../components/ConfirmDialog";
-import WarrantyProgressBar from "../components/WarrantyProgressBar";
 import { Skeleton } from "../components/ui/skeleton";
 import {
   Dialog,
@@ -56,7 +55,7 @@ const ProductDetailsSkeleton = () => (
       <div className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
         <Card className="border-border bg-card p-6">
           <div className="flex gap-5">
-            <Skeleton className="h-20 w-20 shrink-0 rounded-lg" />
+            <Skeleton className="h-44 w-44 shrink-0 rounded-xl" />
             <div className="flex-1 space-y-3">
               <div className="flex justify-between gap-4">
                 <div className="space-y-2">
@@ -165,6 +164,9 @@ const ProductDetails = () => {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [docToDelete, setDocToDelete] = useState<ProductDocument | null>(null);
   const [reminderToDelete, setReminderToDelete] = useState<string | null>(null);
+  const [leftTab, setLeftTab] = useState<"documents" | "reminders">(
+    "documents",
+  );
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -220,23 +222,52 @@ const ProductDetails = () => {
 
   const handleDeleteDoc = async () => {
     if (!docToDelete) return;
-    await deleteDoc(docToDelete.id, product.id);
+    try {
+      await deleteDoc(docToDelete.id, product.id);
+      toast.success("Document deleted");
+    } catch (e) {
+      toast.error("Failed to delete document");
+      throw e;
+    }
   };
 
   const handleDeleteReminder = async () => {
     if (!reminderToDelete) return;
-    await deleteReminder(reminderToDelete, product.id);
+    try {
+      await deleteReminder(reminderToDelete, product.id);
+      toast.success("Reminder deleted");
+    } catch (e) {
+      toast.error("Failed to delete reminder");
+      throw e;
+    }
   };
 
   const handleUploadDoc = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !id) return;
-    await uploadDoc(id, file, selectedDocType);
+    try {
+      await uploadDoc(id, file, selectedDocType);
+      toast.success("Document uploaded");
+    } catch {
+      toast.error("Failed to upload document");
+    } finally {
+      e.target.value = ""; // allow re-selecting the same file
+    }
   };
 
   const handleAddReminder = async () => {
     if (!id) return;
-    await createReminder(id, daysBefore);
+    try {
+      await createReminder(id, daysBefore);
+      toast.success(`Reminder set for ${daysBefore} days before expiry`);
+    } catch (e) {
+      const status = (e as { response?: { status?: number } }).response?.status;
+      if (status === 409) {
+        toast.info("A reminder for that date already exists");
+      } else {
+        toast.error("Failed to add reminder");
+      }
+    }
   };
 
   const getFileIcon = (mimeType: string) => {
@@ -269,6 +300,27 @@ const ProductDetails = () => {
         ? "c-expiring"
         : "c-active";
 
+  // Percentage of the warranty period that has elapsed (for the ring gauge).
+  const totalMs =
+    new Date(product.warrantyExpiry).getTime() -
+    new Date(product.purchaseDate).getTime();
+  const elapsedMs = Date.now() - new Date(product.purchaseDate).getTime();
+  const pctElapsed =
+    totalMs > 0
+      ? Math.min(100, Math.max(0, Math.round((elapsedMs / totalMs) * 100)))
+      : daysLeft < 0
+        ? 100
+        : 0;
+  const RING_R = 15.5;
+  const RING_C = 2 * Math.PI * RING_R;
+  const isWarrantyFull = pctElapsed >= 100;
+  const ringGlow =
+    product.status === "EXPIRED"
+      ? "rgba(200,80,80,0.35)"
+      : product.status === "EXPIRING_SOON"
+        ? "rgba(200,150,40,0.3)"
+        : "rgba(45,150,110,0.3)";
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -297,14 +349,22 @@ const ProductDetails = () => {
             <Card className="border-border bg-card p-6">
               <div className="flex flex-col gap-5 sm:flex-row">
                 {product.picture ? (
-                  <img
-                    src={product.picture}
-                    alt={product.name}
-                    className="h-24 w-24 shrink-0 rounded-lg object-cover"
-                  />
+                  <div className="relative h-48 w-full shrink-0 overflow-hidden rounded-xl bg-muted sm:h-auto sm:w-44 sm:self-stretch">
+                    <img
+                      src={product.picture}
+                      alt=""
+                      aria-hidden="true"
+                      className="absolute inset-0 h-full w-full scale-110 object-cover opacity-30 blur-2xl"
+                    />
+                    <img
+                      src={product.picture}
+                      alt={product.name}
+                      className="relative z-[1] h-full w-full object-contain"
+                    />
+                  </div>
                 ) : (
-                  <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-lg bg-muted">
-                    <Package className="h-8 w-8 text-muted-foreground" />
+                  <div className="flex h-48 w-full shrink-0 items-center justify-center rounded-xl bg-muted sm:h-auto sm:w-44 sm:self-stretch">
+                    <Package className="h-16 w-16 text-muted-foreground" />
                   </div>
                 )}
 
@@ -314,36 +374,117 @@ const ProductDetails = () => {
                       <h1 className="truncate text-2xl font-bold text-foreground">
                         {product.name}
                       </h1>
-                      <p className="mt-0.5 text-sm text-muted-foreground">
-                        {CategoryLabels[product.category] || product.category}
-                      </p>
+                      <div className="mt-1 flex flex-wrap items-center gap-2">
+                        <span className="text-sm text-muted-foreground">
+                          {CategoryLabels[product.category] || product.category}
+                        </span>
+                        <Badge
+                          className={`${statusConfig[product.status as keyof typeof statusConfig].color} border-0`}
+                        >
+                          {
+                            statusConfig[
+                              product.status as keyof typeof statusConfig
+                            ].label
+                          }
+                        </Badge>
+                      </div>
                     </div>
-                    <Badge
-                      className={`${statusConfig[product.status as keyof typeof statusConfig].color} shrink-0 border-0`}
-                    >
-                      {
-                        statusConfig[product.status as keyof typeof statusConfig]
-                          .label
-                      }
-                    </Badge>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => setShowProductModal(true)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                        <span className="hidden sm:inline">Edit</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2 text-red-500 hover:bg-red-500/10 hover:text-red-500"
+                        onClick={() => setDeleteOpen(true)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        <span className="hidden sm:inline">Delete</span>
+                      </Button>
+                    </div>
                   </div>
 
                   <div className="mt-5 overflow-hidden rounded-lg border border-border bg-muted/25">
                     <div className="grid sm:grid-cols-[0.9fr_1.1fr]">
-                      <div className="border-b border-border p-4 sm:border-b-0 sm:border-r">
-                        <p className="text-xs font-medium uppercase text-muted-foreground">
-                          {timeSignalLabel}
-                        </p>
-                        <p
-                          className={`mt-1 text-3xl font-semibold tracking-tight ${statusColorClass}`}
+                      <div className="flex items-center gap-4 border-b border-border p-4 sm:border-b-0 sm:border-r">
+                        <motion.div
+                          className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-full"
+                          animate={{
+                            boxShadow: isWarrantyFull
+                              ? [
+                                  "0 0 0px rgba(0,0,0,0)",
+                                  `0 0 12px ${ringGlow}`,
+                                  "0 0 0px rgba(0,0,0,0)",
+                                ]
+                              : "0 0 0px rgba(0,0,0,0)",
+                          }}
+                          transition={{
+                            boxShadow: isWarrantyFull
+                              ? {
+                                  duration: 1.4,
+                                  repeat: Infinity,
+                                  ease: "easeInOut",
+                                }
+                              : { duration: 0.2 },
+                          }}
                         >
-                          {timeSignal}
-                        </p>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          {product.status === "EXPIRED"
-                            ? "Coverage has ended"
-                            : "Coverage still available"}
-                        </p>
+                          <svg
+                            viewBox="0 0 36 36"
+                            className={`h-20 w-20 -rotate-90 ${statusColorClass}`}
+                          >
+                            <circle
+                              cx="18"
+                              cy="18"
+                              r={RING_R}
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="3"
+                              className="text-muted-foreground/20"
+                            />
+                            <motion.circle
+                              cx="18"
+                              cy="18"
+                              r={RING_R}
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="3"
+                              strokeLinecap="round"
+                              strokeDasharray={RING_C}
+                              initial={{ strokeDashoffset: RING_C }}
+                              animate={{
+                                strokeDashoffset: RING_C * (1 - pctElapsed / 100),
+                              }}
+                              transition={{ duration: 0.8, ease: "easeOut" }}
+                            />
+                          </svg>
+                          <span
+                            className={`absolute text-base font-bold ${statusColorClass}`}
+                          >
+                            {pctElapsed}%
+                          </span>
+                        </motion.div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-medium uppercase text-muted-foreground">
+                            {timeSignalLabel}
+                          </p>
+                          <p
+                            className={`mt-0.5 text-2xl font-semibold tracking-tight ${statusColorClass}`}
+                          >
+                            {timeSignal}
+                          </p>
+                          <p className="mt-0.5 text-sm text-muted-foreground">
+                            {product.status === "EXPIRED"
+                              ? "Coverage has ended"
+                              : "Coverage still available"}
+                          </p>
+                        </div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-px bg-border text-sm">
@@ -386,32 +527,7 @@ const ProductDetails = () => {
                       </div>
                     </div>
                   </div>
-
-                  <WarrantyProgressBar
-                    purchaseDate={product.purchaseDate}
-                    warrantyExpiry={product.warrantyExpiry}
-                    status={product.status}
-                  />
                 </div>
-              </div>
-
-              <div className="mt-5 flex gap-3 border-t border-border pt-4">
-                <Button
-                  variant="outline"
-                  className="gap-2"
-                  onClick={() => setShowProductModal(true)}
-                >
-                  <Pencil className="h-4 w-4" />
-                  Edit Product
-                </Button>
-                <Button
-                  variant="outline"
-                  className="gap-2 text-red-500 hover:bg-red-500/10 hover:text-red-500"
-                  onClick={() => setDeleteOpen(true)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                  Delete
-                </Button>
               </div>
             </Card>
           </motion.div>
@@ -420,117 +536,255 @@ const ProductDetails = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
+            className={documents.length === 0 ? "lg:col-span-2" : undefined}
           >
-          <Card className="border-border bg-card p-6">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="text-lg font-semibold text-foreground">
-                Documents
-              </h2>
-              <div className="flex flex-wrap items-center gap-2">
-                <Select
-                  value={selectedDocType}
-                  onValueChange={(value) =>
-                    setSelectedDocType(value ?? "OTHER")
-                  }
-                >
-                  <SelectTrigger className="w-40 text-sm">
-                    <SelectValue>{DocTypeLabels[selectedDocType]}</SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(DocTypeLabels).map(([value, label]) => (
-                      <SelectItem key={value} value={value}>
-                        {label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-2"
-                  onClick={() => document.getElementById("docUpload")?.click()}
-                >
-                  <Upload className="h-3.5 w-3.5" />
-                  Upload
-                </Button>
+            <Card className="border-border bg-card p-6">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="inline-flex rounded-lg border border-border p-0.5">
+                  <button
+                    type="button"
+                    onClick={() => setLeftTab("documents")}
+                    className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                      leftTab === "documents"
+                        ? "bg-muted text-foreground"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    Documents ({documents.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLeftTab("reminders")}
+                    className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                      leftTab === "reminders"
+                        ? "bg-muted text-foreground"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    Reminders ({reminders.length})
+                  </button>
+                </div>
 
-                <input
-                  id="docUpload"
-                  type="file"
-                  accept="image/*,application/pdf"
-                  className="hidden"
-                  onChange={handleUploadDoc}
-                />
-              </div>
-            </div>
-            <div className="mt-4 flex flex-col gap-2">
-              {documents.length === 0 ? (
-                <p className="py-4 text-center text-sm text-muted-foreground">
-                  No documents yet
-                </p>
-              ) : (
-                documents.map((doc) => {
-                  const FileIcon = getFileIcon(doc.mimeType);
-                  return (
-                    <div
-                      key={doc.id}
-                      role="button"
-                      tabIndex={0}
-                      aria-pressed={selectedDoc?.id === doc.id}
-                      onClick={() => setSelectedDoc(doc)}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter" || event.key === " ") {
-                          event.preventDefault();
-                          setSelectedDoc(doc);
-                        }
-                      }}
-                      className={`flex w-full flex-wrap items-center justify-between gap-3 rounded-lg px-4 py-3 text-left transition-colors outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40 ${
-                        selectedDoc?.id === doc.id
-                          ? "bg-emerald-500/10 ring-1 ring-emerald-500/25"
-                          : "bg-muted/50 hover:bg-muted"
-                      }`}
+                {leftTab === "documents" ? (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Select
+                      value={selectedDocType}
+                      onValueChange={(value) =>
+                        setSelectedDocType(value ?? "OTHER")
+                      }
                     >
-                      <div className="flex min-w-0 items-center gap-3">
-                        <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] uppercase text-muted-foreground">
-                          {DocTypeLabels[doc.docType] || doc.docType}
-                        </span>
-                        <FileIcon className="h-4 w-4 text-muted-foreground" />
-                        <span className="truncate text-sm text-foreground">
-                          {doc.fileName}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {formatFileSize(doc.fileSize)}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400">
-                          <Eye className="h-3 w-3" />
-                          Preview
-                        </span>
-                        <button
-                          type="button"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            setDocToDelete(doc);
-                          }}
-                          className="text-xs text-red-500 hover:text-red-600"
-                        >
-                          Delete
-                        </button>
-                      </div>
+                      <SelectTrigger className="w-40 text-sm">
+                        <SelectValue>
+                          {DocTypeLabels[selectedDocType]}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(DocTypeLabels).map(([value, label]) => (
+                          <SelectItem key={value} value={value}>
+                            {label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-2"
+                      onClick={() =>
+                        document.getElementById("docUpload")?.click()
+                      }
+                    >
+                      <Upload className="h-3.5 w-3.5" />
+                      Upload
+                    </Button>
+                    <input
+                      id="docUpload"
+                      type="file"
+                      accept="image/*,application/pdf"
+                      className="hidden"
+                      onChange={handleUploadDoc}
+                    />
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Input
+                      type="number"
+                      min={1}
+                      max={365}
+                      value={daysBefore}
+                      onChange={(e) => setDaysBefore(Number(e.target.value))}
+                      className="w-20 text-center text-sm"
+                    />
+                    <span className="text-xs text-muted-foreground">
+                      days before
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-2"
+                      onClick={handleAddReminder}
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      Add
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              {leftTab === "documents" ? (
+                <div className="mt-4 flex flex-col gap-2">
+                  {documents.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-10 text-center">
+                      <ReceiptText className="h-9 w-9 text-muted-foreground" />
+                      <p className="mt-3 text-sm font-medium text-foreground">
+                        No documents yet
+                      </p>
+                      <p className="mt-1 max-w-xs text-sm text-muted-foreground">
+                        Add a receipt, invoice, or warranty card to keep it with
+                        this product.
+                      </p>
+                      <Button
+                        variant="outline"
+                        className="mt-4 gap-2"
+                        onClick={() =>
+                          document.getElementById("docUpload")?.click()
+                        }
+                      >
+                        <Upload className="h-4 w-4" />
+                        Add your first document
+                      </Button>
                     </div>
-                  );
-                })
+                  ) : (
+                    documents.map((doc) => {
+                      const FileIcon = getFileIcon(doc.mimeType);
+                      return (
+                        <div
+                          key={doc.id}
+                          role="button"
+                          tabIndex={0}
+                          aria-pressed={selectedDoc?.id === doc.id}
+                          onClick={() => setSelectedDoc(doc)}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter" || event.key === " ") {
+                              event.preventDefault();
+                              setSelectedDoc(doc);
+                            }
+                          }}
+                          className={`flex w-full flex-wrap items-center justify-between gap-3 rounded-lg px-4 py-3 text-left transition-colors outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40 ${
+                            selectedDoc?.id === doc.id
+                              ? "bg-emerald-500/10 ring-1 ring-emerald-500/25"
+                              : "bg-muted/50 hover:bg-muted"
+                          }`}
+                        >
+                          <div className="flex min-w-0 items-center gap-3">
+                            <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] uppercase text-muted-foreground">
+                              {DocTypeLabels[doc.docType] || doc.docType}
+                            </span>
+                            <FileIcon className="h-4 w-4 text-muted-foreground" />
+                            <span className="truncate text-sm text-foreground">
+                              {doc.fileName}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {formatFileSize(doc.fileSize)}
+                            </span>
+                          </div>
+                          <div className="flex shrink-0 items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                setSelectedDoc(doc);
+                                setPreviewOpen(true);
+                              }}
+                              className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs font-medium text-emerald-600 transition-colors hover:bg-emerald-500/10 dark:text-emerald-400"
+                            >
+                              <Eye className="h-3.5 w-3.5" />
+                              Preview
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                setDocToDelete(doc);
+                              }}
+                              className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs font-medium text-red-500 transition-colors hover:bg-red-500/10"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              ) : (
+                <div className="mt-4 flex flex-col gap-2">
+                  {reminders.length === 0 ? (
+                    <p className="py-4 text-center text-sm text-muted-foreground">
+                      No reminders yet
+                    </p>
+                  ) : (
+                    reminders.map((reminder) => {
+                      const daysUntil = Math.ceil(
+                        (new Date(reminder.remindAt).getTime() - Date.now()) /
+                          (1000 * 60 * 60 * 24),
+                      );
+                      const daysBeforeExpiry = Math.round(
+                        (new Date(product.warrantyExpiry).getTime() -
+                          new Date(reminder.remindAt).getTime()) /
+                          (1000 * 60 * 60 * 24),
+                      );
+                      return (
+                        <div
+                          key={reminder.id}
+                          className="flex items-center justify-between gap-3 rounded-lg bg-muted/50 px-4 py-3"
+                        >
+                          <div className="flex min-w-0 items-center gap-3">
+                            <Bell
+                              className={`h-4 w-4 shrink-0 ${reminder.sent ? "text-emerald-500" : "text-amber-500"}`}
+                            />
+                            <div className="min-w-0">
+                              <p className="text-sm text-foreground">
+                                {daysBeforeExpiry} day
+                                {daysBeforeExpiry === 1 ? "" : "s"} before expiry
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {new Date(
+                                  reminder.remindAt,
+                                ).toLocaleDateString()}
+                                {" · "}
+                                {daysUntil > 0
+                                  ? `in ${daysUntil} days`
+                                  : reminder.sent
+                                    ? "Sent"
+                                    : "Due"}
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setReminderToDelete(reminder.id)}
+                            className="inline-flex shrink-0 items-center gap-1 rounded-md border border-border px-2 py-1 text-xs font-medium text-red-500 transition-colors hover:bg-red-500/10"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            Delete
+                          </button>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
               )}
-            </div>
-          </Card>
+            </Card>
           </motion.div>
 
+          {documents.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25 }}
-            className="lg:row-span-2"
+            className="mb-8"
           >
             <Card className="sticky top-6 border-border bg-card p-6">
               <div className="flex flex-wrap items-start justify-between gap-3">
@@ -569,88 +823,42 @@ const ProductDetails = () => {
               <div className="mt-4">
                 <DocumentPreview doc={selectedDoc} compact />
               </div>
+
+              {documents.length > 0 && (
+                <div className="nice-scroll mt-3 flex gap-2 overflow-x-auto pb-1">
+                  {documents.map((doc) => {
+                    const isImg = doc.mimeType.startsWith("image/");
+                    const FileIcon = getFileIcon(doc.mimeType);
+                    return (
+                      <button
+                        key={doc.id}
+                        type="button"
+                        onClick={() => setSelectedDoc(doc)}
+                        title={doc.fileName}
+                        aria-label={`Preview ${doc.fileName}`}
+                        className={`flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-muted transition-colors ${
+                          selectedDoc?.id === doc.id
+                            ? "border-emerald-500 ring-1 ring-emerald-500/40"
+                            : "border-border hover:border-foreground/30"
+                        }`}
+                      >
+                        {isImg ? (
+                          <img
+                            src={doc.fileUrl}
+                            alt={doc.fileName}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <FileIcon className="h-5 w-5 text-muted-foreground" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </Card>
           </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="mb-8"
-          >
-          <Card className="border-border bg-card p-6">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="text-lg font-semibold text-foreground">
-                Reminders
-              </h2>
-              <div className="flex flex-wrap items-center gap-2">
-                <Input
-                  type="number"
-                  min={1}
-                  max={365}
-                  value={daysBefore}
-                  onChange={(e) => setDaysBefore(Number(e.target.value))}
-                  className="w-20 text-center text-sm"
-                />
-                <span className="text-xs text-muted-foreground">
-                  days before
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-2"
-                  onClick={handleAddReminder}
-                >
-                  <Plus className="h-3.5 w-3.5" />
-                  Add
-                </Button>
-              </div>
-            </div>
-
-            <div className="mt-4 flex flex-col gap-2">
-              {reminders.length === 0 ? (
-                <p className="py-4 text-center text-sm text-muted-foreground">
-                  No reminders yet
-                </p>
-              ) : (
-                reminders.map((reminder) => {
-                  const daysUntil = Math.ceil(
-                    (new Date(reminder.remindAt).getTime() - Date.now()) /
-                      (1000 * 60 * 60 * 24),
-                  );
-                  return (
-                    <div
-                      key={reminder.id}
-                      className="flex items-center justify-between rounded-lg bg-muted/50 px-4 py-3"
-                    >
-                      <div className="flex items-center gap-3">
-                        <Bell
-                          className={`h-4 w-4 ${reminder.sent ? "text-emerald-500" : "text-amber-500"}`}
-                        />
-                        <span className="text-sm text-foreground">
-                          {new Date(reminder.remindAt).toLocaleDateString()}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {daysUntil > 0
-                            ? `in ${daysUntil} days`
-                            : reminder.sent
-                              ? "Sent"
-                              : "Due"}
-                        </span>
-                      </div>
-                      <button
-                        onClick={() => setReminderToDelete(reminder.id)}
-                        className="text-xs text-red-500 hover:text-red-600"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </Card>
-          </motion.div>
+          )}
         </div>
       </main>
 

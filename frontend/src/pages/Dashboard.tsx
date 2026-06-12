@@ -31,7 +31,6 @@ import ProductCard from "../components/ProductCard";
 import ProductList from "../components/ProductList";
 import Sidebar from "../components/Sidebar";
 import ActiveFilters from "../components/ActiveFilters";
-import ChatWidget from "../components/ChatWidget";
 import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
@@ -161,6 +160,7 @@ const Dashboard = () => {
         return;
       }
       downloadCsv("warranties.csv", toCsv(all));
+      toast.success(`Exported ${all.length} product${all.length === 1 ? "" : "s"}`);
     } catch {
       toast.error("Export failed");
     } finally {
@@ -172,6 +172,7 @@ const Dashboard = () => {
     const rows = products.filter((p) => selectedIds.has(p.id));
     if (rows.length === 0) return;
     downloadCsv("warranties-selected.csv", toCsv(rows));
+    toast.success(`Exported ${rows.length} product${rows.length === 1 ? "" : "s"}`);
   };
 
   const toggleSelect = (id: string) =>
@@ -387,7 +388,7 @@ const Dashboard = () => {
 
             {view === "cards" && (
             <motion.div
-              className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2 2xl:grid-cols-3"
+              className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4"
               variants={containerVariants}
               initial="hidden"
               animate="show"
@@ -396,14 +397,11 @@ const Dashboard = () => {
                 ? [...Array(6)].map((_, index) => (
                     <div
                       key={index}
-                      className="flex overflow-hidden rounded-lg border border-border bg-card"
+                      className="overflow-hidden rounded-lg border border-border bg-card"
                     >
-                      <Skeleton className="h-[116px] w-24 shrink-0 rounded-none" />
-                      <div className="flex-1 space-y-2 p-4">
-                        <div className="flex items-center justify-between">
-                          <Skeleton className="h-4 w-28" />
-                          <Skeleton className="h-5 w-16 rounded-full" />
-                        </div>
+                      <Skeleton className="h-44 w-full rounded-none" />
+                      <div className="space-y-2 p-4">
+                        <Skeleton className="h-4 w-28" />
                         <Skeleton className="h-3 w-24" />
                         <div className="flex items-center justify-between pt-2">
                           <Skeleton className="h-3 w-24" />
@@ -564,8 +562,6 @@ const Dashboard = () => {
         confirmLabel={`Delete ${selectedIds.size}`}
         onConfirm={handleBulkDelete}
       />
-
-      <ChatWidget />
     </div>
   );
 };

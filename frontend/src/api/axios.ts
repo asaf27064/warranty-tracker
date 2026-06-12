@@ -9,6 +9,10 @@ export const setupInterceptors = (
   getToken: () => string | null,
   refreshToken: () => Promise<void>,
 ) => {
+  // Single-flight: if many requests 401 at once (e.g. on tab refocus), they
+  // all await the same refresh instead of firing one each.
+  let refreshPromise: Promise<void> | null = null;
+
   api.interceptors.request.use((config) => {
     const token = getToken();
     if (token) {
@@ -32,7 +36,16 @@ export const setupInterceptors = (
         !isAuthLogout
       ) {
         originalRequest._retry = true;
-        await refreshToken();
+        try {
+          if (!refreshPromise) {
+            refreshPromise = refreshToken().finally(() => {
+              refreshPromise = null;
+            });
+          }
+          await refreshPromise;
+        } catch {
+          return Promise.reject(error);
+        }
         const token = getToken();
         if (token) {
           originalRequest.headers.Authorization = `Bearer ${token}`;
