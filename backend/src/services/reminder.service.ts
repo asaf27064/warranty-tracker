@@ -1,6 +1,6 @@
 import cron from "node-cron";
 import prisma from "../config/db";
-import { sendReminderEmail } from "./email.service";
+import { sendReminderDigestEmail, type ReminderItem } from "./email.service";
 
 export const processReminders = async () => {
   const now = new Date();
@@ -41,24 +41,52 @@ export const processReminders = async () => {
     },
   });
 
+  // Group due reminders into one digest per user. If the same product has
+  // several due reminders, keep the most urgent and collect all their ids so
+  // they're marked sent together.
+  type Group = {
+    email: string;
+    reminderIds: string[];
+    items: Map<string, ReminderItem>;
+  };
+  const byUser = new Map<string, Group>();
+
   for (const reminder of dueReminders) {
+    const email = reminder.product.user.email;
+    const group: Group = byUser.get(email) ?? {
+      email,
+      reminderIds: [],
+      items: new Map<string, ReminderItem>(),
+    };
+    group.reminderIds.push(reminder.id);
+
     const daysLeft = Math.ceil(
       (new Date(reminder.product.warrantyExpiry).getTime() - now.getTime()) /
         (1000 * 60 * 60 * 24),
     );
-
-    try {
-      await sendReminderEmail(
-        reminder.product.user.email,
-        reminder.product.name,
+    const existing = group.items.get(reminder.product.id);
+    if (!existing || daysLeft < existing.daysLeft) {
+      group.items.set(reminder.product.id, {
+        productName: reminder.product.name,
+        productId: reminder.product.id,
+        picture: reminder.product.picture,
         daysLeft,
-      );
-      await prisma.reminder.update({
-        where: { id: reminder.id },
+        warrantyExpiry: reminder.product.warrantyExpiry,
+        purchaseDate: reminder.product.purchaseDate,
+      });
+    }
+    byUser.set(email, group);
+  }
+
+  for (const group of byUser.values()) {
+    try {
+      await sendReminderDigestEmail(group.email, [...group.items.values()]);
+      await prisma.reminder.updateMany({
+        where: { id: { in: group.reminderIds } },
         data: { sent: true, sentAt: now },
       });
     } catch (error) {
-      console.error(`Failed to send email for reminder ${reminder.id}:`, error);
+      console.error(`Failed to send reminder digest to ${group.email}:`, error);
     }
   }
 };
@@ -99,6 +127,11 @@ export async function createReminder(
   const remindAt = new Date(product.warrantyExpiry);
   remindAt.setDate(remindAt.getDate() - Number(daysBefore));
   remindAt.setHours(8, 0, 0, 0);
+  // If that time has already passed (e.g. a short remaining warranty), schedule
+  // it for now so it still fires on the next run instead of being silently lost.
+  if (remindAt.getTime() < Date.now()) {
+    remindAt.setTime(Date.now());
+  }
 
   const existing = await prisma.reminder.findFirst({
     where: { productId, remindAt },
