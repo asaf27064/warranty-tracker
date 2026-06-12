@@ -21,11 +21,22 @@ export const setupInterceptors = (
     (response) => response,
     async (error) => {
       const originalRequest = error.config;
-      if (error.response?.status === 401 && !originalRequest._retry) {
+      const url = originalRequest?.url ?? "";
+      const isAuthRefresh = url.includes("/auth/refresh");
+      const isAuthLogout = url.includes("/auth/logout");
+
+      if (
+        error.response?.status === 401 &&
+        !originalRequest._retry &&
+        !isAuthRefresh &&
+        !isAuthLogout
+      ) {
         originalRequest._retry = true;
         await refreshToken();
         const token = getToken();
-        originalRequest.headers.Authorization = `Bearer ${token}`;
+        if (token) {
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+        }
         return api(originalRequest);
       }
       return Promise.reject(error);

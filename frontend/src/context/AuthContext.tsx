@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useRef } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import api, { setupInterceptors } from "../api/axios";
@@ -10,18 +10,35 @@ type User = {
   avatarUrl?: string;
 };
 
+type LoginOptions = {
+  selectAccount?: boolean;
+  loginHint?: string;
+};
+
 type AuthContextType = {
   user: User | null;
+  lastUser: User | null;
   accessToken: string | null;
   loading: boolean;
-  loginWithGoogle: () => void;
+  loginWithGoogle: (options?: LoginOptions) => void;
   logout: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
+const LAST_USER_KEY = "wtLastGoogleUser";
+
+const readLastUser = (): User | null => {
+  try {
+    const raw = localStorage.getItem(LAST_USER_KEY);
+    return raw ? (JSON.parse(raw) as User) : null;
+  } catch {
+    return null;
+  }
+};
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [lastUser, setLastUser] = useState<User | null>(() => readLastUser());
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const tokenRef = useRef<string | null>(null);
@@ -33,40 +50,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const init = async () => {
-      const params = new URLSearchParams(window.location.search);
-      const tokenFromUrl = params.get("token");
-
-      if (tokenFromUrl) {
-        setAccessToken(tokenFromUrl);
-        window.history.replaceState({}, "", "/dashboard");
-        try {
-          const res = await api.get("/auth/me", {
-            headers: { Authorization: `Bearer ${tokenFromUrl}` },
-          });
-          setUser(res.data.user);
-          navigate("/dashboard");
-        } catch {
-          setAccessToken(null);
-          navigate("/");
-        }
-      } else {
-        // page reload — try refresh from cookie
-        try {
-          const res = await api.post("/auth/refresh");
-          setAccessToken(res.data.accessToken);
-          const meRes = await api.get("/auth/me", {
-            headers: { Authorization: `Bearer ${res.data.accessToken}` },
-          });
-          setUser(meRes.data.user);
-        } catch {
-          // not logged in
-        }
+      try {
+        const res = await api.post("/auth/refresh");
+        setAccessToken(res.data.accessToken);
+        tokenRef.current = res.data.accessToken;
+        const meRes = await api.get("/auth/me", {
+          headers: { Authorization: `Bearer ${res.data.accessToken}` },
+        });
+        setUser(meRes.data.user);
+        setLastUser(meRes.data.user);
+        localStorage.setItem(LAST_USER_KEY, JSON.stringify(meRes.data.user));
+      } catch {
+        setUser(null);
+        setAccessToken(null);
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     };
-
-    init();
 
     setupInterceptors(
       () => tokenRef.current,
@@ -74,17 +74,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         try {
           const res = await api.post("/auth/refresh");
           setAccessToken(res.data.accessToken);
+          tokenRef.current = res.data.accessToken;
         } catch {
           setUser(null);
           setAccessToken(null);
+          tokenRef.current = null;
           navigate("/");
         }
       },
     );
-  }, []);
 
-  const loginWithGoogle = () => {
-    window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
+    init();
+  }, [navigate]);
+
+  const loginWithGoogle = (options: LoginOptions = {}) => {
+    const url = new URL(`${import.meta.env.VITE_API_URL}/auth/google`);
+    if (options.selectAccount) {
+      url.searchParams.set("prompt", "select_account");
+    }
+    if (options.loginHint) {
+      url.searchParams.set("login_hint", options.loginHint);
+    }
+    window.location.href = url.toString();
   };
 
   const logout = async () => {
@@ -93,13 +104,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setUser(null);
       setAccessToken(null);
+      tokenRef.current = null;
+      // Clear the cached "continue as" identity so the previous user's name
+      // and email are not shown on the login screen of a shared device.
+      setLastUser(null);
+      localStorage.removeItem(LAST_USER_KEY);
       navigate("/");
     }
   };
 
   return (
-    <AuthContext.Provider
-      value={{ user, accessToken, loading, loginWithGoogle, logout }}
+      <AuthContext.Provider
+      value={{ user, lastUser, accessToken, loading, loginWithGoogle, logout }}
     >
       {children}
     </AuthContext.Provider>

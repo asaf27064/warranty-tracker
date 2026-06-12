@@ -12,7 +12,19 @@ import {
   SelectGroup,
 } from "./ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
-import { Save, Upload, Search, X, FileText } from "lucide-react";
+import {
+  Calendar,
+  FileText,
+  ImagePlus,
+  Package,
+  ReceiptText,
+  Save,
+  Search,
+  Sparkles,
+  Store,
+  Upload,
+  X,
+} from "lucide-react";
 import { Category, CategoryLabels, DocTypeLabels } from "../types";
 import type { Product } from "../types";
 import { useProducts } from "../hooks/useProducts";
@@ -276,7 +288,7 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
         headers: { "Content-Type": "multipart/form-data" },
       });
       applyExtracted(res.data);
-      toast.success("Filled from your receipt — please review");
+      toast.success("Filled from your receipt - please review");
     } catch (e) {
       console.error(e);
       toast.error("Couldn't read that file. Try a clearer image or PDF.");
@@ -285,342 +297,418 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
     }
   };
 
+  const warrantyMonthsPreview =
+    form.warrantyUnit === "Years"
+      ? form.warrantyDuration * 12
+      : form.warrantyDuration;
+  const expiryPreview =
+    form.purchaseDate && warrantyMonthsPreview
+      ? (() => {
+          const d = new Date(form.purchaseDate);
+          d.setMonth(d.getMonth() + warrantyMonthsPreview);
+          return d.toLocaleDateString();
+        })()
+      : "Not set";
+  const displayName = form.name.trim() || "Unnamed product";
+  const displayCategory = CategoryLabels[form.category] ?? "No category";
+  const displayStore = form.store.trim() || "Store not set";
+
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogContent className="sm:max-w-xl">
-        <DialogHeader>
-          <DialogTitle>{isEdit ? "Edit Product" : "Add Product"}</DialogTitle>
-        </DialogHeader>
-        {!isEdit && (
-          <div className="space-y-2 rounded-lg border border-border bg-muted/40 p-3">
-            <Label htmlFor="aiText">✨ Quick add with AI</Label>
-            <div className="flex gap-2">
-              <Input
-                id="aiText"
-                placeholder="e.g. bought a MacBook last month, 3 year warranty"
-                value={aiText}
-                onChange={(e) => setAiText(e.target.value)}
-              />
-              <Button
-                type="button"
-                onClick={handleAiFill}
-                disabled={aiLoading || !aiText.trim()}
-              >
-                {aiLoading ? "Thinking..." : "Fill"}
-              </Button>
+      <DialogContent className="max-h-[92vh] overflow-hidden p-0 sm:max-w-4xl">
+        <div className="grid max-h-[92vh] grid-cols-1 overflow-hidden md:grid-cols-[300px_1fr]">
+          <aside className="border-b border-border bg-muted/35 p-5 md:border-b-0 md:border-r">
+            <DialogHeader>
+              <DialogTitle className="text-xl">
+                {isEdit ? "Edit product" : "Add product"}
+              </DialogTitle>
+            </DialogHeader>
+
+            <div className="mt-5 overflow-hidden rounded-lg border border-border bg-card">
+              <div className="flex aspect-square items-center justify-center bg-muted">
+                {imagePreview ? (
+                  <img
+                    src={imagePreview}
+                    alt={displayName}
+                    className="h-full w-full object-contain"
+                  />
+                ) : (
+                  <Package className="h-14 w-14 text-muted-foreground" />
+                )}
+              </div>
+              <div className="space-y-3 p-4">
+                <div>
+                  <p className="truncate text-lg font-semibold text-foreground">
+                    {displayName}
+                  </p>
+                  <p className="truncate text-sm text-muted-foreground">
+                    {displayCategory}
+                  </p>
+                </div>
+                <div className="grid gap-2 text-sm">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Store className="h-4 w-4" />
+                    <span className="truncate">{displayStore}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Calendar className="h-4 w-4" />
+                    <span>Expires {expiryPreview}</span>
+                  </div>
+                  {!isEdit && (
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <ReceiptText className="h-4 w-4" />
+                      <span>{docFiles.length} document{docFiles.length === 1 ? "" : "s"}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">or</span>
+            <div className="mt-4 grid grid-cols-2 gap-2">
               <Button
                 type="button"
                 variant="outline"
-                size="sm"
-                disabled={aiLoading}
-                onClick={() =>
-                  document.getElementById("receiptUpload")?.click()
-                }
+                className="gap-2"
+                onClick={() => document.getElementById("imageUpload")?.click()}
               >
-                <FileText className="mr-2 h-4 w-4" />
-                Upload receipt / invoice
+                <ImagePlus className="h-4 w-4" />
+                Upload
               </Button>
-              <span className="text-xs text-muted-foreground">image or PDF</span>
-              <input
-                id="receiptUpload"
-                type="file"
-                accept="image/*,application/pdf"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) handleReceiptUpload(file);
-                  e.target.value = ""; // allow re-selecting the same file
-                }}
-              />
-            </div>
-
-            {aiHint && missingFields.length > 0 && (
-              <p className="text-sm text-amber-600">
-                Filled what I could — please complete the highlighted fields.
-              </p>
-            )}
-          </div>
-        )}
-        <form onSubmit={handleSubmit} noValidate className="space-y-6">
-          {/* Product Name */}
-          <div className="space-y-2">
-            <Label htmlFor="name">Product Name *</Label>
-            <Input
-              id="name"
-              name="name"
-              placeholder="e.g. MacBook Pro 14"
-              type="text"
-              required
-              value={form.name}
-              onChange={handleChange}
-              className={
-                missingFields.includes("name")
-                  ? "border-amber-500 ring-1 ring-amber-500"
-                  : ""
-              }
-            />
-          </div>
-
-          {/* Category + Store */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Category</Label>
-              <Select
-                value={form.category}
-                onValueChange={(value) =>
-                  setForm((prev) => ({ ...prev, category: value ?? "" }))
-                }
+              <Button
+                type="button"
+                variant="outline"
+                className="gap-2"
+                onClick={() => setShowImageSearch(true)}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category">
-                    {CategoryLabels[form.category]}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {Object.entries(CategoryLabels).map(([value, label]) => (
-                      <SelectItem key={value} value={value}>
-                        {label}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
+                <Search className="h-4 w-4" />
+                Search
+              </Button>
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="store">Store</Label>
-              <Input
-                id="store"
-                name="store"
-                placeholder="e.g. Amazon, KSP"
-                type="text"
-                value={form.store}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-
-          {/* Purchase Date + Warranty Duration */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="purchaseDate">Purchase Date *</Label>
-              <Input
-                id="purchaseDate"
-                name="purchaseDate"
-                type="date"
-                required
-                value={form.purchaseDate}
-                onChange={handleChange}
-                className={
-                  missingFields.includes("purchaseDate")
-                    ? "border-amber-500 ring-1 ring-amber-500"
-                    : ""
+            <input
+              id="imageUpload"
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  setImageFile(file);
+                  setImagePreview(URL.createObjectURL(file));
                 }
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Warranty Duration *</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="warrantyDuration"
-                  name="warrantyDuration"
-                  type="number"
-                  required
-                  min={1}
-                  max={120}
-                  value={form.warrantyDuration}
-                  onChange={handleChange}
-                  className={`flex-1 ${
-                    missingFields.includes("warrantyDuration")
-                      ? "border-amber-500 ring-1 ring-amber-500"
-                      : ""
-                  }`}
-                />
-                <Select
-                  value={form.warrantyUnit}
-                  onValueChange={(value) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      warrantyUnit: value ?? "Months",
-                    }))
-                  }
-                >
-                  <SelectTrigger className="w-32">
-                    <span>{form.warrantyUnit}</span>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Months">Months</SelectItem>
-                    <SelectItem value="Years">Years</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-
-          {/* Product Image */}
-          <div className="space-y-3">
-            <Label>Product Image</Label>
-
-            {imagePreview ? (
-              <div className="relative h-32 w-32 overflow-hidden rounded-lg border border-border">
-                <img
-                  src={imagePreview}
-                  alt="Preview"
-                  className="h-full w-full object-cover"
-                />
-                <button
-                  type="button"
-                  onClick={clearImage}
-                  className="absolute right-1 top-1 rounded-full bg-background/80 p-1 text-muted-foreground hover:text-foreground"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </div>
-            ) : (
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() =>
-                    document.getElementById("imageUpload")?.click()
-                  }
-                >
-                  <Upload className="mr-2 h-4 w-4" />
-                  Upload
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowImageSearch(true)}
-                >
-                  <Search className="mr-2 h-4 w-4" />
-                  Search
-                </Button>
-                <input
-                  id="imageUpload"
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      setImageFile(file);
-                      setImagePreview(URL.createObjectURL(file));
-                    }
-                  }}
-                />
-              </div>
+              }}
+            />
+            {imagePreview && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="mt-2 w-full text-muted-foreground"
+                onClick={clearImage}
+              >
+                <X className="h-4 w-4" />
+                Remove image
+              </Button>
             )}
-          </div>
+          </aside>
 
-          {/* Documents */}
-          {!isEdit && (
-            <div className="space-y-3">
-              <Label>Documents</Label>
-
-              {docFiles.length > 0 && (
-                <div className="flex flex-col gap-2">
-                  {docFiles.map((doc, i) => (
-                    <div
-                      key={i}
-                      className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2"
-                    >
-                      <div className="flex items-center gap-2">
-                        <FileText className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm text-foreground">
-                          {doc.file.name}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {DocTypeLabels[doc.docType]}
-                        </span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setDocFiles(docFiles.filter((_, j) => j !== i))
-                        }
-                        className="text-red-500 hover:text-red-600"
-                      >
-                        <X className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  ))}
+          <div className="nice-scroll overflow-y-auto p-5">
+            {!isEdit && (
+              <section className="rounded-lg border border-border bg-sky-500/5 p-4">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-sky-600 dark:text-sky-400" />
+                  <Label htmlFor="aiText">Quick fill</Label>
                 </div>
+                <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                  <Input
+                    id="aiText"
+                    placeholder="e.g. bought a MacBook last month, 3 year warranty"
+                    value={aiText}
+                    onChange={(e) => setAiText(e.target.value)}
+                  />
+                  <Button
+                    type="button"
+                    onClick={handleAiFill}
+                    disabled={aiLoading || !aiText.trim()}
+                  >
+                    {aiLoading ? "Thinking..." : "Fill"}
+                  </Button>
+                </div>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={aiLoading}
+                    onClick={() =>
+                      document.getElementById("receiptUpload")?.click()
+                    }
+                  >
+                    <FileText className="mr-2 h-4 w-4" />
+                    Read receipt or invoice
+                  </Button>
+                  <span className="text-xs text-muted-foreground">
+                    Image or PDF
+                  </span>
+                  <input
+                    id="receiptUpload"
+                    type="file"
+                    accept="image/*,application/pdf"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleReceiptUpload(file);
+                      e.target.value = "";
+                    }}
+                  />
+                </div>
+                {aiHint && missingFields.length > 0 && (
+                  <p className="mt-3 text-sm text-amber-600">
+                    Filled what I could - please complete the highlighted fields.
+                  </p>
+                )}
+              </section>
+            )}
+
+            <form onSubmit={handleSubmit} noValidate className="mt-5 space-y-5">
+              <section className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Package className="h-4 w-4 text-muted-foreground" />
+                  <h3 className="text-sm font-medium text-foreground">Product</h3>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="name">Product name *</Label>
+                  <Input
+                    id="name"
+                    name="name"
+                    placeholder="e.g. MacBook Pro 14"
+                    type="text"
+                    required
+                    value={form.name}
+                    onChange={handleChange}
+                    className={
+                      missingFields.includes("name")
+                        ? "border-amber-500 ring-1 ring-amber-500"
+                        : ""
+                    }
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label>Category</Label>
+                    <Select
+                      value={form.category}
+                      onValueChange={(value) =>
+                        setForm((prev) => ({ ...prev, category: value ?? "" }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category">
+                          {CategoryLabels[form.category]}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          {Object.entries(CategoryLabels).map(([value, label]) => (
+                            <SelectItem key={value} value={value}>
+                              {label}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="store">Store</Label>
+                    <Input
+                      id="store"
+                      name="store"
+                      placeholder="e.g. Amazon, KSP"
+                      type="text"
+                      value={form.store}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </div>
+              </section>
+
+              <section className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <h3 className="text-sm font-medium text-foreground">Warranty</h3>
+                </div>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="purchaseDate">Purchase date *</Label>
+                    <Input
+                      id="purchaseDate"
+                      name="purchaseDate"
+                      type="date"
+                      required
+                      value={form.purchaseDate}
+                      onChange={handleChange}
+                      className={
+                        missingFields.includes("purchaseDate")
+                          ? "border-amber-500 ring-1 ring-amber-500"
+                          : ""
+                      }
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Warranty duration *</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="warrantyDuration"
+                        name="warrantyDuration"
+                        type="number"
+                        required
+                        min={1}
+                        max={120}
+                        value={form.warrantyDuration}
+                        onChange={handleChange}
+                        className={`flex-1 ${
+                          missingFields.includes("warrantyDuration")
+                            ? "border-amber-500 ring-1 ring-amber-500"
+                            : ""
+                        }`}
+                      />
+                      <Select
+                        value={form.warrantyUnit}
+                        onValueChange={(value) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            warrantyUnit: value ?? "Months",
+                          }))
+                        }
+                      >
+                        <SelectTrigger className="w-32">
+                          <span>{form.warrantyUnit}</span>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Months">Months</SelectItem>
+                          <SelectItem value="Years">Years</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {!isEdit && (
+                <section className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <ReceiptText className="h-4 w-4 text-muted-foreground" />
+                    <h3 className="text-sm font-medium text-foreground">
+                      Documents
+                    </h3>
+                  </div>
+
+                  {docFiles.length > 0 && (
+                    <div className="grid gap-2">
+                      {docFiles.map((doc, i) => (
+                        <div
+                          key={`${doc.file.name}-${i}`}
+                          className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/35 px-3 py-2"
+                        >
+                          <div className="flex min-w-0 items-center gap-2">
+                            <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
+                            <span className="truncate text-sm text-foreground">
+                              {doc.file.name}
+                            </span>
+                            <span className="shrink-0 text-xs text-muted-foreground">
+                              {DocTypeLabels[doc.docType]}
+                            </span>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon-sm"
+                            onClick={() =>
+                              setDocFiles(docFiles.filter((_, j) => j !== i))
+                            }
+                            aria-label="Remove document"
+                          >
+                            <X className="h-4 w-4 text-red-500" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Select
+                      value={selectedDocType}
+                      onValueChange={(value) =>
+                        setSelectedDocType(value ?? "OTHER")
+                      }
+                    >
+                      <SelectTrigger className="w-44 text-sm">
+                        <span>{DocTypeLabels[selectedDocType]}</span>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(DocTypeLabels).map(([value, label]) => (
+                          <SelectItem key={value} value={value}>
+                            {label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="gap-2"
+                      onClick={() =>
+                        document.getElementById("docUpload")?.click()
+                      }
+                    >
+                      <Upload className="h-4 w-4" />
+                      Add document
+                    </Button>
+                    <input
+                      id="docUpload"
+                      type="file"
+                      accept="image/*,application/pdf"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setDocFiles([
+                            ...docFiles,
+                            { file, docType: selectedDocType },
+                          ]);
+                        }
+                      }}
+                    />
+                  </div>
+                </section>
               )}
 
-              <div className="flex items-center gap-2">
-                <Select
-                  value={selectedDocType}
-                  onValueChange={(value) =>
-                    setSelectedDocType(value ?? "OTHER")
-                  }
-                >
-                  <SelectTrigger className="w-40 text-sm">
-                    <span>{DocTypeLabels[selectedDocType]}</span>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(DocTypeLabels).map(([value, label]) => (
-                      <SelectItem key={value} value={value}>
-                        {label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="sticky bottom-0 -mx-5 flex flex-wrap items-center justify-between gap-3 border-t border-border bg-background/95 px-5 py-4 backdrop-blur">
+                {saveError ? (
+                  <p className="text-sm text-red-500">{saveError}</p>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    {isEdit ? "Update this warranty record." : "Save this product and its files."}
+                  </p>
+                )}
                 <Button
-                  type="button"
-                  variant="outline"
-                  className="gap-2"
-                  onClick={() => document.getElementById("docUpload")?.click()}
+                  type="submit"
+                  disabled={loading}
+                  className="gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
                 >
-                  <Upload className="h-4 w-4" />
-                  Add Document
+                  <Save className="h-4 w-4" />
+                  {loading
+                    ? "Saving..."
+                    : isEdit
+                      ? "Update product"
+                      : "Save product"}
                 </Button>
-                <input
-                  id="docUpload"
-                  type="file"
-                  accept="image/*,application/pdf"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      setDocFiles([
-                        ...docFiles,
-                        { file, docType: selectedDocType },
-                      ]);
-                    }
-                  }}
-                />
               </div>
-            </div>
-          )}
-
-          {/* Submit */}
-          <div className="space-y-2 pt-2">
-            <div className="flex gap-3">
-              <Button
-                type="submit"
-                disabled={loading}
-                className="gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
-              >
-                <Save className="h-4 w-4" />
-                {loading
-                  ? "Saving..."
-                  : isEdit
-                    ? "Update Product"
-                    : "Save Product"}
-              </Button>
-            </div>
-            {saveError && (
-              <p className="text-sm text-red-500">{saveError}</p>
-            )}
+            </form>
           </div>
-        </form>
+        </div>
 
         <ImageSearchModal
           open={showImageSearch}

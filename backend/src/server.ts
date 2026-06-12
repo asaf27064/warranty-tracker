@@ -1,6 +1,9 @@
 import app from "./app";
 import prisma from "./config/db";
 import { processReminders, startReminderCron } from "./services/reminder.service";
+import { validateEnv } from "./config/env";
+
+validateEnv();
 
 const PORT = process.env.PORT;
 

@@ -13,12 +13,6 @@ export const googleCallback = async (req: Request, res: Response) => {
 
   const user = req.user;
 
-  const accessToken = jwt.sign(
-    { userId: user.id, email: user.email },
-    process.env.JWT_ACCESS_SECRET!,
-    { expiresIn: "15m" },
-  );
-
   const refreshToken = jwt.sign(
     { userId: user.id, email: user.email },
     process.env.JWT_REFRESH_SECRET!,
@@ -41,9 +35,7 @@ export const googleCallback = async (req: Request, res: Response) => {
     path: "/",
   });
 
-  return res.redirect(
-    `${process.env.CLIENT_URL}?token=${encodeURIComponent(accessToken)}`,
-  );
+  return res.redirect(`${process.env.CLIENT_URL}/dashboard`);
 };
 
 export const getMe = async (req: Request, res: Response) => {

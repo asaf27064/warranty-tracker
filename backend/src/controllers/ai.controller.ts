@@ -7,6 +7,10 @@ import {
 } from "../services/ai.service";
 import { runAgent } from "../services/agent.service";
 import * as conversationService from "../services/conversation.service";
+import {
+  DOCUMENT_FILE_TYPES,
+  validateUploadedFile,
+} from "../utils/fileValidation";
 
 export const extractProduct = async (req: Request, res: Response) => {
   try {
@@ -33,14 +37,19 @@ export const extractProductImage = async (req: Request, res: Response) => {
     if (!file) {
       return res.status(400).json({ error: "No file uploaded" });
     }
-    if (!isSupportedMediaType(file.mimetype)) {
+    const validation = validateUploadedFile(file, DOCUMENT_FILE_TYPES);
+    if (!validation.ok) {
+      return res.status(400).json({ error: validation.error });
+    }
+    const mediaType = validation.mimeType;
+    if (!isSupportedMediaType(mediaType)) {
       return res.status(400).json({
         error: "Unsupported file type. Use an image (JPEG/PNG/GIF/WebP) or PDF.",
       });
     }
 
     const base64 = file.buffer.toString("base64");
-    const product = await extractProductFromFile(base64, file.mimetype);
+    const product = await extractProductFromFile(base64, mediaType);
 
     return res.status(200).json(product);
   } catch (error) {

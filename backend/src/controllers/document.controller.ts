@@ -3,6 +3,11 @@ import prisma from "../config/db";
 import { PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import crypto from "crypto";
 import { r2Client, R2_BUCKET } from "../config/r2";
+import {
+  DOCUMENT_FILE_TYPES,
+  safeOriginalName,
+  validateUploadedFile,
+} from "../utils/fileValidation";
 
 export const getAllDocs = async (req: Request, res: Response) => {
   try {
@@ -46,16 +51,21 @@ export const uploadDoc = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Product not found" });
     }
 
-    // upload to R2
-    const ext = file.originalname.split(".").pop() || "bin";
-    const fileKey = `documents/${req.user!.id}/${crypto.randomUUID()}.${ext}`;
+    const validation = validateUploadedFile(file, DOCUMENT_FILE_TYPES);
+    if (!validation.ok) {
+      return res.status(400).json({ error: validation.error });
+    }
+
+    const originalName = safeOriginalName(file.originalname);
+    const fileKey = `documents/${req.user!.id}/${crypto.randomUUID()}.${validation.extension}`;
 
     await r2Client.send(
       new PutObjectCommand({
         Bucket: R2_BUCKET,
         Key: fileKey,
         Body: file.buffer,
-        ContentType: file.mimetype,
+        ContentType: validation.mimeType,
+        Metadata: { originalName },
       }),
     );
 
@@ -65,11 +75,11 @@ export const uploadDoc = async (req: Request, res: Response) => {
     const newDoc = await prisma.document.create({
       data: {
         productId,
-        fileName: file.originalname,
+        fileName: originalName,
         fileUrl,
         fileKey,
         fileSize: file.size,
-        mimeType: file.mimetype,
+        mimeType: validation.mimeType,
         docType: req.body.docType || "OTHER",
       },
     });

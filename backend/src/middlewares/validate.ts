@@ -9,6 +9,7 @@ export const validateRequest = (schema: ZodTypeAny, source: "body" | "params" | 
       return res.status(400).json(errorResponse);
     }
 
+    req.validated = { ...req.validated, [source]: result.data };
     if (source !== "query") {
       req[source] = result.data;
     }

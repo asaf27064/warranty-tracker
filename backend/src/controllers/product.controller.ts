@@ -1,23 +1,28 @@
 import { Request, Response } from "express";
 import * as productService from "../services/product.service";
+import type { z } from "zod";
+import type { getAllProductsQuerySchema } from "../schemas/product.schema";
+
+type ProductListQuery = z.infer<typeof getAllProductsQuerySchema>;
 
 export const getAllProducts = async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({ error: "Unauthorized" });
     }
+    const query = (req.validated?.query ?? req.query) as ProductListQuery;
     const page = await productService.listProducts(
       req.user.id,
       {
-        query: (req.query.search as string | undefined)?.trim(),
-        status: req.query.status as never,
-        category: req.query.category as string | undefined,
-        sort: req.query.sort as never,
-        dir: req.query.dir as never,
+        query: query.search?.trim(),
+        status: query.status,
+        category: query.category,
+        sort: query.sort,
+        dir: query.dir,
       },
       {
-        limit: req.query.limit ? Number(req.query.limit) : undefined,
-        cursor: req.query.cursor as string | undefined,
+        limit: query.limit,
+        cursor: query.cursor,
       },
     );
     return res.status(200).json(page);
@@ -94,7 +99,7 @@ export const deleteProduct = async (req: Request, res: Response) => {
     if (!deleted) {
       return res.status(404).json({ error: "Product not found" });
     }
-    return res.status(204).json({ message: "Product deleted" });
+    return res.sendStatus(204);
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Failed to delete product" });

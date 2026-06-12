@@ -75,8 +75,16 @@ const Dashboard = () => {
     activeFilter !== "ALL" ||
     categoryFilter !== "ALL";
 
-  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useInfiniteProducts(filters);
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteProducts(filters);
   const { data: statsData } = useProductStats();
   const stats = statsData ?? { active: 0, expiringSoon: 0, expired: 0 };
 
@@ -238,7 +246,34 @@ const Dashboard = () => {
               </div>
             )}
 
-            {!isLoading && products.length === 0 && (
+            {!isLoading && isError && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-16 flex flex-col items-center text-center"
+              >
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted">
+                  <Package className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <p className="mt-4 text-lg font-medium text-foreground">
+                  Could not load products
+                </p>
+                <p className="mt-1 max-w-md text-sm text-muted-foreground">
+                  {error instanceof Error
+                    ? error.message
+                    : "Please check that the backend is running and try again."}
+                </p>
+                <Button
+                  variant="outline"
+                  className="mt-4"
+                  onClick={() => refetch()}
+                >
+                  Retry
+                </Button>
+              </motion.div>
+            )}
+
+            {!isLoading && !isError && products.length === 0 && (
               <motion.div
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
