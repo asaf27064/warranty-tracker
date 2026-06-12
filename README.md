@@ -9,7 +9,7 @@ WarrantyTracker is a full-stack web application that helps users manage product 
  
 ## ✨ Features
  
-- **Google OAuth Authentication** - secure sign-in with JWT access tokens and refresh token rotation
+- **Google OAuth Authentication** - secure sign-in with short-lived JWT access tokens and an HttpOnly refresh cookie
 - **Product Management** - add, edit, and delete products with warranty tracking
 - **Smart Status Tracking** - automatic status updates (Active → Expiring Soon → Expired)
 - **Document Storage** - upload receipts, invoices, and warranty certificates to Cloudflare R2
@@ -32,7 +32,7 @@ WarrantyTracker is a full-stack web application that helps users manage product 
 | **Node.js + Express** | REST API server |
 | **PostgreSQL** | Relational database |
 | **Prisma v7** | ORM with type-safe queries |
-| **JWT** | Authentication with access + refresh token rotation |
+| **JWT** | Authentication with short-lived access tokens and refresh cookies |
 | **Passport.js** | Google OAuth 2.0 strategy |
 | **Cloudflare R2** | File storage (documents + images) |
 | **SerpAPI** | Google Images search integration |

@@ -25,10 +25,13 @@ export const processReminders = async () => {
     data: { status: "EXPIRING_SOON" },
   });
 
-  // 3. find due reminders and send emails
+  const RETRY_GRACE_DAYS = 14;
+  const retryFloor = new Date(now);
+  retryFloor.setDate(retryFloor.getDate() - RETRY_GRACE_DAYS);
+
   const dueReminders = await prisma.reminder.findMany({
     where: {
-      remindAt: { lte: now },
+      remindAt: { lte: now, gte: retryFloor },
       sent: false,
     },
     include: {
@@ -50,14 +53,13 @@ export const processReminders = async () => {
         reminder.product.name,
         daysLeft,
       );
+      await prisma.reminder.update({
+        where: { id: reminder.id },
+        data: { sent: true, sentAt: now },
+      });
     } catch (error) {
       console.error(`Failed to send email for reminder ${reminder.id}:`, error);
     }
-
-    await prisma.reminder.update({
-      where: { id: reminder.id },
-      data: { sent: true, sentAt: now },
-    });
   }
 };
 
@@ -68,7 +70,6 @@ export const startReminderCron = () => {
   console.log("Reminder cron scheduled (daily 08:00 IST)");
 };
 
-// --- Reminder CRUD (shared by the HTTP controllers and the chat agent) ---
 
 type Reminder = Awaited<ReturnType<typeof prisma.reminder.create>>;
 
@@ -123,7 +124,6 @@ export async function getUserReminders(userId: string) {
 }
 
 export async function markReminderRead(userId: string, id: string) {
-  // Scope by user so one user can't mark another user's reminder.
   const reminder = await prisma.reminder.findFirst({
     where: { id, product: { userId } },
   });

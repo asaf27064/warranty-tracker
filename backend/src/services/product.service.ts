@@ -43,7 +43,11 @@ const AGENT_LIMIT = 100;
 
 const REMINDER_DAYS = [30, 7, 1];
 
-async function createExpiryReminders(productId: string, warrantyExpiry: Date) {
+async function createExpiryReminders(
+  db: Pick<typeof prisma, "reminder">,
+  productId: string,
+  warrantyExpiry: Date,
+) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   for (const days of REMINDER_DAYS) {
@@ -51,7 +55,7 @@ async function createExpiryReminders(productId: string, warrantyExpiry: Date) {
     remindAt.setDate(remindAt.getDate() - days);
     remindAt.setHours(8, 0, 0, 0);
     if (remindAt >= today) {
-      await prisma.reminder.create({ data: { remindAt, productId } });
+      await db.reminder.create({ data: { remindAt, productId } });
     }
   }
 }
@@ -65,22 +69,24 @@ export async function createProduct(userId: string, input: CreateProductInput) {
   warrantyExpiry.setMonth(warrantyExpiry.getMonth() + data.warrantyMonths);
   const status = getWarrantyStatus(purchaseDate, warrantyExpiry);
 
-  const product = await prisma.product.create({
-    data: {
-      name: data.name,
-      store: data.store ?? null,
-      picture: data.picture ?? null,
-      userId,
-      purchaseDate,
-      warrantyExpiry,
-      warrantyMonths: data.warrantyMonths,
-      category: data.category,
-      status,
-    },
-  });
+  return prisma.$transaction(async (tx) => {
+    const product = await tx.product.create({
+      data: {
+        name: data.name,
+        store: data.store ?? null,
+        picture: data.picture ?? null,
+        userId,
+        purchaseDate,
+        warrantyExpiry,
+        warrantyMonths: data.warrantyMonths,
+        category: data.category,
+        status,
+      },
+    });
 
-  await createExpiryReminders(product.id, warrantyExpiry);
-  return product;
+    await createExpiryReminders(tx, product.id, warrantyExpiry);
+    return product;
+  });
 }
 
 function buildWhere(userId: string, filters: ProductFilters) {
@@ -133,9 +139,7 @@ export async function listProducts(
   };
 }
 
-// Counts across ALL of the user's products (independent of filters): status
-// counts for the stat cards + sidebar Views, and per-category counts + total
-// for the sidebar Categories nav.
+
 export async function getProductStats(userId: string) {
   const [byStatus, byCategory] = await Promise.all([
     prisma.product.groupBy({
@@ -207,19 +211,33 @@ export async function updateProduct(
   const warrantyExpiry = new Date(purchaseDate);
   warrantyExpiry.setMonth(warrantyExpiry.getMonth() + warrantyMonths);
   const status = getWarrantyStatus(purchaseDate, warrantyExpiry);
+  const warrantyChanged =
+    purchaseDate.getTime() !== product.purchaseDate.getTime() ||
+    warrantyMonths !== product.warrantyMonths;
 
-  return prisma.product.update({
-    where: { id },
-    data: {
-      name: input.name ?? product.name,
-      store: input.store !== undefined ? input.store : product.store,
-      picture: input.picture !== undefined ? input.picture : product.picture,
-      purchaseDate,
-      warrantyExpiry,
-      warrantyMonths,
-      category: input.category ?? product.category,
-      status,
-    },
+  return prisma.$transaction(async (tx) => {
+    const updated = await tx.product.update({
+      where: { id },
+      data: {
+        name: input.name ?? product.name,
+        store: input.store !== undefined ? input.store : product.store,
+        picture: input.picture !== undefined ? input.picture : product.picture,
+        purchaseDate,
+        warrantyExpiry,
+        warrantyMonths,
+        category: input.category ?? product.category,
+        status,
+      },
+    });
+
+    if (warrantyChanged) {
+      await tx.reminder.deleteMany({
+        where: { productId: id, sent: false },
+      });
+      await createExpiryReminders(tx, id, warrantyExpiry);
+    }
+
+    return updated;
   });
 }
 

@@ -13,10 +13,17 @@ const router = Router();
 
 router.get("/me", verifyJWT, getMe);
 
-router.get(
-  "/google",
-  passport.authenticate("google", { scope: ["profile", "email"] }),
-);
+router.get("/google", (req, res, next) => {
+  const prompt = req.query.prompt === "select_account" ? "select_account" : undefined;
+  const loginHint =
+    typeof req.query.login_hint === "string" ? req.query.login_hint : undefined;
+
+  passport.authenticate("google", {
+    scope: ["profile", "email"],
+    prompt,
+    loginHint,
+  } as never)(req, res, next);
+});
 router.get(
   "/google/callback",
   passport.authenticate("google", { session: false }),
