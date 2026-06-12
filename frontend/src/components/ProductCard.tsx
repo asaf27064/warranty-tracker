@@ -81,41 +81,41 @@ const ProductCard = ({ product, onClick, selectable, selected }: Props) => {
       className="group"
     >
       <Card
-        className={`relative flex flex-row gap-0 cursor-pointer overflow-hidden border-border bg-card p-0 transition-all hover:shadow-xl ${
+        className={`relative flex flex-col gap-0 cursor-pointer overflow-hidden border-border bg-card p-0 transition-all hover:shadow-xl ${
           selected ? "ring-2 ring-emerald-500" : ""
         }`}
         onClick={onClick}
       >
-        {selectable && (
-          <input
-            type="checkbox"
-            checked={!!selected}
-            readOnly
-            aria-label={`Select ${product.name}`}
-            className="pointer-events-none absolute left-2 top-2 z-10 h-4 w-4 accent-emerald-600"
-          />
-        )}
-        <div className="flex w-24 shrink-0 items-center justify-center bg-muted p-2">
+        <div className="relative flex h-44 items-center justify-center overflow-hidden bg-muted p-3">
+          {selectable && (
+            <input
+              type="checkbox"
+              checked={!!selected}
+              readOnly
+              aria-label={`Select ${product.name}`}
+              className="pointer-events-none absolute left-3 top-3 z-10 h-4 w-4 accent-emerald-600"
+            />
+          )}
           {product.picture ? (
             <img
               src={product.picture}
               alt={product.name}
-              className="h-full w-full object-contain"
+              className="h-full w-full rounded-xl object-cover"
             />
           ) : (
-            <CategoryIcon className="h-8 w-8 text-muted-foreground" />
+            <CategoryIcon className="h-16 w-16 text-muted-foreground" />
           )}
+          <Badge
+            className={`${status.color} absolute right-3 top-3 z-10 border-0`}
+          >
+            {status.label}
+          </Badge>
         </div>
 
-        <div className="min-w-0 flex-1 p-4">
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="truncate text-base font-semibold text-foreground transition-colors group-hover:text-emerald-500">
-              {product.name}
-            </h3>
-            <Badge className={`${status.color} shrink-0 border-0`}>
-              {status.label}
-            </Badge>
-          </div>
+        <div className="min-w-0 p-4">
+          <h3 className="truncate text-base font-semibold text-foreground transition-colors group-hover:text-emerald-500">
+            {product.name}
+          </h3>
 
           <p className="mt-0.5 truncate text-xs text-muted-foreground">
             {CategoryLabels[product.category] || product.category}

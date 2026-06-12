@@ -14,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import { useAuth } from "../context/AuthContext";
 import { useChat } from "../hooks/useChat";
 import { StatusLabels } from "../types";
 import type { Product } from "../types";
@@ -29,8 +30,12 @@ const MAX_CARDS = 8;
 
 const ChatWidget = () => {
   const navigate = useNavigate();
+  const { accessToken } = useAuth();
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
+  const [hidden, setHidden] = useState(
+    () => localStorage.getItem("wtChatHidden") === "1",
+  );
   const [announceSeen, setAnnounceSeen] = useState(
     () => localStorage.getItem("wtChatAnnounceSeen") === "1",
   );
@@ -40,6 +45,13 @@ const ChatWidget = () => {
   const dismissAnnounce = () => {
     setAnnounceSeen(true);
     localStorage.setItem("wtChatAnnounceSeen", "1");
+  };
+
+  // Hide the floating bubble entirely until the user brings it back.
+  const dismissBubble = () => {
+    setOpen(false);
+    setHidden(true);
+    localStorage.setItem("wtChatHidden", "1");
   };
 
   const openProduct = (p: Product) => {
@@ -55,10 +67,15 @@ const ChatWidget = () => {
   }, [messages, loading]);
 
   // Let other parts of the app (e.g. the sidebar "Ask assistant") open the chat.
+  // This also un-hides the bubble if the user had dismissed it.
   useEffect(() => {
-    const open = () => setOpen(true);
-    window.addEventListener("wt-open-chat", open);
-    return () => window.removeEventListener("wt-open-chat", open);
+    const openChat = () => {
+      setHidden(false);
+      localStorage.setItem("wtChatHidden", "0");
+      setOpen(true);
+    };
+    window.addEventListener("wt-open-chat", openChat);
+    return () => window.removeEventListener("wt-open-chat", openChat);
   }, []);
 
   // Once the user opens the chat, the announcement has served its purpose.
@@ -73,6 +90,8 @@ const ChatWidget = () => {
     setInput("");
     await sendMessage(text);
   };
+
+  if (!accessToken || hidden) return null;
 
   return (
     <>
@@ -105,16 +124,41 @@ const ChatWidget = () => {
         )}
       </AnimatePresence>
 
-      {/* Floating toggle button */}
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={() => setOpen((o) => !o)}
-        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-600 text-white shadow-lg hover:bg-emerald-700"
-        aria-label="Open warranty assistant"
-      >
-        {open ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
-      </motion.button>
+      {/* Floating bubble (closed) or close button (open) */}
+      {open ? (
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setOpen(false)}
+          className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-600 text-white shadow-lg hover:bg-emerald-700"
+          aria-label="Close warranty assistant"
+        >
+          <X className="h-6 w-6" />
+        </motion.button>
+      ) : (
+        <motion.div
+          className="fixed bottom-6 right-6 z-50"
+          animate={{ y: [0, -6, 0] }}
+          transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setOpen(true)}
+            className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-600 text-white shadow-lg hover:bg-emerald-700"
+            aria-label="Open warranty assistant"
+          >
+            <MessageCircle className="h-6 w-6" />
+          </motion.button>
+          <button
+            onClick={dismissBubble}
+            aria-label="Hide assistant"
+            className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-sm transition-colors hover:text-foreground"
+          >
+            <X className="h-3 w-3" />
+          </button>
+        </motion.div>
+      )}
 
       <AnimatePresence>
         {open && (

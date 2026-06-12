@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import api, { setupInterceptors } from "../api/axios";
 
 type User = {
@@ -49,20 +50,39 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [accessToken]);
 
   useEffect(() => {
+    let lastHiddenAt = 0;
+
+    const refreshAccessToken = async () => {
+      const res = await api.post("/auth/refresh");
+      setAccessToken(res.data.accessToken);
+      tokenRef.current = res.data.accessToken;
+      return res.data.accessToken as string;
+    };
+
+    // Genuine session loss (refresh cookie gone/expired): clear and tell the user.
+    const handleSessionExpired = () => {
+      if (!tokenRef.current) return; // already handled / not logged in
+      setUser(null);
+      setAccessToken(null);
+      tokenRef.current = null;
+      toast.error("Your session expired — please sign in again");
+      navigate("/");
+    };
+
     const init = async () => {
       try {
-        const res = await api.post("/auth/refresh");
-        setAccessToken(res.data.accessToken);
-        tokenRef.current = res.data.accessToken;
+        const token = await refreshAccessToken();
         const meRes = await api.get("/auth/me", {
-          headers: { Authorization: `Bearer ${res.data.accessToken}` },
+          headers: { Authorization: `Bearer ${token}` },
         });
         setUser(meRes.data.user);
         setLastUser(meRes.data.user);
         localStorage.setItem(LAST_USER_KEY, JSON.stringify(meRes.data.user));
       } catch {
+        // Not logged in on first load — stay silent (no "expired" toast).
         setUser(null);
         setAccessToken(null);
+        tokenRef.current = null;
       } finally {
         setLoading(false);
       }
@@ -72,19 +92,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       () => tokenRef.current,
       async () => {
         try {
-          const res = await api.post("/auth/refresh");
-          setAccessToken(res.data.accessToken);
-          tokenRef.current = res.data.accessToken;
-        } catch {
-          setUser(null);
-          setAccessToken(null);
-          tokenRef.current = null;
-          navigate("/");
+          await refreshAccessToken();
+        } catch (e) {
+          handleSessionExpired();
+          throw e;
         }
       },
     );
 
+    // Returning to the tab after a while: refresh proactively so the first
+    // action doesn't hit an expired access token.
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") {
+        lastHiddenAt = Date.now();
+        return;
+      }
+      if (!tokenRef.current) return; // not logged in
+      if (Date.now() - lastHiddenAt < 5 * 60 * 1000) return; // brief switch
+      refreshAccessToken().catch(handleSessionExpired);
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
     init();
+
+    return () => document.removeEventListener("visibilitychange", onVisibility);
   }, [navigate]);
 
   const loginWithGoogle = (options: LoginOptions = {}) => {

@@ -5,6 +5,7 @@ import LoginPage from "./pages/LoginPage";
 import Dashboard from "./pages/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ProductDetails from "./pages/ProductDetails"
+import ChatWidget from "./components/ChatWidget";
 import { Toaster } from "./components/ui/sonner";
 
 function App() {
@@ -32,6 +33,7 @@ function App() {
               }
             />
           </Routes>
+          <ChatWidget />
         </AuthProvider>
       </BrowserRouter>
     </ThemeProvider>

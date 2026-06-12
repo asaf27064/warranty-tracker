@@ -12,6 +12,7 @@ import {
   SelectGroup,
 } from "./ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
+import { Badge } from "./ui/badge";
 import {
   Calendar,
   Eye,
@@ -336,6 +337,19 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
   const displayCategory = CategoryLabels[form.category] ?? "No category";
   const displayStore = form.store.trim() || "Store not set";
 
+  // Live warranty status for the preview, matching the app's status colors.
+  const previewStatus =
+    form.purchaseDate && warrantyMonthsPreview
+      ? (() => {
+          const d = new Date(form.purchaseDate);
+          d.setMonth(d.getMonth() + warrantyMonthsPreview);
+          const days = Math.ceil((d.getTime() - Date.now()) / 86_400_000);
+          if (days < 0) return { label: "Expired", cls: "badge-expired" };
+          if (days <= 30) return { label: "Expiring", cls: "badge-expiring" };
+          return { label: "Active", cls: "badge-active" };
+        })()
+      : null;
+
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent className="max-h-[92vh] overflow-hidden p-0 sm:max-w-4xl">
@@ -360,13 +374,22 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
                 )}
               </div>
               <div className="hidden space-y-3 p-4 md:block">
-                <div>
-                  <p className="truncate text-lg font-semibold text-foreground">
-                    {displayName}
-                  </p>
-                  <p className="truncate text-sm text-muted-foreground">
-                    {displayCategory}
-                  </p>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate text-lg font-semibold text-foreground">
+                      {displayName}
+                    </p>
+                    <p className="truncate text-sm text-muted-foreground">
+                      {displayCategory}
+                    </p>
+                  </div>
+                  {previewStatus && (
+                    <Badge
+                      className={`${previewStatus.cls} shrink-0 border-0`}
+                    >
+                      {previewStatus.label}
+                    </Badge>
+                  )}
                 </div>
                 <div className="grid gap-2 text-sm">
                   <div className="flex items-center gap-2 text-muted-foreground">
@@ -436,11 +459,16 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
 
           <div className="nice-scroll p-5 md:overflow-y-auto">
             {!isEdit && (
-              <section className="rounded-lg border border-border bg-sky-500/5 p-4">
+              <>
+              <section className="rounded-lg border border-sky-500/20 bg-sky-500/5 p-4">
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-sky-600 dark:text-sky-400" />
                   <Label htmlFor="aiText">Quick fill</Label>
                 </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Describe the purchase, or scan a receipt, and we'll fill the
+                  form for you to review.
+                </p>
                 <div className="mt-3 flex flex-col gap-2 sm:flex-row">
                   <Input
                     id="aiText"
@@ -456,43 +484,58 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
                     {aiLoading ? "Thinking..." : "Fill"}
                   </Button>
                 </div>
-                <div className="mt-3 flex flex-wrap items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    disabled={aiLoading}
-                    onClick={() =>
-                      document.getElementById("receiptUpload")?.click()
-                    }
-                  >
-                    <FileText className="mr-2 h-4 w-4" />
-                    Read receipt or invoice
-                  </Button>
-                  <span className="text-xs text-muted-foreground">
-                    Image or PDF
+                <div className="my-3 flex items-center gap-3">
+                  <div className="h-px flex-1 bg-sky-500/15" />
+                  <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                    or
                   </span>
-                  <input
-                    id="receiptUpload"
-                    type="file"
-                    accept="image/*,application/pdf"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleReceiptUpload(file);
-                      e.target.value = "";
-                    }}
-                  />
+                  <div className="h-px flex-1 bg-sky-500/15" />
                 </div>
+                <button
+                  type="button"
+                  disabled={aiLoading}
+                  onClick={() =>
+                    document.getElementById("receiptUpload")?.click()
+                  }
+                  className="flex w-full flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-sky-500/40 bg-sky-500/[0.03] px-4 py-4 text-center transition-colors hover:bg-sky-500/10 disabled:opacity-60"
+                >
+                  <span className="flex items-center gap-2 text-sm font-medium text-foreground">
+                    <ReceiptText className="h-4 w-4 text-sky-600 dark:text-sky-400" />
+                    {aiLoading ? "Reading..." : "Scan a receipt or invoice"}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    Upload a photo or PDF and we'll read the details
+                  </span>
+                </button>
+                <input
+                  id="receiptUpload"
+                  type="file"
+                  accept="image/*,application/pdf"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleReceiptUpload(file);
+                    e.target.value = "";
+                  }}
+                />
                 {aiHint && missingFields.length > 0 && (
                   <p className="mt-3 text-sm text-amber-600">
                     Filled what I could - please complete the highlighted fields.
                   </p>
                 )}
               </section>
+
+              <div className="my-5 flex items-center gap-3">
+                <div className="h-px flex-1 bg-border" />
+                <span className="text-xs text-muted-foreground">
+                  or enter the details manually
+                </span>
+                <div className="h-px flex-1 bg-border" />
+              </div>
+              </>
             )}
 
-            <form onSubmit={handleSubmit} noValidate className="mt-5 space-y-5">
+            <form onSubmit={handleSubmit} noValidate className="space-y-5">
               <section className="space-y-4">
                 <div className="flex items-center gap-2">
                   <Package className="h-4 w-4 text-muted-foreground" />
@@ -508,12 +551,18 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
                     required
                     value={form.name}
                     onChange={handleChange}
+                    aria-invalid={missingFields.includes("name")}
                     className={
                       missingFields.includes("name")
-                        ? "border-amber-500 ring-1 ring-amber-500"
+                        ? "border-red-500 ring-1 ring-red-500"
                         : ""
                     }
                   />
+                  {missingFields.includes("name") && (
+                    <p className="text-xs text-red-500">
+                      Product name is required
+                    </p>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -571,12 +620,18 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
                       required
                       value={form.purchaseDate}
                       onChange={handleChange}
+                      aria-invalid={missingFields.includes("purchaseDate")}
                       className={
                         missingFields.includes("purchaseDate")
-                          ? "border-amber-500 ring-1 ring-amber-500"
+                          ? "border-red-500 ring-1 ring-red-500"
                           : ""
                       }
                     />
+                    {missingFields.includes("purchaseDate") && (
+                      <p className="text-xs text-red-500">
+                        Purchase date is required
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -591,9 +646,10 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
                         max={120}
                         value={form.warrantyDuration}
                         onChange={handleChange}
+                        aria-invalid={missingFields.includes("warrantyDuration")}
                         className={`flex-1 ${
                           missingFields.includes("warrantyDuration")
-                            ? "border-amber-500 ring-1 ring-amber-500"
+                            ? "border-red-500 ring-1 ring-red-500"
                             : ""
                         }`}
                       />
@@ -615,6 +671,11 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
                         </SelectContent>
                       </Select>
                     </div>
+                    {missingFields.includes("warrantyDuration") && (
+                      <p className="text-xs text-red-500">
+                        Warranty duration is required
+                      </p>
+                    )}
                   </div>
                 </div>
               </section>
