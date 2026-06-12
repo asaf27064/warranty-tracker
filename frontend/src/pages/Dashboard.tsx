@@ -16,6 +16,7 @@ import DashboardStats from "../components/DashboardStats";
 import ProductCard from "../components/ProductCard";
 import ProductList from "../components/ProductList";
 import Sidebar from "../components/Sidebar";
+import ActiveFilters from "../components/ActiveFilters";
 import ChatWidget from "../components/ChatWidget";
 import { useNavigate } from "react-router-dom";
 
@@ -30,15 +31,28 @@ const Dashboard = () => {
   const [sortField, setSortField] = useState("created");
   const [sortDir, setSortDir] = useState("desc");
   const [showAddProduct, setShowAddProduct] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(
-    () => localStorage.getItem("wtSidebarCollapsed") === "1",
-  );
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    const stored = localStorage.getItem("wtSidebarCollapsed");
+    // On phones the sidebar is an overlay drawer, so start it closed.
+    if (stored === null) return window.innerWidth < 768;
+    return stored === "1";
+  });
 
   const toggleSidebar = () =>
     setSidebarCollapsed((c) => {
       localStorage.setItem("wtSidebarCollapsed", c ? "0" : "1");
       return !c;
     });
+
+  const closeSidebar = () => {
+    localStorage.setItem("wtSidebarCollapsed", "1");
+    setSidebarCollapsed(true);
+  };
+
+  // On mobile the sidebar overlays the page, so close it after a choice.
+  const closeSidebarOnMobile = () => {
+    if (window.innerWidth < 768) closeSidebar();
+  };
 
   const [view, setView] = useState<"cards" | "list">(() =>
     localStorage.getItem("wtView") === "list" ? "list" : "cards",
@@ -128,15 +142,31 @@ const Dashboard = () => {
         onAdd={() => setShowAddProduct(true)}
       />
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="relative flex flex-1 overflow-hidden">
+        {!sidebarCollapsed && (
+          <div
+            className="fixed inset-0 z-30 bg-black/40 md:hidden"
+            onClick={closeSidebar}
+            aria-hidden="true"
+          />
+        )}
         <Sidebar
           collapsed={sidebarCollapsed}
           stats={stats}
           statusFilter={activeFilter}
-          setStatusFilter={setActiveFilter}
+          setStatusFilter={(v) => {
+            setActiveFilter(v);
+            closeSidebarOnMobile();
+          }}
           categoryFilter={categoryFilter}
-          setCategoryFilter={setCategoryFilter}
-          onOpenChat={openChat}
+          setCategoryFilter={(v) => {
+            setCategoryFilter(v);
+            closeSidebarOnMobile();
+          }}
+          onOpenChat={() => {
+            openChat();
+            closeSidebarOnMobile();
+          }}
         />
 
         <main className="nice-scroll flex-1 overflow-y-auto">
@@ -177,17 +207,29 @@ const Dashboard = () => {
                   List
                 </button>
               </div>
-              {view === "cards" && (
-                <ProductFilters
-                  value={`${sortField}:${sortDir}`}
-                  onChange={(v) => {
-                    const [f, d] = v.split(":");
-                    setSortField(f);
-                    setSortDir(d);
-                  }}
-                />
-              )}
+              <ProductFilters
+                value={`${sortField}:${sortDir}`}
+                onChange={(v) => {
+                  const [f, d] = v.split(":");
+                  setSortField(f);
+                  setSortDir(d);
+                }}
+              />
             </motion.div>
+
+            <ActiveFilters
+              search={debouncedSearch}
+              status={activeFilter}
+              category={categoryFilter}
+              onClearSearch={() => setSearchQuery("")}
+              onClearStatus={() => setActiveFilter("ALL")}
+              onClearCategory={() => setCategoryFilter("ALL")}
+              onClearAll={() => {
+                setSearchQuery("");
+                setActiveFilter("ALL");
+                setCategoryFilter("ALL");
+              }}
+            />
 
             {view === "cards" && (
             <motion.div
