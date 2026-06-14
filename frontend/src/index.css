@@ -185,8 +185,15 @@
 .rdp-day_button:hover {
   background-color: var(--muted);
 }
-.rdp-selected .rdp-day_button {
+/* Solid emerald + white text so the picked day is readable in both themes. */
+.rdp-selected .rdp-day_button,
+.rdp-selected .rdp-day_button:hover {
+  background-color: #059669;
   color: #ffffff;
+}
+.rdp-today:not(.rdp-selected) .rdp-day_button {
+  color: #059669;
+  font-weight: 600;
 }
 .rdp-chevron {
   fill: var(--muted-foreground);

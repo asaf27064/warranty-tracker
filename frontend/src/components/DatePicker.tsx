@@ -2,7 +2,6 @@ import { useState } from "react";
 import { DayPicker } from "react-day-picker";
 import { format, parse } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
-import "react-day-picker/style.css";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 
 type Props = {
