@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { CategoryLabels, type Product } from "../types/index";
 import {
   Package,
@@ -53,12 +54,13 @@ const timeLeft = (expiry: string): string => {
   }
   if (days === 0) return "Expires today";
   if (days < 60) return `${days} days left`;
-  if (days < 365) return `~${Math.round(days / 30)} months left`;
+  if (days < 365) return `${Math.round(days / 30)} months left`;
   const years = days / 365;
-  return `~${years < 2 ? years.toFixed(1) : Math.round(years)} years left`;
+  return `${years < 2 ? years.toFixed(1) : Math.round(years)} years left`;
 };
 
 const ProductCard = ({ product, onClick, selectable, selected }: Props) => {
+  const [imgFailed, setImgFailed] = useState(false);
   const statusConfig = {
     ACTIVE: { color: "badge-active", label: "Active" },
     EXPIRING_SOON: { color: "badge-expiring", label: "Expiring" },
@@ -96,10 +98,11 @@ const ProductCard = ({ product, onClick, selectable, selected }: Props) => {
               className="pointer-events-none absolute left-3 top-3 z-10 h-4 w-4 accent-emerald-600"
             />
           )}
-          {product.picture ? (
+          {product.picture && !imgFailed ? (
             <img
               src={product.picture}
               alt={product.name}
+              onError={() => setImgFailed(true)}
               className="h-full w-full rounded-lg object-cover"
             />
           ) : (
