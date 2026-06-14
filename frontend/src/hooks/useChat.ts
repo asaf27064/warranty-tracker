@@ -28,7 +28,7 @@ export const useChat = () => {
       .get(`/api/ai/conversations/${id}`)
       .then((res) => setMessages(res.data))
       .catch(() => {
-        // Conversation gone (deleted/expired) — clear the stale id.
+        // Conversation gone (deleted/expired) - clear the stale id.
         localStorage.removeItem(STORAGE_KEY);
         setConversationId(null);
       });

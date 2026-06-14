@@ -106,7 +106,7 @@ function buildWhere(userId: string, filters: ProductFilters) {
   };
 }
 
-// Used by the CSV export — all matching products for the user, no pagination.
+// Used by the CSV export - all matching products for the user, no pagination.
 export async function getProductsForExport(
   userId: string,
   filters: ProductFilters = {},
@@ -126,8 +126,11 @@ export async function deleteProducts(userId: string, ids: string[]) {
   return result.count;
 }
 
-// Used by the agent — returns a bounded array of matching products.
-export async function searchProducts(userId: string, filters: ProductFilters = {}) {
+// Used by the agent - returns a bounded array of matching products.
+export async function searchProducts(
+  userId: string,
+  filters: ProductFilters = {},
+) {
   return prisma.product.findMany({
     where: buildWhere(userId, filters),
     orderBy: buildOrderBy(filters.sort, filters.dir),
@@ -135,7 +138,7 @@ export async function searchProducts(userId: string, filters: ProductFilters = {
   });
 }
 
-// Used by the HTTP list endpoint — cursor-paginated. Fetches `limit + 1` rows
+// Used by the HTTP list endpoint - cursor-paginated. Fetches `limit + 1` rows
 // to detect whether another page exists, then returns the page + next cursor.
 export async function listProducts(
   userId: string,
@@ -158,7 +161,6 @@ export async function listProducts(
     nextCursor: hasMore ? items[items.length - 1].id : null,
   };
 }
-
 
 export async function getProductStats(userId: string) {
   const [byStatus, byCategory] = await Promise.all([
@@ -193,7 +195,10 @@ export async function getProductStats(userId: string) {
   return stats;
 }
 
-export async function getExpiringWarranties(userId: string, withinDays: number) {
+export async function getExpiringWarranties(
+  userId: string,
+  withinDays: number,
+) {
   const days = Number(withinDays) || 30;
   const until = new Date();
   until.setDate(until.getDate() + days);
@@ -210,9 +215,7 @@ export async function getProductById(
 ) {
   return prisma.product.findFirst({
     where: { id, userId },
-    ...(opts.include
-      ? { include: { documents: true, reminders: true } }
-      : {}),
+    ...(opts.include ? { include: { documents: true, reminders: true } } : {}),
   });
 }
 

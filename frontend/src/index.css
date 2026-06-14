@@ -128,7 +128,7 @@
     }
 }
 
-/* Status palette — softer/more premium than raw Tailwind 500s, but still
+/* Status palette - softer/more premium than raw Tailwind 500s, but still
    clearly green / amber / red with strong contrast on the dark theme. */
 :root {
   --status-active: oklch(0.55 0.11 158);
