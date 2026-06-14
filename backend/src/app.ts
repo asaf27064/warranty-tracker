@@ -30,6 +30,9 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(passport.initialize());
 
+// Lightweight liveness check for uptime pingers (no auth, no DB).
+app.get("/health", (_req, res) => res.json({ status: "ok" }));
+
 app.use("/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/documents", documentRoutes);
