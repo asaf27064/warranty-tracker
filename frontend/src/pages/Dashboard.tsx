@@ -6,7 +6,7 @@ import {
   Loader2,
   LayoutGrid,
   List,
-  Download,
+  FileSpreadsheet,
   CheckSquare,
   Trash2,
   X,
@@ -301,8 +301,8 @@ const Dashboard = () => {
                   onClick={exportAll}
                   disabled={exporting}
                 >
-                  <Download className="h-4 w-4" />
-                  {exporting ? "Exporting..." : "Export"}
+                  <FileSpreadsheet className="h-4 w-4" />
+                  {exporting ? "Exporting..." : "Export all"}
                 </Button>
                 <Button
                   variant={selectMode ? "default" : "outline"}
@@ -360,8 +360,8 @@ const Dashboard = () => {
                     disabled={selectedIds.size === 0}
                     onClick={exportSelected}
                   >
-                    <Download className="h-4 w-4" />
-                    Export
+                    <FileSpreadsheet className="h-4 w-4" />
+                    Export selected
                   </Button>
                   <Button
                     variant="outline"
