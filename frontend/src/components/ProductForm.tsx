@@ -13,6 +13,7 @@ import {
 } from "./ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Badge } from "./ui/badge";
+import DatePicker from "./DatePicker";
 import {
   Calendar,
   Eye,
@@ -613,19 +614,13 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="purchaseDate">Purchase date *</Label>
-                    <Input
+                    <DatePicker
                       id="purchaseDate"
-                      name="purchaseDate"
-                      type="date"
-                      required
                       value={form.purchaseDate}
-                      onChange={handleChange}
-                      aria-invalid={missingFields.includes("purchaseDate")}
-                      className={
-                        missingFields.includes("purchaseDate")
-                          ? "border-red-500 ring-1 ring-red-500"
-                          : ""
+                      onChange={(v) =>
+                        setForm((prev) => ({ ...prev, purchaseDate: v }))
                       }
+                      invalid={missingFields.includes("purchaseDate")}
                     />
                     {missingFields.includes("purchaseDate") && (
                       <p className="text-xs text-red-500">
