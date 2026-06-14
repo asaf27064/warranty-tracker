@@ -4,6 +4,7 @@ import { Button } from "./ui/button";
 import { Switch } from "./ui/switch";
 import { Bell, Mail, Smartphone } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { enablePush, disablePush, pushSupported } from "../lib/push";
 import { toast } from "sonner";
 
 type RowProps = {
@@ -43,13 +44,43 @@ const OnboardingModal = () => {
   const { user, updatePreferences } = useAuth();
   const [inApp, setInApp] = useState(true);
   const [email, setEmail] = useState(false);
+  const [push, setPush] = useState(false);
+  const [pushBusy, setPushBusy] = useState(false);
   const [busy, setBusy] = useState(false);
+  const supportsPush = pushSupported();
 
   const open = !!user && !user.onboarded;
+
+  const handlePush = async (v: boolean) => {
+    setPushBusy(true);
+    try {
+      if (v) {
+        await enablePush();
+        setPush(true);
+      } else {
+        await disablePush();
+        setPush(false);
+      }
+    } catch (err) {
+      const code = (err as Error).message;
+      if (code === "denied") {
+        toast.error("Notifications are blocked in your browser settings");
+      } else if (code === "unsupported") {
+        toast.error("This browser doesn't support push notifications");
+      } else if (code === "missing-key") {
+        toast.error("Push isn't configured on this server");
+      } else {
+        toast.error("Couldn't enable push notifications");
+      }
+    } finally {
+      setPushBusy(false);
+    }
+  };
 
   const finish = async (prefs: {
     inAppNotifications?: boolean;
     emailNotifications?: boolean;
+    pushNotifications?: boolean;
   }) => {
     setBusy(true);
     try {
@@ -90,8 +121,10 @@ const OnboardingModal = () => {
             icon={Smartphone}
             title="Browser push"
             desc="Get notified even when the app is closed."
-            disabled
-            badge="Coming soon"
+            checked={push}
+            onChange={handlePush}
+            disabled={pushBusy || !supportsPush}
+            badge={supportsPush ? undefined : "Unsupported"}
           />
         </div>
         <div className="mt-4 flex justify-end gap-3">
@@ -102,7 +135,11 @@ const OnboardingModal = () => {
             disabled={busy}
             className="bg-emerald-600 text-white hover:bg-emerald-700"
             onClick={() =>
-              finish({ inAppNotifications: inApp, emailNotifications: email })
+              finish({
+                inAppNotifications: inApp,
+                emailNotifications: email,
+                pushNotifications: push,
+              })
             }
           >
             {busy ? "Saving..." : "Save"}
