@@ -1,12 +1,27 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext";
+import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeProvider";
 import LoginPage from "./pages/LoginPage";
 import Dashboard from "./pages/Dashboard";
+import Settings from "./pages/Settings";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ProductDetails from "./pages/ProductDetails"
 import ChatWidget from "./components/ChatWidget";
+import PrefsSync from "./components/PrefsSync";
+import ReminderToaster from "./components/ReminderToaster";
+import OnboardingModal from "./components/OnboardingModal";
 import { Toaster } from "./components/ui/sonner";
+
+function GlobalChrome() {
+  const { user } = useAuth();
+  return (
+    <>
+      <PrefsSync />
+      {user && <ReminderToaster />}
+      {user && <OnboardingModal />}
+    </>
+  );
+}
 
 function App() {
   return (
@@ -32,8 +47,17 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <Settings />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
           <ChatWidget />
+          <GlobalChrome />
         </AuthProvider>
       </BrowserRouter>
     </ThemeProvider>

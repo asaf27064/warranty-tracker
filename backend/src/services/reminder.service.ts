@@ -52,6 +52,7 @@ export const processReminders = async () => {
   const byUser = new Map<string, Group>();
 
   for (const reminder of dueReminders) {
+    if (!reminder.product.user.emailNotifications) continue;
     const email = reminder.product.user.email;
     const group: Group = byUser.get(email) ?? {
       email,

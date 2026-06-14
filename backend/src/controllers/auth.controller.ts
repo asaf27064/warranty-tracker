@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import prisma from "../config/db";
+import { deleteUserData } from "../services/account.service";
 
 type RefreshTokenPayload = {
   userId: string;
@@ -49,6 +50,54 @@ export const googleCallback = async (req: Request, res: Response) => {
 
 export const getMe = async (req: Request, res: Response) => {
   return res.status(200).json({ user: req.user });
+};
+
+export const updatePreferences = async (req: Request, res: Response) => {
+  const userId = req.user!.id;
+  const body = req.body ?? {};
+
+  const data: {
+    emailNotifications?: boolean;
+    pushNotifications?: boolean;
+    inAppNotifications?: boolean;
+    theme?: string;
+    defaultView?: string;
+    onboarded?: boolean;
+  } = {};
+
+  const bools = [
+    "emailNotifications",
+    "pushNotifications",
+    "inAppNotifications",
+    "onboarded",
+  ] as const;
+  for (const key of bools) {
+    if (typeof body[key] === "boolean") data[key] = body[key];
+  }
+  if (body.theme === "dark" || body.theme === "light" || body.theme === "system") {
+    data.theme = body.theme;
+  }
+  if (body.defaultView === "cards" || body.defaultView === "list") {
+    data.defaultView = body.defaultView;
+  }
+
+  if (Object.keys(data).length === 0) {
+    return res.status(400).json({ message: "No valid preferences provided" });
+  }
+
+  const user = await prisma.user.update({ where: { id: userId }, data });
+  return res.status(200).json({ user });
+};
+
+export const deleteAccount = async (req: Request, res: Response) => {
+  try {
+    await deleteUserData(req.user!.id);
+    res.clearCookie("jwt", refreshCookieBase);
+    return res.status(200).json({ message: "Account deleted" });
+  } catch (error) {
+    console.error("Account deletion failed:", error);
+    return res.status(500).json({ message: "Failed to delete account" });
+  }
 };
 
 export const handleRefreshToken = async (req: Request, res: Response) => {

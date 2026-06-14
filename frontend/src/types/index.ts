@@ -38,9 +38,25 @@ export type User = {
   avatarUrl?: string;
   name: string;
   email: string;
+  emailNotifications: boolean;
+  pushNotifications: boolean;
+  inAppNotifications: boolean;
+  theme: string;
+  defaultView: string;
+  onboarded: boolean;
   createdAt: string;
   updatedAt: string;
 };
+
+export type UserPreferences = Pick<
+  User,
+  | "emailNotifications"
+  | "pushNotifications"
+  | "inAppNotifications"
+  | "theme"
+  | "defaultView"
+  | "onboarded"
+>;
 
 export type Product = {
   id: string;
