@@ -9,13 +9,20 @@ import {
   SquarePen,
   Package,
   Sparkles,
+  ImagePlus,
+  FileText,
+  ExternalLink,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
+import { toast } from "sonner";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import ImageSearchModal from "./ImageSearchModal";
+import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 import { useChat } from "../hooks/useChat";
+import { useProducts } from "../hooks/useProducts";
 import { StatusLabels } from "../types";
 import type { Product } from "../types";
 
@@ -39,8 +46,15 @@ const ChatWidget = () => {
   const [announceSeen, setAnnounceSeen] = useState(
     () => localStorage.getItem("wtChatAnnounceSeen") === "1",
   );
-  const { messages, sendMessage, loading, reset } = useChat();
+  const { messages, sendMessage, loading, reset, patchProduct } = useChat();
+  const { updateProduct } = useProducts();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const receiptInputRef = useRef<HTMLInputElement>(null);
+  const [photoTarget, setPhotoTarget] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [receiptForId, setReceiptForId] = useState<string | null>(null);
 
   const dismissAnnounce = () => {
     setAnnounceSeen(true);
@@ -57,6 +71,46 @@ const ChatWidget = () => {
   const openProduct = (p: Product) => {
     setOpen(false);
     navigate(`/product/${p.id}`);
+  };
+
+  // Attach a searched photo to a just-created product.
+  const handlePhotoSelected = async (url: string) => {
+    const target = photoTarget;
+    if (!target) return;
+    try {
+      await updateProduct(target.id, { picture: url });
+      patchProduct(target.id, { picture: url });
+      toast.success("Photo added");
+    } catch {
+      toast.error("Couldn't add the photo");
+    } finally {
+      setPhotoTarget(null);
+    }
+  };
+
+  const addReceipt = (productId: string) => {
+    setReceiptForId(productId);
+    receiptInputRef.current?.click();
+  };
+
+  const handleReceiptFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    const productId = receiptForId;
+    e.target.value = "";
+    if (!file || !productId) return;
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("docType", "RECEIPT");
+      await api.post(`/api/documents/product/${productId}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      toast.success("Receipt added");
+    } catch {
+      toast.error("Couldn't upload the receipt");
+    } finally {
+      setReceiptForId(null);
+    }
   };
 
   useEffect(() => {
@@ -193,13 +247,37 @@ const ChatWidget = () => {
               className="nice-scroll flex-1 space-y-3 overflow-y-auto p-4"
             >
               {messages.length === 0 && (
-                <div className="mt-8 text-center text-sm text-muted-foreground">
+                <div className="mt-6 text-sm text-muted-foreground">
                   <Bot className="mx-auto mb-2 h-8 w-8 opacity-50" />
-                  <p>Hi! Ask me things like:</p>
-                  <p className="mt-2 italic">
-                    "Which warranties expire soon?"
+                  <p className="text-center">
+                    Hi! I'm your warranty assistant. I can:
                   </p>
-                  <p className="italic">"Remind me 30 days before my fridge expires"</p>
+                  <div className="mt-4 space-y-3">
+                    <div>
+                      <p className="font-medium text-foreground">Add a product</p>
+                      <p className="italic">
+                        "I bought a laptop yesterday, 1 year warranty"
+                      </p>
+                    </div>
+                    <div>
+                      <p className="font-medium text-foreground">
+                        Find your products
+                      </p>
+                      <p className="italic">"Do I have any Sony products?"</p>
+                    </div>
+                    <div>
+                      <p className="font-medium text-foreground">
+                        Check what's expiring
+                      </p>
+                      <p className="italic">"Which warranties expire soon?"</p>
+                    </div>
+                    <div>
+                      <p className="font-medium text-foreground">Set reminders</p>
+                      <p className="italic">
+                        "Remind me 30 days before my fridge expires"
+                      </p>
+                    </div>
+                  </div>
                 </div>
               )}
               {messages.map((m, i) => (
@@ -213,6 +291,7 @@ const ChatWidget = () => {
                   }`}
                 >
                   <div
+                    dir="auto"
                     className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm ${
                       m.role === "user"
                         ? "whitespace-pre-wrap bg-emerald-600 text-white"
@@ -296,6 +375,44 @@ const ChatWidget = () => {
                         )}
                       </div>
                     )}
+
+                  {(() => {
+                    const created =
+                      m.role === "assistant" && m.createdProductId
+                        ? m.products?.find((p) => p.id === m.createdProductId)
+                        : undefined;
+                    if (!created) return null;
+                    return (
+                      <div className="mt-2 flex w-full flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setPhotoTarget({ id: created.id, name: created.name })
+                          }
+                          className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs transition hover:bg-muted"
+                        >
+                          <ImagePlus className="h-3.5 w-3.5" />
+                          Add photo
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => addReceipt(created.id)}
+                          className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs transition hover:bg-muted"
+                        >
+                          <FileText className="h-3.5 w-3.5" />
+                          Add receipt
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => openProduct(created)}
+                          className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs transition hover:bg-muted"
+                        >
+                          <ExternalLink className="h-3.5 w-3.5" />
+                          Open product
+                        </button>
+                      </div>
+                    );
+                  })()}
                 </motion.div>
               ))}
               {loading && (
@@ -311,6 +428,7 @@ const ChatWidget = () => {
             {/* Input */}
             <div className="flex items-center gap-2 border-t border-border p-3">
               <Input
+                dir="auto"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => {
@@ -334,6 +452,20 @@ const ChatWidget = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <ImageSearchModal
+        open={photoTarget !== null}
+        onClose={() => setPhotoTarget(null)}
+        initialQuery={photoTarget?.name ?? ""}
+        onSelect={handlePhotoSelected}
+      />
+      <input
+        ref={receiptInputRef}
+        type="file"
+        accept="image/*,application/pdf"
+        className="hidden"
+        onChange={handleReceiptFile}
+      />
     </>
   );
 };

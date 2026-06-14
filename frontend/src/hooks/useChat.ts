@@ -6,6 +6,8 @@ export type ChatMessage = {
   role: "user" | "assistant";
   content: string;
   products?: Product[];
+  // Set when this turn created a product (enables the post-add actions).
+  createdProductId?: string;
 };
 
 // Persisted so the chat survives navigation and page refreshes.
@@ -45,12 +47,15 @@ export const useChat = () => {
       });
       setConversationId(res.data.conversationId);
       localStorage.setItem(STORAGE_KEY, res.data.conversationId);
+      const products: Product[] = res.data.products ?? [];
+      const createdProductId: string | undefined = res.data.createdProductId;
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
           content: res.data.reply,
-          products: res.data.products ?? [],
+          products,
+          createdProductId,
         },
       ]);
     } catch {
@@ -72,5 +77,21 @@ export const useChat = () => {
     localStorage.removeItem(STORAGE_KEY);
   };
 
-  return { messages, sendMessage, loading, reset };
+  // Update a product shown in chat (e.g. after attaching a photo).
+  const patchProduct = (productId: string, patch: Partial<Product>) => {
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.products
+          ? {
+              ...m,
+              products: m.products.map((p) =>
+                p.id === productId ? { ...p, ...patch } : p,
+              ),
+            }
+          : m,
+      ),
+    );
+  };
+
+  return { messages, sendMessage, loading, reset, patchProduct };
 };

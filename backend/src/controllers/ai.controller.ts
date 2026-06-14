@@ -7,10 +7,21 @@ import {
 } from "../services/ai.service";
 import { runAgent } from "../services/agent.service";
 import * as conversationService from "../services/conversation.service";
+import * as productService from "../services/product.service";
+import { parseProductMessage } from "../services/productParser";
 import {
   DOCUMENT_FILE_TYPES,
   validateUploadedFile,
 } from "../utils/fileValidation";
+
+// Last user message in history, for confirm-then-create.
+const lastUserText = (history: Anthropic.MessageParam[]): string | null => {
+  for (let i = history.length - 1; i >= 0; i--) {
+    const m = history[i];
+    if (m.role === "user" && typeof m.content === "string") return m.content;
+  }
+  return null;
+};
 
 export const extractProduct = async (req: Request, res: Response) => {
   try {
@@ -102,7 +113,70 @@ export const chat = async (req: Request, res: Response) => {
       conversationId = await conversationService.createConversation(userId);
     }
 
-    const { reply, products } = await runAgent(userId, history, message);
+    // Local-first, confirm-first: propose a parsed add, create it on "yes",
+    // send corrections and anything else to the agent.
+    const trimmed = message.trim();
+    const isAffirmation =
+      /^(yes|yeah|yep|yup|sure|ok|okay|confirm|correct|add it|do it|go ahead)\b/i.test(
+        trimmed,
+      ) &&
+      // not a correction like "yes but change the date"
+      !/\b(no|not|don'?t|change|actually|wrong|instead|but|edit)\b/i.test(
+        trimmed,
+      );
+
+    if (isAffirmation) {
+      const prev = lastUserText(history);
+      const parsed = prev ? parseProductMessage(prev) : null;
+      if (parsed) {
+        try {
+          const product = await productService.createProduct(userId, parsed);
+          const expiry = new Date(product.warrantyExpiry).toLocaleDateString(
+            "en-GB",
+          );
+          const reply = `Added "${product.name}", warranty expires ${expiry}. Open the card to review or edit.`;
+          await conversationService.saveTurn(conversationId, message, reply, [
+            product.id,
+          ]);
+          return res.status(200).json({
+            conversationId,
+            reply,
+            products: [product],
+            createdProductId: product.id,
+          });
+        } catch (err) {
+          console.error("Local add-product failed, falling back to agent:", err);
+        }
+      }
+    } else {
+      const parsed = parseProductMessage(message);
+      if (parsed) {
+        const exp = new Date(parsed.purchaseDate);
+        exp.setMonth(exp.getMonth() + parsed.warrantyMonths);
+        const prettyCat =
+          parsed.category.charAt(0) +
+          parsed.category.slice(1).toLowerCase().replace(/_/g, " ");
+        const purchase = new Date(parsed.purchaseDate).toLocaleDateString(
+          "en-GB",
+        );
+        const reply =
+          "Here's what I understood:\n" +
+          `- Name: ${parsed.name}\n` +
+          `- Category: ${prettyCat}\n` +
+          (parsed.store ? `- Store: ${parsed.store}\n` : "") +
+          `- Purchased: ${purchase}\n` +
+          `- Warranty: ${parsed.warrantyMonths} months (expires ${exp.toLocaleDateString("en-GB")})\n\n` +
+          "Reply **yes** to add it, or tell me what to change.";
+        await conversationService.saveTurn(conversationId, message, reply, []);
+        return res.status(200).json({ conversationId, reply, products: [] });
+      }
+    }
+
+    const { reply, products, createdProductId } = await runAgent(
+      userId,
+      history,
+      message,
+    );
     const productIds = (products as { id: string }[]).map((p) => p.id);
 
     // Persist both turns (assistant message keeps the ids of the cards shown).
@@ -113,7 +187,9 @@ export const chat = async (req: Request, res: Response) => {
       productIds,
     );
 
-    return res.status(200).json({ conversationId, reply, products });
+    return res
+      .status(200)
+      .json({ conversationId, reply, products, createdProductId });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Failed to process chat" });
