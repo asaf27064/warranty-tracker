@@ -86,7 +86,7 @@ const ProductCard = ({ product, onClick, selectable, selected }: Props) => {
         }`}
         onClick={onClick}
       >
-        <div className="relative flex h-44 items-center justify-center overflow-hidden bg-muted p-2">
+        <div className="relative flex h-44 items-center justify-center overflow-hidden bg-muted p-1.5">
           {selectable && (
             <input
               type="checkbox"
