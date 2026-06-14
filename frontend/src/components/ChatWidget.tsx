@@ -247,13 +247,37 @@ const ChatWidget = () => {
               className="nice-scroll flex-1 space-y-3 overflow-y-auto p-4"
             >
               {messages.length === 0 && (
-                <div className="mt-8 text-center text-sm text-muted-foreground">
+                <div className="mt-6 text-sm text-muted-foreground">
                   <Bot className="mx-auto mb-2 h-8 w-8 opacity-50" />
-                  <p>Hi! Ask me things like:</p>
-                  <p className="mt-2 italic">
-                    "Which warranties expire soon?"
+                  <p className="text-center">
+                    Hi! I'm your warranty assistant. I can:
                   </p>
-                  <p className="italic">"Remind me 30 days before my fridge expires"</p>
+                  <div className="mt-4 space-y-3">
+                    <div>
+                      <p className="font-medium text-foreground">Add a product</p>
+                      <p className="italic">
+                        "I bought a laptop yesterday, 1 year warranty"
+                      </p>
+                    </div>
+                    <div>
+                      <p className="font-medium text-foreground">
+                        Find your products
+                      </p>
+                      <p className="italic">"Do I have any Sony products?"</p>
+                    </div>
+                    <div>
+                      <p className="font-medium text-foreground">
+                        Check what's expiring
+                      </p>
+                      <p className="italic">"Which warranties expire soon?"</p>
+                    </div>
+                    <div>
+                      <p className="font-medium text-foreground">Set reminders</p>
+                      <p className="italic">
+                        "Remind me 30 days before my fridge expires"
+                      </p>
+                    </div>
+                  </div>
                 </div>
               )}
               {messages.map((m, i) => (
