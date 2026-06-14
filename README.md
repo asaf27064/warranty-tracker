@@ -6,17 +6,21 @@
 
 Warranty Tracker is a full-stack TypeScript app for managing product warranties: add products, store receipts and documents, get reminded before coverage expires, and manage everything by chatting with an AI assistant that can read your receipts and answer questions about your warranties.
 
-> **Live demo:** _add your deployed URL here_ (sign in with Google to try it)
+> **Live demo:** **[warranty-tracker-kohl.vercel.app](https://warranty-tracker-kohl.vercel.app)** — sign in with Google and try it (the API is on a free tier, so the first request after a while may take ~30s to wake).
 
 ---
 
 ## 📸 Screenshots
 
-_Add images under `docs/screenshots/` and link them here:_
+> Save images with these exact names into `docs/screenshots/` and they'll render automatically (a GIF works too, just keep the filename).
 
-| Dashboard | Product details | AI assistant |
-|---|---|---|
-| _dashboard.png_ | _product-details.png_ | _assistant.png_ |
+| Dashboard | Product details |
+|---|---|
+| ![Dashboard](docs/screenshots/dashboard.png) | ![Product details](docs/screenshots/product-details.png) |
+
+| AI assistant | Receipt scan |
+|---|---|
+| ![AI assistant](docs/screenshots/assistant.png) | ![Receipt scan](docs/screenshots/receipt-scan.png) |
 
 ---
 
