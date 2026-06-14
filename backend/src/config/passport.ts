@@ -12,7 +12,9 @@ export const initializePassport = () => {
       {
         clientID: process.env.GOOGLE_CLIENT_ID!,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-        callbackURL: "http://localhost:3000/auth/google/callback",
+        // SERVER_URL is the backend's public origin (set it in production).
+        // Falls back to localhost for local dev.
+        callbackURL: `${process.env.SERVER_URL ?? "http://localhost:3000"}/auth/google/callback`,
       },
       async (
         accessToken: string,
