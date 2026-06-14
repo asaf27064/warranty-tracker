@@ -1,41 +1,114 @@
-# 🛡️ WarrantyTracker
- 
-**Never lose track of your product warranties again.**
- 
-WarrantyTracker is a full-stack web application that helps users manage product warranties, store receipts and documents, and receive timely reminders before warranties expire.
+# 🛡️ Warranty Tracker
 
- 
+![CI](https://github.com/asaf27064/warranty-tracker/actions/workflows/ci.yml/badge.svg)
+
+**Never lose track of a product warranty again.**
+
+Warranty Tracker is a full-stack TypeScript app for managing product warranties: add products, store receipts and documents, get reminded before coverage expires, and manage everything by chatting with an AI assistant that can read your receipts and answer questions about your warranties.
+
+> **Live demo:** _add your deployed URL here_ (sign in with Google to try it)
+
 ---
- 
-## ✨ Features
- 
-- **Google OAuth Authentication** - secure sign-in with short-lived JWT access tokens and an HttpOnly refresh cookie
-- **Product Management** - add, edit, and delete products with warranty tracking
-- **Smart Status Tracking** - automatic status updates (Active → Expiring Soon → Expired)
-- **Document Storage** - upload receipts, invoices, and warranty certificates to Cloudflare R2
-- **Image Search** - find product images via SerpAPI Google Images integration
-- **Image Upload** - upload product images directly to cloud storage
-- **Automated Reminders** - auto-created at 30, 7, and 1 day before warranty expiry
-- **In-App Notifications** - notification bell with unread count and click-to-navigate
-- **Daily Cron Job** - background service that updates warranty statuses and triggers reminders
-- **Advanced Filtering** - search by name/store, filter by status and category, sort by date or name
-- **Dark / Light Theme** - full theme support with smooth toggle
-- **Responsive Design** - works on desktop and mobile
+
+## 📸 Screenshots
+
+_Add images under `docs/screenshots/` and link them here:_
+
+| Dashboard | Product details | AI assistant |
+|---|---|---|
+| _dashboard.png_ | _product-details.png_ | _assistant.png_ |
+
 ---
- 
-## 🛠️ Tech Stack
- 
-### Backend
-| Technology | Purpose |
-|---|---|
-| **TypeScript** | Type-safe development |
-| **Node.js + Express** | REST API server |
-| **PostgreSQL** | Relational database |
-| **Prisma v7** | ORM with type-safe queries |
-| **JWT** | Authentication with short-lived access tokens and refresh cookies |
-| **Passport.js** | Google OAuth 2.0 strategy |
-| **Cloudflare R2** | File storage (documents + images) |
-| **SerpAPI** | Google Images search integration |
-| **node-cron** | Scheduled warranty status updates + reminder processing |
-| **Multer** | File upload handling |
-| **Jest + Supertest** | API testing |
+
+## ✨ Highlights
+
+- **AI assistant (tool-using agent).** Ask things like _"which warranties expire soon?"_ or add a product just by chatting. Built on Anthropic Claude with real tool use over a shared, Zod-validated service layer.
+- **Receipt and invoice scanning.** Upload a photo or PDF and Claude vision extracts the product name, store, purchase date, and warranty length, then pre-fills the form for review.
+- **Quick add from plain language.** Type _"bought a MacBook last month, 3 year warranty"_ and it parses into a structured product.
+- **Reminder digest emails.** A daily job groups everything expiring soon into one clean email per user, with product thumbnails, color-coded status, and a warranty progress bar.
+
+## 🧩 Features
+
+**Warranties**
+- Add, edit, delete products with automatic status (Active → Expiring soon → Expired)
+- Server-side search, filter (status + category), sort, and cursor-paginated infinite scroll
+- Cards and list views, active-filter chips with clear-all, CSV export, bulk select + delete
+
+**Documents and images**
+- Upload receipts, invoices, and warranty certificates to Cloudflare R2
+- Inline document/receipt preview (images + PDFs) without leaving the page
+- Product image upload, plus image search to find a product photo
+
+**Notifications**
+- Daily cron updates statuses and sends the reminder digest (30 / 7 / 1 days before expiry)
+- In-app notification bell with unread count, independent of email delivery
+
+**Auth and UX**
+- Google OAuth with short-lived JWT access tokens and an HttpOnly refresh cookie
+- Resilient sessions (refresh on tab focus, single-flight refresh, clear "session expired" handling)
+- Dark / light theme, responsive layout, toasts, smooth animations
+
+---
+
+## 🛠️ Tech stack
+
+**Frontend:** React + TypeScript, Vite, Tailwind CSS v4, shadcn / Base UI, TanStack Query, React Router, Framer Motion, sonner.
+
+**Backend:** Node.js + Express, TypeScript, Prisma v7 + PostgreSQL, Passport (Google OAuth 2.0), JWT, Zod validation, Anthropic SDK (Claude), Cloudflare R2 (S3 SDK), Nodemailer, node-cron, Multer, express-rate-limit.
+
+**Infra:** Docker, Vercel (frontend), Render (backend), Neon (Postgres), Cloudflare R2. Jest + Supertest for API tests, GitHub Actions for CI.
+
+---
+
+## 🏗️ Architecture
+
+A shared **service layer** is the single source of truth for products, reminders, and conversations. Both the REST controllers and the AI agent call into it, so HTTP requests and the chatbot run the exact same Zod-validated logic instead of duplicating it.
+
+```
+React (Vite)  ->  Express REST API  ->  Service layer  ->  Prisma  ->  PostgreSQL
+                          |                   ^
+                          v                   |
+                   Anthropic agent  ----------+   (same services as tools)
+                          |
+                   R2 (files) · Nodemailer (email) · node-cron (reminders)
+```
+
+---
+
+## 🚀 Getting started
+
+**Prerequisites:** Node 20+, and either Docker (for the bundled Postgres) or your own Postgres.
+
+1. Copy the env template and fill it in:
+   ```bash
+   cp backend/.env.example backend/.env
+   ```
+   You'll need a Postgres URL, Google OAuth credentials, Cloudflare R2 keys, an Anthropic API key, and Gmail SMTP (App Password). `SERPAPI_KEY` is optional (image search degrades gracefully).
+
+2. **Option A: Docker (Postgres + backend)**
+   ```bash
+   docker compose up --build        # backend on :5000, Postgres on :5432
+   cd frontend && npm install && npm run dev   # frontend on :5173
+   ```
+
+3. **Option B: run locally**
+   ```bash
+   cd backend && npm install && npx prisma migrate dev && npm run dev
+   cd frontend && npm install && npm run dev
+   ```
+
+Set `VITE_API_URL=http://localhost:5000` in `frontend/.env` for local dev.
+
+---
+
+## ☁️ Deployment
+
+Step-by-step for the free stack (Vercel + Render + Neon + R2) is in **[DEPLOY.md](DEPLOY.md)**. The backend ships as a Docker image that runs `prisma migrate deploy` on start.
+
+## ✅ Tests and CI
+
+```bash
+cd backend && npm test     # Jest + Supertest (needs a test database)
+```
+
+GitHub Actions runs a typecheck on the backend and a build on the frontend for every pull request.
