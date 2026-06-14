@@ -153,9 +153,9 @@ const ProductList = ({
               <ProductImage
                 src={p.picture}
                 alt=""
-                className="h-8 w-8 shrink-0 rounded-md bg-muted object-contain"
+                className="h-9 w-9 shrink-0 rounded-md bg-muted object-cover"
                 fallback={
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted">
                     <Icon className="h-4 w-4 text-muted-foreground" />
                   </span>
                 }
