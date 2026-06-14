@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import ImageSearchModal from "./ImageSearchModal";
+import ProductImage from "./ProductImage";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 import { useChat } from "../hooks/useChat";
@@ -336,17 +337,16 @@ const ChatWidget = () => {
                             onClick={() => openProduct(p)}
                             className="flex items-center gap-3 rounded-xl border border-border bg-background p-2 text-left transition hover:bg-muted"
                           >
-                            {p.picture ? (
-                              <img
-                                src={p.picture}
-                                alt={p.name}
-                                className="h-10 w-10 flex-shrink-0 rounded object-cover"
-                              />
-                            ) : (
-                              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded bg-muted">
-                                <Package className="h-5 w-5 text-muted-foreground" />
-                              </div>
-                            )}
+                            <ProductImage
+                              src={p.picture}
+                              alt={p.name}
+                              className="h-10 w-10 flex-shrink-0 rounded object-cover"
+                              fallback={
+                                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded bg-muted">
+                                  <Package className="h-5 w-5 text-muted-foreground" />
+                                </div>
+                              }
+                            />
                             <div className="min-w-0 flex-1">
                               <p className="truncate text-sm font-medium text-foreground">
                                 {p.name}

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { CategoryLabels, type Product } from "../types/index";
 import {
   Package,
@@ -19,6 +18,7 @@ import {
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
 import WarrantyProgressBar from "./WarrantyProgressBar";
+import ProductImage from "./ProductImage";
 import { motion } from "framer-motion";
 
 type Props = {
@@ -60,7 +60,6 @@ const timeLeft = (expiry: string): string => {
 };
 
 const ProductCard = ({ product, onClick, selectable, selected }: Props) => {
-  const [imgFailed, setImgFailed] = useState(false);
   const statusConfig = {
     ACTIVE: { color: "badge-active", label: "Active" },
     EXPIRING_SOON: { color: "badge-expiring", label: "Expiring" },
@@ -98,16 +97,12 @@ const ProductCard = ({ product, onClick, selectable, selected }: Props) => {
               className="pointer-events-none absolute left-3 top-3 z-10 h-4 w-4 accent-emerald-600"
             />
           )}
-          {product.picture && !imgFailed ? (
-            <img
-              src={product.picture}
-              alt={product.name}
-              onError={() => setImgFailed(true)}
-              className="h-full w-full rounded-lg object-cover"
-            />
-          ) : (
-            <CategoryIcon className="h-16 w-16 text-muted-foreground" />
-          )}
+          <ProductImage
+            src={product.picture}
+            alt={product.name}
+            className="h-full w-full rounded-lg object-cover"
+            fallback={<CategoryIcon className="h-16 w-16 text-muted-foreground" />}
+          />
           <Badge
             className={`absolute right-3 top-3 z-10 border-0 bg-background/85 shadow-sm backdrop-blur-sm ${timeLeftColor}`}
           >
