@@ -3,13 +3,7 @@ import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import api, { setupInterceptors } from "../api/axios";
-
-type User = {
-  id: string;
-  name: string;
-  email: string;
-  avatarUrl?: string;
-};
+import type { User, UserPreferences } from "../types";
 
 type LoginOptions = {
   selectAccount?: boolean;
@@ -23,6 +17,8 @@ type AuthContextType = {
   loading: boolean;
   loginWithGoogle: (options?: LoginOptions) => void;
   logout: () => Promise<void>;
+  updatePreferences: (patch: Partial<UserPreferences>) => Promise<void>;
+  deleteAccount: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -129,6 +125,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     window.location.href = url.toString();
   };
 
+  const updatePreferences = async (patch: Partial<UserPreferences>) => {
+    const res = await api.patch("/auth/preferences", patch);
+    setUser(res.data.user);
+    setLastUser(res.data.user);
+    localStorage.setItem(LAST_USER_KEY, JSON.stringify(res.data.user));
+  };
+
+  const deleteAccount = async () => {
+    await api.delete("/auth/account");
+    setUser(null);
+    setAccessToken(null);
+    tokenRef.current = null;
+    setLastUser(null);
+    localStorage.removeItem(LAST_USER_KEY);
+    navigate("/");
+  };
+
   const logout = async () => {
     try {
       await api.post("/auth/logout");
@@ -146,7 +159,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, lastUser, accessToken, loading, loginWithGoogle, logout }}
+      value={{
+        user,
+        lastUser,
+        accessToken,
+        loading,
+        loginWithGoogle,
+        logout,
+        updatePreferences,
+        deleteAccount,
+      }}
     >
       {children}
     </AuthContext.Provider>

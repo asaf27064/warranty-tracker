@@ -1,9 +1,10 @@
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "next-themes";
+import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarImage, AvatarFallback } from "../components/ui/avatar";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
-import { LogOut, Sun, Moon, Menu, Search, Plus } from "lucide-react";
+import { LogOut, Sun, Moon, Menu, Search, Plus, Settings } from "lucide-react";
 import logo from "../assets/logo.png";
 import NotificationBell from "./NotificationBell";
 
@@ -17,6 +18,7 @@ type Props = {
 const Navbar = ({ onToggleSidebar, searchValue, onSearchChange, onAdd }: Props) => {
   const { user, logout } = useAuth();
   const { theme, setTheme } = useTheme();
+  const navigate = useNavigate();
   const showSearch = onSearchChange !== undefined;
 
   return (
@@ -74,6 +76,13 @@ const Navbar = ({ onToggleSidebar, searchValue, onSearchChange, onAdd }: Props) 
           )}
         </button>
         <NotificationBell />
+        <button
+          onClick={() => navigate("/settings")}
+          aria-label="Settings"
+          className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+        >
+          <Settings className="h-[18px] w-[18px]" />
+        </button>
         <Avatar className="h-8 w-8">
           <AvatarImage
             src={user?.avatarUrl}

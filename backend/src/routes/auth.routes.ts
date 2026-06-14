@@ -5,6 +5,8 @@ import {
   handleRefreshToken,
   handleLogout,
   getMe,
+  updatePreferences,
+  deleteAccount,
 } from "../controllers/auth.controller";
 
 import { verifyJWT } from "../middlewares/auth";
@@ -12,6 +14,8 @@ import { verifyJWT } from "../middlewares/auth";
 const router = Router();
 
 router.get("/me", verifyJWT, getMe);
+router.patch("/preferences", verifyJWT, updatePreferences);
+router.delete("/account", verifyJWT, deleteAccount);
 
 router.get("/google", (req, res, next) => {
   const prompt = req.query.prompt === "select_account" ? "select_account" : undefined;

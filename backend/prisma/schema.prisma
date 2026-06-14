@@ -51,8 +51,28 @@ model User {
   products      Product[]
   refreshTokens RefreshToken[]
   conversations Conversation[]
+  // Preferences (set during onboarding, editable in Settings).
+  emailNotifications Boolean   @default(false)
+  pushNotifications  Boolean   @default(false)
+  inAppNotifications Boolean   @default(true)
+  theme              String    @default("dark")
+  defaultView        String    @default("cards")
+  onboarded          Boolean   @default(false)
+  pushSubscriptions  PushSubscription[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
+}
+
+model PushSubscription {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 model RefreshToken {

@@ -52,6 +52,9 @@ export const processReminders = async () => {
   const byUser = new Map<string, Group>();
 
   for (const reminder of dueReminders) {
+    // Respect the per-user email opt-in. The in-app bell still surfaces these
+    // (it reads due reminders directly), so opting out only mutes email.
+    if (!reminder.product.user.emailNotifications) continue;
     const email = reminder.product.user.email;
     const group: Group = byUser.get(email) ?? {
       email,

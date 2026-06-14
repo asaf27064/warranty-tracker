@@ -32,6 +32,7 @@ import ProductList from "../components/ProductList";
 import Sidebar from "../components/Sidebar";
 import ActiveFilters from "../components/ActiveFilters";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -49,6 +50,7 @@ const Dashboard = () => {
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
   const { bulkDeleteProducts, fetchForExport } = useProducts();
+  const { updatePreferences } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     const stored = localStorage.getItem("wtSidebarCollapsed");
     // On phones the sidebar is an overlay drawer, so start it closed.
@@ -78,6 +80,8 @@ const Dashboard = () => {
   const changeView = (v: "cards" | "list") => {
     setView(v);
     localStorage.setItem("wtView", v);
+    // Persist as the user's default view (best-effort, cross-device).
+    updatePreferences({ defaultView: v }).catch(() => {});
   };
 
   useEffect(() => {
@@ -301,7 +305,7 @@ const Dashboard = () => {
                   onClick={exportAll}
                   disabled={exporting}
                 >
-                  <FaFileCsv className="h-4 w-4" />
+                  <FaFileCsv className="h-4 w-4 text-emerald-600" />
                   {exporting ? "Exporting..." : "Export all"}
                 </Button>
                 <Button
@@ -360,7 +364,7 @@ const Dashboard = () => {
                     disabled={selectedIds.size === 0}
                     onClick={exportSelected}
                   >
-                    <FaFileCsv className="h-4 w-4" />
+                    <FaFileCsv className="h-4 w-4 text-emerald-600" />
                     Export selected
                   </Button>
                   <Button
