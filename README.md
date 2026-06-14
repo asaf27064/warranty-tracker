@@ -30,6 +30,7 @@ Warranty Tracker is a full-stack TypeScript app for managing product warranties:
 - **Local-first natural-language add.** "I bought a laptop yesterday, 1 year warranty" is parsed by a rule-based parser (chrono-node + regex), confirmed, and created with no LLM call. Ambiguous messages fall back to the Claude agent.
 - **Receipt and invoice scanning.** Upload a photo or PDF and Claude vision extracts the product name, store, purchase date, and warranty length, then pre-fills the form for review.
 - **Reminder digest emails.** A daily job groups everything expiring soon into one clean email per user, with product thumbnails, color-coded status, and a warranty progress bar.
+- **Web push and installable PWA.** Opt in to browser push (via the Web Push / VAPID protocol and a service worker) to get notified even when the app is closed, and install the app to your home screen or desktop.
 
 ## 🧩 Features
 
@@ -46,19 +47,28 @@ Warranty Tracker is a full-stack TypeScript app for managing product warranties:
 **Notifications**
 - Daily cron updates statuses and sends the reminder digest (30 / 7 / 1 days before expiry)
 - In-app notification bell with unread count, independent of email delivery
+- In-app, email, and browser push channels, each an independent opt-in
+- Browser push (Web Push + VAPID + service worker) that fires even when the app is closed
+
+**Preferences and account**
+- First-login onboarding to choose notification channels
+- Settings page: theme, default view, per-channel notification toggles, and a test-push action
+- Preferences (theme, default view) follow the user across devices
+- Self-service account deletion that removes the user, their files in R2, and all related data, behind a type-to-confirm dialog
+- Installable PWA (web app manifest + service worker, add to home screen / desktop)
 
 **Auth and UX**
 - Google OAuth with short-lived JWT access tokens and an HttpOnly refresh cookie
 - Resilient sessions (refresh on tab focus, single-flight refresh, clear "session expired" handling)
-- Dark / light theme, responsive layout, toasts, smooth animations
+- Dark / light / system theme, responsive layout, toasts, smooth animations
 
 ---
 
 ## 🛠️ Tech stack
 
-**Frontend:** React + TypeScript, Vite, Tailwind CSS v4, shadcn / Base UI, TanStack Query, React Router, Framer Motion, sonner.
+**Frontend:** React + TypeScript, Vite, Tailwind CSS v4, shadcn / Base UI, TanStack Query, React Router, Framer Motion, next-themes, sonner. Installable PWA with a service worker for web push.
 
-**Backend:** Node.js + Express, TypeScript, Prisma v7 + PostgreSQL, Passport (Google OAuth 2.0), JWT, Zod validation, Anthropic SDK (Claude), Cloudflare R2 (S3 SDK), Nodemailer, node-cron, Multer, express-rate-limit.
+**Backend:** Node.js + Express, TypeScript, Prisma v7 + PostgreSQL, Passport (Google OAuth 2.0), JWT, Zod validation, Anthropic SDK (Claude), Cloudflare R2 (S3 SDK), Nodemailer, web-push (VAPID), node-cron, Multer, express-rate-limit.
 
 **Infra:** Docker, Vercel (frontend), Render (backend), Neon (Postgres), Cloudflare R2. Jest + Supertest for API tests, GitHub Actions for CI.
 
@@ -87,7 +97,7 @@ React (Vite)  ->  Express REST API  ->  Service layer  ->  Prisma  ->  PostgreSQ
    ```bash
    cp backend/.env.example backend/.env
    ```
-   You'll need a Postgres URL, Google OAuth credentials, Cloudflare R2 keys, an Anthropic API key, and Gmail SMTP (App Password). `SERPAPI_KEY` is optional (image search degrades gracefully).
+   You'll need a Postgres URL, Google OAuth credentials, Cloudflare R2 keys, an Anthropic API key, and Gmail SMTP (App Password). `SERPAPI_KEY` is optional (image search degrades gracefully). For web push, generate a VAPID keypair with `npx web-push generate-vapid-keys` and set `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT` (push disables itself if unset).
 
 2. **Option A: Docker (Postgres + backend)**
    ```bash
@@ -101,7 +111,7 @@ React (Vite)  ->  Express REST API  ->  Service layer  ->  Prisma  ->  PostgreSQ
    cd frontend && npm install && npm run dev
    ```
 
-Set `VITE_API_URL=http://localhost:5000` in `frontend/.env` for local dev.
+Set `VITE_API_URL=http://localhost:5000` in `frontend/.env` for local dev. For web push, also set `VITE_VAPID_PUBLIC_KEY` to the same public key used by the backend.
 
 ---
 

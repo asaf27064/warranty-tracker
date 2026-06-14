@@ -1,6 +1,7 @@
 import cron from "node-cron";
 import prisma from "../config/db";
 import { sendReminderDigestEmail, type ReminderItem } from "./email.service";
+import { sendPushToUser } from "./push.service";
 
 export const processReminders = async () => {
   const now = new Date();
@@ -45,17 +46,23 @@ export const processReminders = async () => {
   // several due reminders, keep the most urgent and collect all their ids so
   // they're marked sent together.
   type Group = {
+    userId: string;
     email: string;
+    emailOptIn: boolean;
+    pushOptIn: boolean;
     reminderIds: string[];
     items: Map<string, ReminderItem>;
   };
   const byUser = new Map<string, Group>();
 
   for (const reminder of dueReminders) {
-    if (!reminder.product.user.emailNotifications) continue;
-    const email = reminder.product.user.email;
-    const group: Group = byUser.get(email) ?? {
-      email,
+    const user = reminder.product.user;
+    if (!user.emailNotifications && !user.pushNotifications) continue;
+    const group: Group = byUser.get(user.id) ?? {
+      userId: user.id,
+      email: user.email,
+      emailOptIn: user.emailNotifications,
+      pushOptIn: user.pushNotifications,
       reminderIds: [],
       items: new Map<string, ReminderItem>(),
     };
@@ -76,18 +83,43 @@ export const processReminders = async () => {
         purchaseDate: reminder.product.purchaseDate,
       });
     }
-    byUser.set(email, group);
+    byUser.set(user.id, group);
   }
 
   for (const group of byUser.values()) {
-    try {
-      await sendReminderDigestEmail(group.email, [...group.items.values()]);
+    const items = [...group.items.values()];
+    let delivered = false;
+
+    if (group.emailOptIn) {
+      try {
+        await sendReminderDigestEmail(group.email, items);
+        delivered = true;
+      } catch (error) {
+        console.error(`Failed to email reminder digest to ${group.email}:`, error);
+      }
+    }
+
+    if (group.pushOptIn) {
+      try {
+        const sent = await sendPushToUser(group.userId, {
+          title: "Warranty reminder",
+          body:
+            items.length === 1
+              ? `${items[0].productName} needs your attention`
+              : `${items.length} products need your attention`,
+          url: "/dashboard",
+        });
+        if (sent > 0) delivered = true;
+      } catch (error) {
+        console.error(`Failed to push reminder to ${group.email}:`, error);
+      }
+    }
+
+    if (delivered) {
       await prisma.reminder.updateMany({
         where: { id: { in: group.reminderIds } },
         data: { sent: true, sentAt: now },
       });
-    } catch (error) {
-      console.error(`Failed to send reminder digest to ${group.email}:`, error);
     }
   }
 };

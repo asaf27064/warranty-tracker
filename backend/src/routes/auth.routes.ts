@@ -7,6 +7,9 @@ import {
   getMe,
   updatePreferences,
   deleteAccount,
+  subscribePush,
+  unsubscribePush,
+  sendTestPush,
 } from "../controllers/auth.controller";
 
 import { verifyJWT } from "../middlewares/auth";
@@ -16,6 +19,9 @@ const router = Router();
 router.get("/me", verifyJWT, getMe);
 router.patch("/preferences", verifyJWT, updatePreferences);
 router.delete("/account", verifyJWT, deleteAccount);
+router.post("/push/subscribe", verifyJWT, subscribePush);
+router.post("/push/unsubscribe", verifyJWT, unsubscribePush);
+router.post("/push/test", verifyJWT, sendTestPush);
 
 router.get("/google", (req, res, next) => {
   const prompt = req.query.prompt === "select_account" ? "select_account" : undefined;

@@ -2,6 +2,11 @@ import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import prisma from "../config/db";
 import { deleteUserData } from "../services/account.service";
+import {
+  saveSubscription,
+  deleteSubscription,
+  sendPushToUser,
+} from "../services/push.service";
 
 type RefreshTokenPayload = {
   userId: string;
@@ -98,6 +103,33 @@ export const deleteAccount = async (req: Request, res: Response) => {
     console.error("Account deletion failed:", error);
     return res.status(500).json({ message: "Failed to delete account" });
   }
+};
+
+export const subscribePush = async (req: Request, res: Response) => {
+  const sub = req.body?.subscription ?? req.body;
+  if (!sub?.endpoint || !sub?.keys?.p256dh || !sub?.keys?.auth) {
+    return res.status(400).json({ message: "Invalid subscription" });
+  }
+  await saveSubscription(req.user!.id, sub);
+  return res.status(201).json({ message: "Subscribed" });
+};
+
+export const unsubscribePush = async (req: Request, res: Response) => {
+  const endpoint = req.body?.endpoint;
+  if (typeof endpoint !== "string") {
+    return res.status(400).json({ message: "Missing endpoint" });
+  }
+  await deleteSubscription(endpoint);
+  return res.status(200).json({ message: "Unsubscribed" });
+};
+
+export const sendTestPush = async (req: Request, res: Response) => {
+  const sent = await sendPushToUser(req.user!.id, {
+    title: "Warranty Tracker",
+    body: "Push notifications are working.",
+    url: "/dashboard",
+  });
+  return res.status(200).json({ sent });
 };
 
 export const handleRefreshToken = async (req: Request, res: Response) => {
