@@ -31,7 +31,10 @@ services:
     environment:
       DATABASE_URL: postgresql://warranty:warranty@db:5432/warranty
       PORT: "5000"
-      NODE_ENV: production
+      # Local compose runs over http://localhost, so use development here:
+      # production would set Secure cookies that browsers reject without HTTPS.
+      # Render runs the image in production (set NODE_ENV=production there).
+      NODE_ENV: development
     ports:
       - "5000:5000"
     depends_on:
