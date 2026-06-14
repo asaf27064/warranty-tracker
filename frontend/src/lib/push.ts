@@ -45,6 +45,8 @@ export const enablePush = async () => {
   await api.post("/auth/push/subscribe", sub.toJSON());
 };
 
+export const sendTestPush = () => api.post("/auth/push/test");
+
 export const disablePush = async () => {
   if (!("serviceWorker" in navigator)) return;
   const reg = await navigator.serviceWorker.getRegistration();

@@ -5,6 +5,7 @@ import { deleteUserData } from "../services/account.service";
 import {
   saveSubscription,
   deleteSubscription,
+  sendPushToUser,
 } from "../services/push.service";
 
 type RefreshTokenPayload = {
@@ -120,6 +121,15 @@ export const unsubscribePush = async (req: Request, res: Response) => {
   }
   await deleteSubscription(endpoint);
   return res.status(200).json({ message: "Unsubscribed" });
+};
+
+export const sendTestPush = async (req: Request, res: Response) => {
+  const sent = await sendPushToUser(req.user!.id, {
+    title: "Warranty Tracker",
+    body: "Push notifications are working.",
+    url: "/dashboard",
+  });
+  return res.status(200).json({ sent });
 };
 
 export const handleRefreshToken = async (req: Request, res: Response) => {

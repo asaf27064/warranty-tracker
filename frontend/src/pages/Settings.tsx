@@ -25,7 +25,12 @@ import {
   Trash2,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import { enablePush, disablePush, pushSupported } from "../lib/push";
+import {
+  enablePush,
+  disablePush,
+  pushSupported,
+  sendTestPush,
+} from "../lib/push";
 
 type ToggleRowProps = {
   icon: ComponentType<{ className?: string }>;
@@ -140,6 +145,15 @@ const Settings = () => {
     updatePreferences(patch).catch(() => toast.error("Couldn't save that"));
   };
 
+  const handleTestPush = async () => {
+    try {
+      await sendTestPush();
+      toast.success("Test push sent");
+    } catch {
+      toast.error("Couldn't send test push");
+    }
+  };
+
   const handlePush = async (v: boolean) => {
     setPushBusy(true);
     try {
@@ -251,6 +265,18 @@ const Settings = () => {
                 disabled={pushBusy || !supportsPush}
                 badge={supportsPush ? undefined : "Unsupported"}
               />
+              {user?.pushNotifications && supportsPush && (
+                <div className="flex justify-end">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleTestPush}
+                    disabled={pushBusy}
+                  >
+                    Send a test push
+                  </Button>
+                </div>
+              )}
             </Section>
 
             <Section title="Danger zone">
