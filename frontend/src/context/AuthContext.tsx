@@ -65,7 +65,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(null);
       setAccessToken(null);
       tokenRef.current = null;
-      toast.error("Your session expired — please sign in again");
+      toast.error("Your session expired. Please sign in again.");
       navigate("/");
     };
 

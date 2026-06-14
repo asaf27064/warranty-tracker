@@ -58,8 +58,8 @@ const timeLeft = (expiry: string): string => {
   if (days < 0) return "Expired";
   if (days === 0) return "Today";
   if (days < 60) return `${days}d left`;
-  if (days < 365) return `~${Math.round(days / 30)}mo left`;
-  return `~${Math.round(days / 365)}y left`;
+  if (days < 365) return `${Math.round(days / 30)}mo left`;
+  return `${Math.round(days / 365)}y left`;
 };
 
 const ProductList = ({
@@ -165,7 +165,7 @@ const ProductList = ({
               </span>
             </span>
             <span className="hidden w-28 truncate text-muted-foreground lg:block">
-              {p.store || "—"}
+              {p.store || "-"}
             </span>
             <span className="hidden w-28 truncate text-muted-foreground md:block">
               {CategoryLabels[p.category] || p.category}
