@@ -26,6 +26,7 @@ Order matters: database first, then backend, then frontend, then wire the OAuth 
    - `ANTHROPIC_API_KEY`
    - `EMAIL_USER`, `EMAIL_PASS` (Gmail App Password)
    - `SERPAPI_KEY` (optional)
+   - `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` (web push; generate the keypair with `npx web-push generate-vapid-keys`, set `VAPID_SUBJECT` to `mailto:you@example.com`). Optional: push disables itself if unset.
    - Do **not** set `PORT` (Render injects it; the app reads `process.env.PORT`).
 4. Deploy. Note the URL, e.g. `https://warranty-tracker-api.onrender.com`.
 
@@ -36,8 +37,9 @@ Order matters: database first, then backend, then frontend, then wire the OAuth 
 2. Settings:
    - **Root Directory:** `frontend`
    - Framework preset: Vite (build `npm run build`, output `dist`)
-3. **Environment variable:**
+3. **Environment variables:**
    - `VITE_API_URL` = the Render backend URL (e.g. `https://warranty-tracker-api.onrender.com`)
+   - `VITE_VAPID_PUBLIC_KEY` = the same `VAPID_PUBLIC_KEY` value from Render (the public key is safe to expose; needed for web push).
 4. Deploy. Note the URL, e.g. `https://warranty-tracker.vercel.app`.
 5. Go back to Render and set `CLIENT_URL` to this Vercel URL, then redeploy the backend.
 
@@ -62,3 +64,4 @@ cd frontend && npm run dev             # frontend on :5173 (set VITE_API_URL=htt
 - Cross-domain auth works because the refresh cookie is `SameSite=None; Secure` in production (set automatically when `NODE_ENV=production`).
 - Before sharing publicly: set a **monthly spend cap** in the Anthropic console.
 - Email deliverability: Gmail SMTP works but lands in spam. For inbox delivery, move to Resend on a verified domain.
+- Web push and PWA install need HTTPS, which Vercel provides automatically. After adding the VAPID vars, redeploy both services so they pick them up.
