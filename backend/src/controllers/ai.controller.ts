@@ -140,9 +140,12 @@ export const chat = async (req: Request, res: Response) => {
           await conversationService.saveTurn(conversationId, message, reply, [
             product.id,
           ]);
-          return res
-            .status(200)
-            .json({ conversationId, reply, products: [product], created: true });
+          return res.status(200).json({
+            conversationId,
+            reply,
+            products: [product],
+            createdProductId: product.id,
+          });
         } catch (err) {
           console.error("Local add-product failed, falling back to agent:", err);
         }
@@ -171,7 +174,11 @@ export const chat = async (req: Request, res: Response) => {
       }
     }
 
-    const { reply, products } = await runAgent(userId, history, message);
+    const { reply, products, createdProductId } = await runAgent(
+      userId,
+      history,
+      message,
+    );
     const productIds = (products as { id: string }[]).map((p) => p.id);
 
     // Persist both turns (assistant message keeps the ids of the cards shown).
@@ -182,7 +189,9 @@ export const chat = async (req: Request, res: Response) => {
       productIds,
     );
 
-    return res.status(200).json({ conversationId, reply, products });
+    return res
+      .status(200)
+      .json({ conversationId, reply, products, createdProductId });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Failed to process chat" });

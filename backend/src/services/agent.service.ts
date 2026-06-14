@@ -181,6 +181,7 @@ function isProduct(value: unknown): value is { id: string } {
 export type AgentResult = {
   reply: string;
   products: unknown[];
+  createdProductId?: string;
 };
 
 // --- The agent loop ---
@@ -203,6 +204,9 @@ export async function runAgent(
       if (isProduct(item)) collected.set(item.id, item);
     }
   };
+  // Set when the agent actually creates a product (vs. just searching), so the
+  // UI can offer the post-add photo/receipt actions.
+  let createdProductId: string | undefined;
 
   for (let i = 0; i < MAX_ITERATIONS; i++) {
     const response = await client.messages.create({
@@ -221,6 +225,9 @@ export async function runAgent(
         if (block.type === "tool_use") {
           const result = await executeTool(block.name, block.input, userId);
           collect(result);
+          if (block.name === "create_product" && isProduct(result)) {
+            createdProductId = result.id;
+          }
           toolResults.push({
             type: "tool_result",
             tool_use_id: block.id,
@@ -237,11 +244,13 @@ export async function runAgent(
     return {
       reply: textBlock && textBlock.type === "text" ? textBlock.text : "",
       products: [...collected.values()],
+      createdProductId,
     };
   }
 
   return {
     reply: "Sorry, I couldn't complete that request. Please try rephrasing.",
     products: [...collected.values()],
+    createdProductId,
   };
 }

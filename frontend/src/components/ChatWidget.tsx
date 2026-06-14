@@ -351,37 +351,43 @@ const ChatWidget = () => {
                       </div>
                     )}
 
-                  {m.role === "assistant" && m.createdProductId && (
-                    <div className="mt-2 flex w-full flex-wrap gap-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const p = m.products?.[0];
-                          if (p) setPhotoTarget({ id: p.id, name: p.name });
-                        }}
-                        className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs transition hover:bg-muted"
-                      >
-                        <ImagePlus className="h-3.5 w-3.5" />
-                        Add photo
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => addReceipt(m.createdProductId!)}
-                        className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs transition hover:bg-muted"
-                      >
-                        <FileText className="h-3.5 w-3.5" />
-                        Add receipt
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => openProduct(m.products![0])}
-                        className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs transition hover:bg-muted"
-                      >
-                        <ExternalLink className="h-3.5 w-3.5" />
-                        Open product
-                      </button>
-                    </div>
-                  )}
+                  {(() => {
+                    const created =
+                      m.role === "assistant" && m.createdProductId
+                        ? m.products?.find((p) => p.id === m.createdProductId)
+                        : undefined;
+                    if (!created) return null;
+                    return (
+                      <div className="mt-2 flex w-full flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setPhotoTarget({ id: created.id, name: created.name })
+                          }
+                          className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs transition hover:bg-muted"
+                        >
+                          <ImagePlus className="h-3.5 w-3.5" />
+                          Add photo
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => addReceipt(created.id)}
+                          className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs transition hover:bg-muted"
+                        >
+                          <FileText className="h-3.5 w-3.5" />
+                          Add receipt
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => openProduct(created)}
+                          className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs transition hover:bg-muted"
+                        >
+                          <ExternalLink className="h-3.5 w-3.5" />
+                          Open product
+                        </button>
+                      </div>
+                    );
+                  })()}
                 </motion.div>
               ))}
               {loading && (

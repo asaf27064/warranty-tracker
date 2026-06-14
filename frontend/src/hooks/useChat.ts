@@ -49,8 +49,7 @@ export const useChat = () => {
       setConversationId(res.data.conversationId);
       localStorage.setItem(STORAGE_KEY, res.data.conversationId);
       const products: Product[] = res.data.products ?? [];
-      const createdProductId =
-        res.data.created && products[0] ? products[0].id : undefined;
+      const createdProductId: string | undefined = res.data.createdProductId;
       setMessages((prev) => [
         ...prev,
         {
