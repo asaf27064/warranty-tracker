@@ -6,11 +6,11 @@ import {
   Loader2,
   LayoutGrid,
   List,
-  FileSpreadsheet,
   CheckSquare,
   Trash2,
   X,
 } from "lucide-react";
+import { FaFileCsv } from "react-icons/fa";
 import { motion } from "framer-motion";
 import type { Variants } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
@@ -301,7 +301,7 @@ const Dashboard = () => {
                   onClick={exportAll}
                   disabled={exporting}
                 >
-                  <FileSpreadsheet className="h-4 w-4" />
+                  <FaFileCsv className="h-4 w-4" />
                   {exporting ? "Exporting..." : "Export all"}
                 </Button>
                 <Button
@@ -360,7 +360,7 @@ const Dashboard = () => {
                     disabled={selectedIds.size === 0}
                     onClick={exportSelected}
                   >
-                    <FileSpreadsheet className="h-4 w-4" />
+                    <FaFileCsv className="h-4 w-4" />
                     Export selected
                   </Button>
                   <Button
