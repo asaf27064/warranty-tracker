@@ -17,6 +17,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import WarrantyProgressBar from "./WarrantyProgressBar";
+import ProductImage from "./ProductImage";
 
 type Props = {
   products: Product[];
@@ -57,8 +58,8 @@ const timeLeft = (expiry: string): string => {
   if (days < 0) return "Expired";
   if (days === 0) return "Today";
   if (days < 60) return `${days}d left`;
-  if (days < 365) return `~${Math.round(days / 30)}mo left`;
-  return `~${Math.round(days / 365)}y left`;
+  if (days < 365) return `${Math.round(days / 30)}mo left`;
+  return `${Math.round(days / 365)}y left`;
 };
 
 const ProductList = ({
@@ -149,23 +150,22 @@ const ProductList = ({
               />
             )}
             <span className="flex min-w-0 flex-1 items-center gap-2.5">
-              {p.picture ? (
-                <img
-                  src={p.picture}
-                  alt=""
-                  className="h-8 w-8 shrink-0 rounded-md bg-muted object-contain"
-                />
-              ) : (
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted">
-                  <Icon className="h-4 w-4 text-muted-foreground" />
-                </span>
-              )}
+              <ProductImage
+                src={p.picture}
+                alt=""
+                className="h-8 w-8 shrink-0 rounded-md bg-muted object-contain"
+                fallback={
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted">
+                    <Icon className="h-4 w-4 text-muted-foreground" />
+                  </span>
+                }
+              />
               <span className="truncate font-medium text-foreground">
                 {p.name}
               </span>
             </span>
             <span className="hidden w-28 truncate text-muted-foreground lg:block">
-              {p.store || "—"}
+              {p.store || "-"}
             </span>
             <span className="hidden w-28 truncate text-muted-foreground md:block">
               {CategoryLabels[p.category] || p.category}

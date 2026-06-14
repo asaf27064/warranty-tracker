@@ -167,6 +167,8 @@ const ProductDetails = () => {
   const [leftTab, setLeftTab] = useState<"documents" | "reminders">(
     "documents",
   );
+  // Falls back to the icon if the photo is missing (e.g. deleted from R2).
+  const [heroFailed, setHeroFailed] = useState(false);
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -348,7 +350,7 @@ const ProductDetails = () => {
           >
             <Card className="border-border bg-card p-6">
               <div className="flex flex-col gap-5 sm:flex-row">
-                {product.picture ? (
+                {product.picture && !heroFailed ? (
                   <div className="relative h-48 w-full shrink-0 overflow-hidden rounded-xl bg-muted sm:h-auto sm:w-44 sm:self-stretch">
                     <img
                       src={product.picture}
@@ -359,6 +361,7 @@ const ProductDetails = () => {
                     <img
                       src={product.picture}
                       alt={product.name}
+                      onError={() => setHeroFailed(true)}
                       className="relative z-[1] h-full w-full object-contain"
                     />
                   </div>
