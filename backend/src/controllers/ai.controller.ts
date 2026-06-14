@@ -117,9 +117,14 @@ export const chat = async (req: Request, res: Response) => {
     // user confirms"). A clean "I bought X, N year warranty" is PROPOSED, not
     // created. The user replies "yes" and we create it, all without Claude.
     // Corrections or anything ambiguous fall through to the agent below.
+    const trimmed = message.trim();
     const isAffirmation =
-      /^\s*(yes|yeah|yep|yup|sure|ok|okay|confirm|add it|do it|go ahead|please do)\b[.! ]*$/i.test(
-        message.trim(),
+      /^(yes|yeah|yep|yup|sure|ok|okay|confirm|correct|add it|do it|go ahead)\b/i.test(
+        trimmed,
+      ) &&
+      // ...unless it's actually a correction ("yes but change the date").
+      !/\b(no|not|don'?t|change|actually|wrong|instead|but|edit)\b/i.test(
+        trimmed,
       );
 
     if (isAffirmation) {
