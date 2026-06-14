@@ -267,6 +267,7 @@ const ChatWidget = () => {
                   }`}
                 >
                   <div
+                    dir="auto"
                     className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm ${
                       m.role === "user"
                         ? "whitespace-pre-wrap bg-emerald-600 text-white"
@@ -403,6 +404,7 @@ const ChatWidget = () => {
             {/* Input */}
             <div className="flex items-center gap-2 border-t border-border p-3">
               <Input
+                dir="auto"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => {
