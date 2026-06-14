@@ -25,6 +25,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { enablePush, disablePush, pushSupported } from "../lib/push";
 
 type ToggleRowProps = {
   icon: ComponentType<{ className?: string }>;
@@ -128,6 +129,8 @@ const Settings = () => {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [confirmText, setConfirmText] = useState("");
   const [deleting, setDeleting] = useState(false);
+  const [pushBusy, setPushBusy] = useState(false);
+  const supportsPush = pushSupported();
 
   const view =
     (user?.defaultView as "cards" | "list") ??
@@ -135,6 +138,33 @@ const Settings = () => {
 
   const setPref = (patch: Parameters<typeof updatePreferences>[0]) => {
     updatePreferences(patch).catch(() => toast.error("Couldn't save that"));
+  };
+
+  const handlePush = async (v: boolean) => {
+    setPushBusy(true);
+    try {
+      if (v) {
+        await enablePush();
+        setPref({ pushNotifications: true });
+        toast.success("Browser push enabled");
+      } else {
+        await disablePush();
+        setPref({ pushNotifications: false });
+      }
+    } catch (err) {
+      const code = (err as Error).message;
+      if (code === "denied") {
+        toast.error("Notifications are blocked in your browser settings");
+      } else if (code === "unsupported") {
+        toast.error("This browser doesn't support push notifications");
+      } else if (code === "missing-key") {
+        toast.error("Push isn't configured on this server");
+      } else {
+        toast.error("Couldn't enable push notifications");
+      }
+    } finally {
+      setPushBusy(false);
+    }
   };
 
   const handleDelete = async () => {
@@ -216,8 +246,10 @@ const Settings = () => {
                 icon={Smartphone}
                 title="Browser push"
                 desc="Get notified even when the app is closed."
-                disabled
-                badge="Coming soon"
+                checked={user?.pushNotifications}
+                onChange={handlePush}
+                disabled={pushBusy || !supportsPush}
+                badge={supportsPush ? undefined : "Unsupported"}
               />
             </Section>
 
