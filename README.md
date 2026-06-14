@@ -12,7 +12,15 @@ Warranty Tracker is a full-stack TypeScript app for managing product warranties:
 
 ## 📸 Screenshots
 
-> Coming soon. To add: drop images into `docs/screenshots/` (dashboard, product details, the AI assistant answering, a receipt scan filling the form) and embed them here. A short GIF of the AI assistant or receipt scan is the most convincing thing to include.
+> Save images with these exact names into `docs/screenshots/` and they'll render automatically (a GIF works too, just keep the filename).
+
+| Dashboard | Product details |
+|---|---|
+| ![Dashboard](docs/screenshots/dashboard.png) | ![Product details](docs/screenshots/product-details.png) |
+
+| AI assistant | Receipt scan |
+|---|---|
+| ![AI assistant](docs/screenshots/assistant.png) | ![Receipt scan](docs/screenshots/receipt-scan.png) |
 
 ---
 
