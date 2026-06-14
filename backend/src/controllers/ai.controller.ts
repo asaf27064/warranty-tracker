@@ -7,6 +7,8 @@ import {
 } from "../services/ai.service";
 import { runAgent } from "../services/agent.service";
 import * as conversationService from "../services/conversation.service";
+import * as productService from "../services/product.service";
+import { parseProductMessage } from "../services/productParser";
 import {
   DOCUMENT_FILE_TYPES,
   validateUploadedFile,
@@ -100,6 +102,29 @@ export const chat = async (req: Request, res: Response) => {
       history = loaded;
     } else {
       conversationId = await conversationService.createConversation(userId);
+    }
+
+    // Local-first: a clean "I bought X, N year warranty" is created directly,
+    // no Claude call. Anything the parser can't confidently handle (questions,
+    // searches, vague adds) falls through to the agent below.
+    const parsed = parseProductMessage(message);
+    if (parsed) {
+      try {
+        const product = await productService.createProduct(userId, parsed);
+        const expiry = new Date(product.warrantyExpiry).toLocaleDateString(
+          "en-GB",
+        );
+        const reply = `Added "${product.name}". Warranty: ${product.warrantyMonths} months, expiring ${expiry}. Open the card to review or edit.`;
+        await conversationService.saveTurn(conversationId, message, reply, [
+          product.id,
+        ]);
+        return res
+          .status(200)
+          .json({ conversationId, reply, products: [product] });
+      } catch (err) {
+        // If the local create fails for any reason, let the agent handle it.
+        console.error("Local add-product failed, falling back to agent:", err);
+      }
     }
 
     const { reply, products } = await runAgent(userId, history, message);
