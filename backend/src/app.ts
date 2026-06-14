@@ -17,6 +17,9 @@ initializePassport();
 
 const app = express();
 
+// Behind a hosting proxy (Render/Vercel/etc.) so X-Forwarded-* headers are trusted.
+app.set("trust proxy", 1);
+
 app.use(
   cors({
     origin: process.env.CLIENT_URL,
