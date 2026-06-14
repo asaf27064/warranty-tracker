@@ -6,8 +6,7 @@ export type ChatMessage = {
   role: "user" | "assistant";
   content: string;
   products?: Product[];
-  // Set when this assistant turn just created a product, so the UI can offer
-  // the "add photo / add receipt / open" actions.
+  // Set when this turn created a product (enables the post-add actions).
   createdProductId?: string;
 };
 
@@ -78,8 +77,7 @@ export const useChat = () => {
     localStorage.removeItem(STORAGE_KEY);
   };
 
-  // Patch a product shown in the chat (e.g. after attaching a photo) so its
-  // card updates without a refetch.
+  // Update a product shown in chat (e.g. after attaching a photo).
   const patchProduct = (productId: string, patch: Partial<Product>) => {
     setMessages((prev) =>
       prev.map((m) =>

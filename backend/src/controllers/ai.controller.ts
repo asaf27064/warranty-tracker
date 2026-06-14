@@ -14,7 +14,7 @@ import {
   validateUploadedFile,
 } from "../utils/fileValidation";
 
-// Most recent user message in the loaded history, for the confirm-then-create step.
+// Last user message in history, for confirm-then-create.
 const lastUserText = (history: Anthropic.MessageParam[]): string | null => {
   for (let i = history.length - 1; i >= 0; i--) {
     const m = history[i];
@@ -113,16 +113,14 @@ export const chat = async (req: Request, res: Response) => {
       conversationId = await conversationService.createConversation(userId);
     }
 
-    // Local-first, confirm-first (mirrors the agent's "create only after the
-    // user confirms"). A clean "I bought X, N year warranty" is PROPOSED, not
-    // created. The user replies "yes" and we create it, all without Claude.
-    // Corrections or anything ambiguous fall through to the agent below.
+    // Local-first, confirm-first: propose a parsed add, create it on "yes",
+    // send corrections and anything else to the agent.
     const trimmed = message.trim();
     const isAffirmation =
       /^(yes|yeah|yep|yup|sure|ok|okay|confirm|correct|add it|do it|go ahead)\b/i.test(
         trimmed,
       ) &&
-      // ...unless it's actually a correction ("yes but change the date").
+      // not a correction like "yes but change the date"
       !/\b(no|not|don'?t|change|actually|wrong|instead|but|edit)\b/i.test(
         trimmed,
       );

@@ -204,8 +204,7 @@ export async function runAgent(
       if (isProduct(item)) collected.set(item.id, item);
     }
   };
-  // Set when the agent actually creates a product (vs. just searching), so the
-  // UI can offer the post-add photo/receipt actions.
+  // Set when the agent creates a product, for the post-add UI actions.
   let createdProductId: string | undefined;
 
   for (let i = 0; i < MAX_ITERATIONS; i++) {
