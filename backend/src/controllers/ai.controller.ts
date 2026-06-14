@@ -137,7 +137,7 @@ export const chat = async (req: Request, res: Response) => {
           ]);
           return res
             .status(200)
-            .json({ conversationId, reply, products: [product] });
+            .json({ conversationId, reply, products: [product], created: true });
         } catch (err) {
           console.error("Local add-product failed, falling back to agent:", err);
         }

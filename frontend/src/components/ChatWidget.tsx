@@ -9,13 +9,20 @@ import {
   SquarePen,
   Package,
   Sparkles,
+  ImagePlus,
+  FileText,
+  ExternalLink,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
+import { toast } from "sonner";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import ImageSearchModal from "./ImageSearchModal";
+import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 import { useChat } from "../hooks/useChat";
+import { useProducts } from "../hooks/useProducts";
 import { StatusLabels } from "../types";
 import type { Product } from "../types";
 
@@ -39,8 +46,15 @@ const ChatWidget = () => {
   const [announceSeen, setAnnounceSeen] = useState(
     () => localStorage.getItem("wtChatAnnounceSeen") === "1",
   );
-  const { messages, sendMessage, loading, reset } = useChat();
+  const { messages, sendMessage, loading, reset, patchProduct } = useChat();
+  const { updateProduct } = useProducts();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const receiptInputRef = useRef<HTMLInputElement>(null);
+  const [photoTarget, setPhotoTarget] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [receiptForId, setReceiptForId] = useState<string | null>(null);
 
   const dismissAnnounce = () => {
     setAnnounceSeen(true);
@@ -57,6 +71,46 @@ const ChatWidget = () => {
   const openProduct = (p: Product) => {
     setOpen(false);
     navigate(`/product/${p.id}`);
+  };
+
+  // Attach a searched photo to a just-created product.
+  const handlePhotoSelected = async (url: string) => {
+    const target = photoTarget;
+    if (!target) return;
+    try {
+      await updateProduct(target.id, { picture: url });
+      patchProduct(target.id, { picture: url });
+      toast.success("Photo added");
+    } catch {
+      toast.error("Couldn't add the photo");
+    } finally {
+      setPhotoTarget(null);
+    }
+  };
+
+  const addReceipt = (productId: string) => {
+    setReceiptForId(productId);
+    receiptInputRef.current?.click();
+  };
+
+  const handleReceiptFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    const productId = receiptForId;
+    e.target.value = "";
+    if (!file || !productId) return;
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("docType", "RECEIPT");
+      await api.post(`/api/documents/product/${productId}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      toast.success("Receipt added");
+    } catch {
+      toast.error("Couldn't upload the receipt");
+    } finally {
+      setReceiptForId(null);
+    }
   };
 
   useEffect(() => {
@@ -296,6 +350,38 @@ const ChatWidget = () => {
                         )}
                       </div>
                     )}
+
+                  {m.role === "assistant" && m.createdProductId && (
+                    <div className="mt-2 flex w-full flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const p = m.products?.[0];
+                          if (p) setPhotoTarget({ id: p.id, name: p.name });
+                        }}
+                        className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs transition hover:bg-muted"
+                      >
+                        <ImagePlus className="h-3.5 w-3.5" />
+                        Add photo
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => addReceipt(m.createdProductId!)}
+                        className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs transition hover:bg-muted"
+                      >
+                        <FileText className="h-3.5 w-3.5" />
+                        Add receipt
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => openProduct(m.products![0])}
+                        className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs transition hover:bg-muted"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                        Open product
+                      </button>
+                    </div>
+                  )}
                 </motion.div>
               ))}
               {loading && (
@@ -334,6 +420,20 @@ const ChatWidget = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <ImageSearchModal
+        open={photoTarget !== null}
+        onClose={() => setPhotoTarget(null)}
+        initialQuery={photoTarget?.name ?? ""}
+        onSelect={handlePhotoSelected}
+      />
+      <input
+        ref={receiptInputRef}
+        type="file"
+        accept="image/*,application/pdf"
+        className="hidden"
+        onChange={handleReceiptFile}
+      />
     </>
   );
 };
