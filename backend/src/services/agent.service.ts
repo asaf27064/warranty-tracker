@@ -23,18 +23,18 @@ const CATEGORIES = [
 
 const SYSTEM_PROMPT = `You are a helpful warranty assistant inside a warranty-tracking app.
 You help the user understand and manage their product warranties.
-Use the provided tools to look up real data — never invent products, dates, or warranty details.
+Use the provided tools to look up real data - never invent products, dates, or warranty details.
 Today's date is ${new Date().toISOString().split("T")[0]}.
 Always reply in the same language the user writes in.
 When replying in Hebrew, refer to a product warranty as "אחריות" (never "ערבות").
 You can also add new products. When the user wants to add one, gather the product name,
-purchase date, and warranty length — ask for anything missing. Then summarize the details
+purchase date, and warranty length - ask for anything missing. Then summarize the details
 and ask the user to confirm. Only call create_product AFTER the user has explicitly confirmed.
 
-IMPORTANT — the app displays every product you look up as an interactive card below your
+IMPORTANT - the app displays every product you look up as an interactive card below your
 message (with its name, store, status, and warranty date). So do NOT repeat those details
-as a list in your text. Instead reply with a short, friendly summary — at most 1-3 sentences,
-e.g. counts and anything noteworthy ("You have 6 electronics — 3 still active, 3 expired.").
+as a list in your text. Instead reply with a short, friendly summary - at most 1-3 sentences,
+e.g. counts and anything noteworthy ("You have 6 electronics - 3 still active, 3 expired.").
 Keep it brief and conversational; avoid long bullet lists.`;
 
 // --- Tool definitions exposed to the model ---
@@ -46,7 +46,10 @@ export const agentTools: Anthropic.Tool[] = [
     input_schema: {
       type: "object",
       properties: {
-        query: { type: "string", description: "Text to match in name or store." },
+        query: {
+          type: "string",
+          description: "Text to match in name or store.",
+        },
         status: {
           type: "string",
           enum: ["ACTIVE", "EXPIRING_SOON", "EXPIRED"],

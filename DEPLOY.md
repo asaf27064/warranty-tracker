@@ -6,11 +6,11 @@ Order matters: database first, then backend, then frontend, then wire the OAuth 
 
 ---
 
-## 1. Database — Neon (free)
+## 1. Database - Neon (free)
 1. Create a project at neon.tech. Copy the **pooled** connection string (looks like `postgresql://user:pass@ep-xxx-pooler.region.aws.neon.tech/dbname?sslmode=require`).
 2. Keep it for `DATABASE_URL` below. (Migrations run automatically on backend deploy via `prisma migrate deploy`.)
 
-## 2. Backend — Render (free web service, Docker)
+## 2. Backend - Render (free web service, Docker)
 1. New > **Web Service** > connect this GitHub repo.
 2. Settings:
    - **Root Directory:** `backend`
@@ -31,7 +31,7 @@ Order matters: database first, then backend, then frontend, then wire the OAuth 
 
 > Free tier sleeps after ~15 min idle, so the 08:00 reminder cron may not run while asleep. Later: a free pinger (cron-job.org) can hit a health route daily to wake it.
 
-## 3. Frontend — Vercel (free)
+## 3. Frontend - Vercel (free)
 1. New Project > import this repo.
 2. Settings:
    - **Root Directory:** `frontend`

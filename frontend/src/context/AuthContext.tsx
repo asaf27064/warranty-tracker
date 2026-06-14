@@ -79,7 +79,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setLastUser(meRes.data.user);
         localStorage.setItem(LAST_USER_KEY, JSON.stringify(meRes.data.user));
       } catch {
-        // Not logged in on first load — stay silent (no "expired" toast).
+        // Not logged in on first load - stay silent (no "expired" toast).
         setUser(null);
         setAccessToken(null);
         tokenRef.current = null;
@@ -145,7 +145,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-      <AuthContext.Provider
+    <AuthContext.Provider
       value={{ user, lastUser, accessToken, loading, loginWithGoogle, logout }}
     >
       {children}

@@ -20,7 +20,7 @@ const upload = multer({
 
 router.use(verifyJWT);
 
-// Reading history is not an AI call — keep it out of the rate limiter.
+// Reading history is not an AI call - keep it out of the rate limiter.
 router.get("/conversations/:id", getConversation);
 
 router.use(aiRateLimit);

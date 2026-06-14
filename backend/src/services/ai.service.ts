@@ -4,7 +4,6 @@ import { client } from "../config/anthropic";
 import { z } from "zod";
 import { createProductSchema } from "../schemas/product.schema";
 
-
 const extractionSchema = createProductSchema.partial();
 const inputSchema = z.toJSONSchema(extractionSchema);
 
@@ -14,15 +13,15 @@ const tools = [
     description:
       "Record the product warranty details extracted from the receipt or text. " +
       "Fill in a field ONLY if it is explicitly stated or can be directly calculated. " +
-      "For store: use the name of the merchant/business that issued the receipt — " +
-      "usually the company name in the header (e.g. the name next to בע\"מ / Ltd.). " +
+      "For store: use the name of the merchant/business that issued the receipt - " +
+      'usually the company name in the header (e.g. the name next to בע"מ / Ltd.). ' +
       "Do NOT use a salesperson or agent name (labelled 'סוכן' / 'agent') or a product brand. " +
       "For purchaseDate: set it only if an actual date or relative time (e.g. 'last week', " +
       "'2 months ago') is present, and ALWAYS format it as an ISO date YYYY-MM-DD " +
       "(e.g. a receipt showing 29/03/26 becomes 2026-03-29). " +
-      "If no purchase date is found, OMIT purchaseDate entirely — do NOT default to today's date. " +
+      "If no purchase date is found, OMIT purchaseDate entirely - do NOT default to today's date. " +
       "Never guess or invent values; omit anything you cannot determine. " +
-      "NEVER use placeholder values such as 'unknown', '<UNKNOWN>', 'N/A', 'none', or 0 — " +
+      "NEVER use placeholder values such as 'unknown', '<UNKNOWN>', 'N/A', 'none', or 0 - " +
       "if a value is not present, leave the field out completely.",
     input_schema: inputSchema as any,
   },
@@ -38,9 +37,7 @@ const supportedMediaTypes = [
 
 export type ReceiptMediaType = (typeof supportedMediaTypes)[number];
 
-export const isSupportedMediaType = (
-  type: string,
-): type is ReceiptMediaType =>
+export const isSupportedMediaType = (type: string): type is ReceiptMediaType =>
   (supportedMediaTypes as readonly string[]).includes(type);
 
 function fileBlock(
@@ -77,8 +74,8 @@ async function runExtraction(
   if (block && block.type === "tool_use") {
     const raw = { ...(block.input as Record<string, unknown>) };
 
-
-    const placeholder = /^\s*(<?\s*unknown\s*>?|n\/?a|none|null|undefined|-+)\s*$/i;
+    const placeholder =
+      /^\s*(<?\s*unknown\s*>?|n\/?a|none|null|undefined|-+)\s*$/i;
     for (const [k, v] of Object.entries(raw)) {
       if (typeof v === "string" && (v.trim() === "" || placeholder.test(v))) {
         delete raw[k];
