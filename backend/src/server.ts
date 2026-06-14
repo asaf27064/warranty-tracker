@@ -28,3 +28,14 @@ const shutdown = async (signal: string) => {
 
 process.on("SIGINT", () => shutdown("SIGINT"));
 process.on("SIGTERM", () => shutdown("SIGTERM"));
+
+// Log unexpected failures. On an uncaught exception the process state is no
+// longer trustworthy, so exit and let the host (Render/Docker) restart a clean
+// one rather than limping along in a corrupt state.
+process.on("unhandledRejection", (reason) => {
+  console.error("Unhandled promise rejection:", reason);
+});
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught exception:", err);
+  process.exit(1);
+});

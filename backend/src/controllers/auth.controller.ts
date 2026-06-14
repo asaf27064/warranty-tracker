@@ -6,6 +6,18 @@ type RefreshTokenPayload = {
   userId: string;
 };
 
+const isProd = process.env.NODE_ENV === "production";
+
+// Frontend and backend live on different domains in production, so the refresh
+// cookie must be SameSite=None + Secure or the browser won't send it. Locally
+// (http) it stays Lax so it works without HTTPS.
+const refreshCookieBase = {
+  httpOnly: true,
+  secure: isProd,
+  sameSite: (isProd ? "none" : "lax") as "none" | "lax",
+  path: "/",
+};
+
 export const googleCallback = async (req: Request, res: Response) => {
   if (!req.user) {
     return res.status(401).json({ message: "Unauthorized" });
@@ -28,11 +40,8 @@ export const googleCallback = async (req: Request, res: Response) => {
   });
 
   res.cookie("jwt", refreshToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    ...refreshCookieBase,
     maxAge: 7 * 24 * 60 * 60 * 1000,
-    path: "/",
   });
 
   return res.redirect(`${process.env.CLIENT_URL}/dashboard`);
@@ -56,12 +65,7 @@ export const handleRefreshToken = async (req: Request, res: Response) => {
   });
 
   if (!storedToken) {
-    res.clearCookie("jwt", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-    });
+    res.clearCookie("jwt", refreshCookieBase);
     return res.status(403).json({ message: "Invalid refresh token" });
   }
 
@@ -70,12 +74,7 @@ export const handleRefreshToken = async (req: Request, res: Response) => {
       where: { token: refreshToken },
     });
 
-    res.clearCookie("jwt", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-    });
+    res.clearCookie("jwt", refreshCookieBase);
 
     return res.status(403).json({ message: "Refresh token expired" });
   }
@@ -92,12 +91,7 @@ export const handleRefreshToken = async (req: Request, res: Response) => {
       where: { token: refreshToken },
     });
 
-    res.clearCookie("jwt", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-    });
+    res.clearCookie("jwt", refreshCookieBase);
 
     return res.status(403).json({ message: "Invalid refresh token" });
   }
@@ -138,12 +132,7 @@ export const handleLogout = async (req: Request, res: Response) => {
       where: { token: refreshToken },
     });
 
-    res.clearCookie("jwt", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-    });
+    res.clearCookie("jwt", refreshCookieBase);
 
     return res.status(200).json({ message: "Logged out successfully" });
   } catch {
