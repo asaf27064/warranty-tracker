@@ -26,9 +26,9 @@ Warranty Tracker is a full-stack TypeScript app for managing product warranties:
 
 ## ✨ Highlights
 
-- **AI assistant (tool-using agent).** Ask things like _"which warranties expire soon?"_ or add a product just by chatting. Built on Anthropic Claude with real tool use over a shared, Zod-validated service layer.
+- **AI assistant (tool-using agent).** Chat to search your products, see what's expiring, set reminders, or add a product. After an add, attach a photo or receipt right in the chat. Built on Anthropic Claude with real tool use over a shared, Zod-validated service layer.
+- **Local-first natural-language add.** "I bought a laptop yesterday, 1 year warranty" is parsed by a rule-based parser (chrono-node + regex), confirmed, and created with no LLM call. Ambiguous messages fall back to the Claude agent.
 - **Receipt and invoice scanning.** Upload a photo or PDF and Claude vision extracts the product name, store, purchase date, and warranty length, then pre-fills the form for review.
-- **Quick add from plain language.** Type _"bought a MacBook last month, 3 year warranty"_ and it parses into a structured product.
 - **Reminder digest emails.** A daily job groups everything expiring soon into one clean email per user, with product thumbnails, color-coded status, and a warranty progress bar.
 
 ## 🧩 Features
