@@ -86,7 +86,7 @@ const ProductCard = ({ product, onClick, selectable, selected }: Props) => {
         }`}
         onClick={onClick}
       >
-        <div className="relative flex h-44 items-center justify-center overflow-hidden bg-muted p-3">
+        <div className="relative flex h-44 items-center justify-center overflow-hidden bg-muted p-2">
           {selectable && (
             <input
               type="checkbox"
@@ -100,13 +100,13 @@ const ProductCard = ({ product, onClick, selectable, selected }: Props) => {
             <img
               src={product.picture}
               alt={product.name}
-              className="h-full w-full rounded-xl object-cover"
+              className="h-full w-full rounded-lg object-cover"
             />
           ) : (
             <CategoryIcon className="h-16 w-16 text-muted-foreground" />
           )}
           <Badge
-            className={`${status.color} absolute right-3 top-3 z-10 border-0`}
+            className={`absolute right-3 top-3 z-10 border-0 bg-background/85 shadow-sm backdrop-blur-sm ${timeLeftColor}`}
           >
             {status.label}
           </Badge>
