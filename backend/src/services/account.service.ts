@@ -5,8 +5,6 @@ import {
 import { r2Client, R2_BUCKET } from "../config/r2";
 import prisma from "../config/db";
 
-// Delete every object under a key prefix (R2 has no single "delete by prefix",
-// so we list then batch-delete in pages of up to 1000).
 async function deletePrefix(prefix: string) {
   let token: string | undefined;
   do {
@@ -30,9 +28,6 @@ async function deletePrefix(prefix: string) {
   } while (token);
 }
 
-// Wipe the user: their R2 files first (best-effort, per user-scoped prefix),
-// then the DB row. Cascades handle products, documents, reminders,
-// conversations, messages, refresh tokens and push subscriptions.
 export async function deleteUserData(userId: string) {
   await Promise.allSettled([
     deletePrefix(`documents/${userId}/`),

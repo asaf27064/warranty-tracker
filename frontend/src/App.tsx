@@ -12,8 +12,6 @@ import ReminderToaster from "./components/ReminderToaster";
 import OnboardingModal from "./components/OnboardingModal";
 import { Toaster } from "./components/ui/sonner";
 
-// App-wide chrome that depends on auth: prefs sync (always), plus the in-app
-// reminder toaster and first-login onboarding (only when signed in).
 function GlobalChrome() {
   const { user } = useAuth();
   return (

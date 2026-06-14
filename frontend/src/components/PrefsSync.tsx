@@ -2,9 +2,6 @@ import { useEffect, useRef } from "react";
 import { useTheme } from "next-themes";
 import { useAuth } from "../context/AuthContext";
 
-// Applies the user's saved theme/view to this device once on login, then keeps
-// later theme toggles in sync with the server so prefs follow the user across
-// devices.
 const PrefsSync = () => {
   const { user, updatePreferences } = useAuth();
   const { theme, setTheme } = useTheme();
@@ -26,8 +23,6 @@ const PrefsSync = () => {
     if (theme && theme !== user.theme) {
       updatePreferences({ theme }).catch(() => {});
     }
-    // Only react to theme changes; user is read for comparison.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [theme]);
 
   return null;

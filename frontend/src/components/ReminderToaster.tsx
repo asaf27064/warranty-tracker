@@ -4,8 +4,6 @@ import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import { useNotifications } from "../hooks/useNotifications";
 
-// Pops a toast when a reminder newly comes due while the app is open. Only
-// mounted when logged in; respects the in-app notification preference.
 const ReminderToaster = () => {
   const { user } = useAuth();
   const { reminders } = useNotifications();
@@ -14,8 +12,6 @@ const ReminderToaster = () => {
   const primed = useRef(false);
 
   useEffect(() => {
-    // First pass: remember what's already due without toasting, so we don't
-    // burst a toast for every old reminder on load.
     if (!primed.current) {
       reminders.forEach((r) => seen.current.add(r.id));
       primed.current = true;

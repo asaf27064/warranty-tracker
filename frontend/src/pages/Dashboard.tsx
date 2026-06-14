@@ -80,7 +80,6 @@ const Dashboard = () => {
   const changeView = (v: "cards" | "list") => {
     setView(v);
     localStorage.setItem("wtView", v);
-    // Persist as the user's default view (best-effort, cross-device).
     updatePreferences({ defaultView: v }).catch(() => {});
   };
 

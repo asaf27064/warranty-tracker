@@ -51,7 +51,6 @@ model User {
   products      Product[]
   refreshTokens RefreshToken[]
   conversations Conversation[]
-  // Preferences (set during onboarding, editable in Settings).
   emailNotifications Boolean   @default(false)
   pushNotifications  Boolean   @default(false)
   inAppNotifications Boolean   @default(true)

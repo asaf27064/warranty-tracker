@@ -39,8 +39,6 @@ const Row = ({ icon: Icon, title, desc, checked, onChange, disabled, badge }: Ro
   </div>
 );
 
-// First-login prompt: pick how to be reminded. Not dismissable without a
-// choice (Skip still proceeds with defaults). Shown while user.onboarded false.
 const OnboardingModal = () => {
   const { user, updatePreferences } = useAuth();
   const [inApp, setInApp] = useState(true);
