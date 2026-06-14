@@ -14,6 +14,15 @@ import {
   validateUploadedFile,
 } from "../utils/fileValidation";
 
+// Most recent user message in the loaded history, for the confirm-then-create step.
+const lastUserText = (history: Anthropic.MessageParam[]): string | null => {
+  for (let i = history.length - 1; i >= 0; i--) {
+    const m = history[i];
+    if (m.role === "user" && typeof m.content === "string") return m.content;
+  }
+  return null;
+};
+
 export const extractProduct = async (req: Request, res: Response) => {
   try {
     if (!req.user) {
@@ -104,26 +113,56 @@ export const chat = async (req: Request, res: Response) => {
       conversationId = await conversationService.createConversation(userId);
     }
 
-    // Local-first: a clean "I bought X, N year warranty" is created directly,
-    // no Claude call. Anything the parser can't confidently handle (questions,
-    // searches, vague adds) falls through to the agent below.
-    const parsed = parseProductMessage(message);
-    if (parsed) {
-      try {
-        const product = await productService.createProduct(userId, parsed);
-        const expiry = new Date(product.warrantyExpiry).toLocaleDateString(
+    // Local-first, confirm-first (mirrors the agent's "create only after the
+    // user confirms"). A clean "I bought X, N year warranty" is PROPOSED, not
+    // created. The user replies "yes" and we create it, all without Claude.
+    // Corrections or anything ambiguous fall through to the agent below.
+    const isAffirmation =
+      /^\s*(yes|yeah|yep|yup|sure|ok|okay|confirm|add it|do it|go ahead|please do)\b[.! ]*$/i.test(
+        message.trim(),
+      );
+
+    if (isAffirmation) {
+      const prev = lastUserText(history);
+      const parsed = prev ? parseProductMessage(prev) : null;
+      if (parsed) {
+        try {
+          const product = await productService.createProduct(userId, parsed);
+          const expiry = new Date(product.warrantyExpiry).toLocaleDateString(
+            "en-GB",
+          );
+          const reply = `Added "${product.name}", warranty expires ${expiry}. Open the card to review or edit.`;
+          await conversationService.saveTurn(conversationId, message, reply, [
+            product.id,
+          ]);
+          return res
+            .status(200)
+            .json({ conversationId, reply, products: [product] });
+        } catch (err) {
+          console.error("Local add-product failed, falling back to agent:", err);
+        }
+      }
+    } else {
+      const parsed = parseProductMessage(message);
+      if (parsed) {
+        const exp = new Date(parsed.purchaseDate);
+        exp.setMonth(exp.getMonth() + parsed.warrantyMonths);
+        const prettyCat =
+          parsed.category.charAt(0) +
+          parsed.category.slice(1).toLowerCase().replace(/_/g, " ");
+        const purchase = new Date(parsed.purchaseDate).toLocaleDateString(
           "en-GB",
         );
-        const reply = `Added "${product.name}". Warranty: ${product.warrantyMonths} months, expiring ${expiry}. Open the card to review or edit.`;
-        await conversationService.saveTurn(conversationId, message, reply, [
-          product.id,
-        ]);
-        return res
-          .status(200)
-          .json({ conversationId, reply, products: [product] });
-      } catch (err) {
-        // If the local create fails for any reason, let the agent handle it.
-        console.error("Local add-product failed, falling back to agent:", err);
+        const reply =
+          "Here's what I understood:\n" +
+          `- Name: ${parsed.name}\n` +
+          `- Category: ${prettyCat}\n` +
+          (parsed.store ? `- Store: ${parsed.store}\n` : "") +
+          `- Purchased: ${purchase}\n` +
+          `- Warranty: ${parsed.warrantyMonths} months (expires ${exp.toLocaleDateString("en-GB")})\n\n` +
+          "Reply **yes** to add it, or tell me what to change.";
+        await conversationService.saveTurn(conversationId, message, reply, []);
+        return res.status(200).json({ conversationId, reply, products: [] });
       }
     }
 
