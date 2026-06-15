@@ -276,15 +276,22 @@ const LandingPage = () => {
               <span className="text-[10px] uppercase tracking-wide text-muted-foreground">or</span>
               <div className="h-px flex-1 bg-sky-500/15" />
             </div>
-            <div className="rounded-lg border border-dashed border-sky-500/40 bg-background p-3">
+            <div className="overflow-hidden rounded-lg border border-dashed border-sky-500/40 bg-background p-3">
               <div className="mb-3 flex items-center justify-between border-b border-dashed border-border pb-2 text-[11px] text-muted-foreground"><span className="flex items-center gap-1.5"><Receipt className="h-3.5 w-3.5" /> receipt.jpg</span><span>scanning</span></div>
-              <div className="space-y-2">
+              <div className="relative space-y-2">
                 <div className="h-2 w-2/3 rounded bg-muted" />
                 <div className="h-2 w-1/2 rounded bg-muted" />
                 <div className="h-2 w-5/6 rounded bg-muted" />
-                <div className="my-2 h-px w-full bg-emerald-500/60 shadow-[0_0_8px] shadow-emerald-500/40" />
                 <div className="h-2 w-3/4 rounded bg-muted" />
                 <div className="h-2 w-2/5 rounded bg-muted" />
+                <div className="h-2 w-3/5 rounded bg-muted" />
+                <motion.div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-x-0 h-0.5 rounded bg-emerald-500/80 shadow-[0_0_10px_1px] shadow-emerald-500/60"
+                  initial={{ top: "0%" }}
+                  animate={{ top: ["0%", "100%", "0%"] }}
+                  transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+                />
               </div>
             </div>
           </div>
