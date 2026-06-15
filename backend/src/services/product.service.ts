@@ -163,7 +163,7 @@ export async function listProducts(
 }
 
 export async function getProductStats(userId: string) {
-  const [byStatus, byCategory] = await Promise.all([
+  const [byStatus, byCategory, soonest] = await Promise.all([
     prisma.product.groupBy({
       by: ["status"],
       where: { userId },
@@ -174,6 +174,11 @@ export async function getProductStats(userId: string) {
       where: { userId },
       _count: { _all: true },
     }),
+    prisma.product.findFirst({
+      where: { userId, warrantyExpiry: { gte: new Date() } },
+      orderBy: { warrantyExpiry: "asc" },
+      select: { name: true, warrantyExpiry: true },
+    }),
   ]);
 
   const stats = {
@@ -182,6 +187,9 @@ export async function getProductStats(userId: string) {
     expired: 0,
     total: 0,
     byCategory: {} as Record<string, number>,
+    nextExpiry: soonest
+      ? { name: soonest.name, date: soonest.warrantyExpiry }
+      : null,
   };
   for (const g of byStatus) {
     if (g.status === "ACTIVE") stats.active = g._count._all;

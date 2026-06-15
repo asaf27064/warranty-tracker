@@ -260,11 +260,7 @@ const Dashboard = () => {
 
         <main className="nice-scroll flex-1 overflow-y-auto">
           <div className="mx-auto max-w-6xl p-6">
-            <DashboardStats
-              stats={stats}
-              statusFilter={activeFilter}
-              setStatusFilter={setActiveFilter}
-            />
+            <DashboardStats stats={stats} />
 
             <motion.div
               initial={{ opacity: 0 }}

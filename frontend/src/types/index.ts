@@ -96,6 +96,7 @@ export type Stats = {
   expired: number;
   total?: number;
   byCategory?: Record<string, number>;
+  nextExpiry?: { name: string; date: string } | null;
 };
 
 export type Document = {

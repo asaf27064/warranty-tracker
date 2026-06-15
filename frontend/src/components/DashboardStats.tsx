@@ -1,75 +1,72 @@
-import { motion } from "framer-motion";
-import { CircleCheck, ClockAlert, CircleX } from "lucide-react";
+import { ShieldCheck, AlertTriangle, CalendarClock } from "lucide-react";
 import type { Stats } from "../types";
 
 type Props = {
   stats: Stats;
-  statusFilter: string;
-  setStatusFilter: (value: string) => void;
 };
 
-const DashboardStats = ({ stats, statusFilter, setStatusFilter }: Props) => {
+const formatUntil = (days: number) => {
+  if (days <= 0) return "Today";
+  if (days < 45) return `${days} day${days === 1 ? "" : "s"}`;
+  if (days < 365) return `${Math.round(days / 30)} months`;
+  const years = days / 365;
+  return `${years < 2 ? years.toFixed(1) : Math.round(years)} years`;
+};
+
+const DashboardStats = ({ stats }: Props) => {
   const total =
     stats.total ?? stats.active + stats.expiringSoon + stats.expired;
   const coverage = total ? Math.round((stats.active / total) * 100) : 0;
+  const attention = stats.expiringSoon + stats.expired;
 
-  const items = [
-    {
-      key: "ACTIVE",
-      label: "Active",
-      count: stats.active,
-      sub: `${coverage}% of all products`,
-      icon: CircleCheck,
-      color: "c-active",
-    },
-    {
-      key: "EXPIRING_SOON",
-      label: "Expiring soon",
-      count: stats.expiringSoon,
-      sub: "within 30 days",
-      icon: ClockAlert,
-      color: "c-expiring",
-    },
-    {
-      key: "EXPIRED",
-      label: "Expired",
-      count: stats.expired,
-      sub: "needs review",
-      icon: CircleX,
-      color: "c-expired",
-    },
-  ];
+  const next = stats.nextExpiry ?? null;
+  const nextDays = next
+    ? Math.ceil((new Date(next.date).getTime() - Date.now()) / 86_400_000)
+    : null;
 
   return (
     <div className="mt-2 grid grid-cols-1 gap-4 sm:grid-cols-3">
-      {items.map((stat, i) => {
-        const selected = statusFilter === stat.key;
-        return (
-          <motion.button
-            key={stat.key}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 * (i + 1) }}
-            onClick={() =>
-              setStatusFilter(selected ? "ALL" : stat.key)
-            }
-            className={`rounded-xl border p-4 text-left transition-colors ${
-              selected
-                ? "border-foreground/20 bg-muted"
-                : "border-border bg-card hover:bg-muted/40"
-            }`}
-          >
-            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-              <stat.icon className={`h-4 w-4 ${stat.color}`} />
-              {stat.label}
-            </div>
-            <div className="mt-1 text-3xl font-bold text-foreground">
-              {stat.count}
-            </div>
-            <div className={`mt-0.5 text-xs ${stat.color}`}>{stat.sub}</div>
-          </motion.button>
-        );
-      })}
+      <div className="rounded-xl border border-border bg-card p-4">
+        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          <ShieldCheck className="h-4 w-4 c-active" />
+          Coverage
+        </div>
+        <div className="mt-1 text-3xl font-bold text-foreground">{coverage}%</div>
+        <div className="mt-0.5 text-xs text-muted-foreground">
+          {stats.active} of {total} active
+        </div>
+        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
+          <div className="h-full bar-active" style={{ width: `${coverage}%` }} />
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-border bg-card p-4">
+        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          <AlertTriangle className="h-4 w-4 c-expiring" />
+          Needs attention
+        </div>
+        <div className="mt-1 text-3xl font-bold text-foreground">{attention}</div>
+        <div className="mt-0.5 text-xs text-muted-foreground">
+          <span className="c-expiring">{stats.expiringSoon} expiring</span>
+          {" · "}
+          <span className="c-expired">{stats.expired} expired</span>
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-border bg-card p-4">
+        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          <CalendarClock className="h-4 w-4" />
+          Next expiry
+        </div>
+        <div className="mt-1 text-3xl font-bold text-foreground">
+          {nextDays === null ? "—" : formatUntil(nextDays)}
+        </div>
+        <div className="mt-0.5 truncate text-xs text-muted-foreground">
+          {next
+            ? `${next.name} · ${new Date(next.date).toLocaleDateString()}`
+            : "Nothing upcoming"}
+        </div>
+      </div>
     </div>
   );
 };
