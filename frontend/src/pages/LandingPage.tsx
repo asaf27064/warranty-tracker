@@ -136,6 +136,7 @@ const LandingPage = () => {
       </header>
 
       <section className="relative overflow-hidden">
+        <div className="pointer-events-none absolute left-1/2 top-[-4rem] h-72 w-[40rem] max-w-[90vw] -translate-x-1/2 rounded-full bg-emerald-500/15 blur-[120px] dark:bg-emerald-400/20" />
         <div
           className="pointer-events-none absolute inset-0 opacity-[0.04]"
           style={{
@@ -218,16 +219,23 @@ const LandingPage = () => {
           </p>
         </div>
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {features.map((f) => {
+          {features.map((f, i) => {
             const Icon = f.icon;
             return (
-              <div key={f.title} className="rounded-xl border border-border bg-card p-5 transition-colors hover:border-emerald-600/40">
+              <motion.div
+                key={f.title}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.4, ease: "easeOut", delay: (i % 3) * 0.08 }}
+                className="rounded-xl border border-border bg-card p-5 transition-colors hover:border-emerald-600/40"
+              >
                 <span className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-600/10 text-emerald-600 dark:text-emerald-400">
                   <Icon className="h-5 w-5" />
                 </span>
                 <h3 className="text-[15px] font-semibold">{f.title}</h3>
                 <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">{f.desc}</p>
-              </div>
+              </motion.div>
             );
           })}
         </div>
@@ -284,8 +292,9 @@ const LandingPage = () => {
         </div>
       </section>
 
-      <section className="mx-auto max-w-4xl px-5 pb-16">
-        <div className="rounded-2xl border border-emerald-600/25 bg-emerald-600/10 px-6 py-12 text-center">
+      <section className="relative mx-auto max-w-4xl overflow-hidden px-5 pb-16">
+        <div className="pointer-events-none absolute left-1/2 top-1/2 h-56 w-[34rem] max-w-[90vw] -translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-500/10 blur-[110px] dark:bg-emerald-400/15" />
+        <div className="relative rounded-2xl border border-emerald-600/25 bg-emerald-600/10 px-6 py-12 text-center">
           <h2 className="text-2xl font-bold sm:text-3xl">Start protecting your purchases</h2>
           <p className="mx-auto mt-3 max-w-sm text-sm text-muted-foreground">
             Join in seconds with your Google account.
