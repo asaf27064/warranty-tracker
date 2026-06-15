@@ -348,187 +348,174 @@ const ProductDetails = () => {
             transition={{ delay: 0.1 }}
             className="lg:col-span-2"
           >
-            <Card className="border-border bg-card p-6">
-              <div className="flex flex-col gap-5 sm:flex-row">
+            <Card className="gap-0 overflow-hidden border-border bg-card p-0">
+              <div className="flex items-center gap-4 border-b border-border p-5">
                 {product.picture && !heroFailed ? (
-                  <div className="relative h-48 w-full shrink-0 overflow-hidden rounded-xl bg-muted sm:h-auto sm:w-44 sm:self-stretch">
-                    <img
-                      src={product.picture}
-                      alt=""
-                      aria-hidden="true"
-                      className="absolute inset-0 h-full w-full scale-110 object-cover opacity-30 blur-2xl"
-                    />
-                    <img
-                      src={product.picture}
-                      alt={product.name}
-                      onError={() => setHeroFailed(true)}
-                      className="relative z-[1] h-full w-full object-contain"
-                    />
-                  </div>
+                  <img
+                    src={product.picture}
+                    alt={product.name}
+                    onError={() => setHeroFailed(true)}
+                    className="h-20 w-20 shrink-0 rounded-xl border border-border object-cover"
+                  />
                 ) : (
-                  <div className="flex h-48 w-full shrink-0 items-center justify-center rounded-xl bg-muted sm:h-auto sm:w-44 sm:self-stretch">
-                    <Package className="h-16 w-16 text-muted-foreground" />
+                  <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl border border-border bg-muted">
+                    <Package className="h-9 w-9 text-muted-foreground" />
                   </div>
                 )}
 
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="min-w-0">
-                      <h1 className="truncate text-2xl font-bold text-foreground">
-                        {product.name}
-                      </h1>
-                      <div className="mt-1 flex flex-wrap items-center gap-2">
-                        <span className="text-sm text-muted-foreground">
-                          {CategoryLabels[product.category] || product.category}
-                        </span>
-                        <Badge
-                          className={`${statusConfig[product.status as keyof typeof statusConfig].color} border-0`}
-                        >
-                          {
-                            statusConfig[
-                              product.status as keyof typeof statusConfig
-                            ].label
-                          }
-                        </Badge>
-                      </div>
-                    </div>
-                    <div className="flex shrink-0 items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="gap-2"
-                        onClick={() => setShowProductModal(true)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                        <span className="hidden sm:inline">Edit</span>
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="gap-2 text-red-500 hover:bg-red-500/10 hover:text-red-500"
-                        onClick={() => setDeleteOpen(true)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        <span className="hidden sm:inline">Delete</span>
-                      </Button>
-                    </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge
+                      className={`${statusConfig[product.status as keyof typeof statusConfig].color} border-0`}
+                    >
+                      {
+                        statusConfig[
+                          product.status as keyof typeof statusConfig
+                        ].label
+                      }
+                    </Badge>
+                    <span className="text-sm text-muted-foreground">
+                      {CategoryLabels[product.category] || product.category}
+                    </span>
                   </div>
+                  <h1 className="mt-1.5 truncate text-xl font-bold text-foreground sm:text-2xl">
+                    {product.name}
+                  </h1>
+                </div>
 
-                  <div className="mt-5 overflow-hidden rounded-lg border border-border bg-muted/25">
-                    <div className="grid sm:grid-cols-[0.9fr_1.1fr]">
-                      <div className="flex items-center gap-4 border-b border-border p-4 sm:border-b-0 sm:border-r">
-                        <motion.div
-                          className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-full"
-                          animate={{
-                            boxShadow: isWarrantyFull
-                              ? [
-                                  "0 0 0px rgba(0,0,0,0)",
-                                  `0 0 12px ${ringGlow}`,
-                                  "0 0 0px rgba(0,0,0,0)",
-                                ]
-                              : "0 0 0px rgba(0,0,0,0)",
-                          }}
-                          transition={{
-                            boxShadow: isWarrantyFull
-                              ? {
-                                  duration: 1.4,
-                                  repeat: Infinity,
-                                  ease: "easeInOut",
-                                }
-                              : { duration: 0.2 },
-                          }}
-                        >
-                          <svg
-                            viewBox="0 0 36 36"
-                            className={`h-20 w-20 -rotate-90 ${statusColorClass}`}
-                          >
-                            <circle
-                              cx="18"
-                              cy="18"
-                              r={RING_R}
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="3"
-                              className="text-muted-foreground/20"
-                            />
-                            <motion.circle
-                              cx="18"
-                              cy="18"
-                              r={RING_R}
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="3"
-                              strokeLinecap="round"
-                              strokeDasharray={RING_C}
-                              initial={{ strokeDashoffset: RING_C }}
-                              animate={{
-                                strokeDashoffset: RING_C * (1 - pctElapsed / 100),
-                              }}
-                              transition={{ duration: 0.8, ease: "easeOut" }}
-                            />
-                          </svg>
-                          <span
-                            className={`absolute text-base font-bold ${statusColorClass}`}
-                          >
-                            {pctElapsed}%
-                          </span>
-                        </motion.div>
-                        <div className="min-w-0">
-                          <p className="text-xs font-medium uppercase text-muted-foreground">
-                            {timeSignalLabel}
-                          </p>
-                          <p
-                            className={`mt-0.5 text-2xl font-semibold tracking-tight ${statusColorClass}`}
-                          >
-                            {timeSignal}
-                          </p>
-                          <p className="mt-0.5 text-sm text-muted-foreground">
-                            {product.status === "EXPIRED"
-                              ? "Coverage has ended"
-                              : "Coverage still available"}
-                          </p>
-                        </div>
-                      </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                    onClick={() => setShowProductModal(true)}
+                  >
+                    <Pencil className="h-4 w-4" />
+                    <span className="hidden sm:inline">Edit</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2 text-red-500 hover:bg-red-500/10 hover:text-red-500"
+                    onClick={() => setDeleteOpen(true)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span className="hidden sm:inline">Delete</span>
+                  </Button>
+                </div>
+              </div>
 
-                      <div className="grid grid-cols-2 gap-px bg-border text-sm">
-                        <div className="bg-card p-3">
-                          <div className="flex items-center gap-1.5 text-muted-foreground">
-                            <CalendarDays className="h-3.5 w-3.5" />
-                            Purchased
-                          </div>
-                          <p className="mt-1 font-medium text-foreground">
-                            {new Date(product.purchaseDate).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <div className="bg-card p-3">
-                          <div className="flex items-center gap-1.5 text-muted-foreground">
-                            <ShieldCheck className="h-3.5 w-3.5" />
-                            Expires
-                          </div>
-                          <p className="mt-1 font-medium text-foreground">
-                            {new Date(product.warrantyExpiry).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <div className="bg-card p-3">
-                          <div className="flex items-center gap-1.5 text-muted-foreground">
-                            <Store className="h-3.5 w-3.5" />
-                            Store
-                          </div>
-                          <p className="mt-1 truncate font-medium text-foreground">
-                            {product.store || "N/A"}
-                          </p>
-                        </div>
-                        <div className="bg-card p-3">
-                          <div className="flex items-center gap-1.5 text-muted-foreground">
-                            <ShieldCheck className="h-3.5 w-3.5" />
-                            Warranty
-                          </div>
-                          <p className="mt-1 font-medium text-foreground">
-                            {product.warrantyMonths} months
-                          </p>
-                        </div>
-                      </div>
+              <div className="grid sm:grid-cols-[0.9fr_1.1fr]">
+                <div className="flex items-center gap-4 border-b border-border p-5 sm:border-b-0 sm:border-r">
+                  <motion.div
+                    className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-full"
+                    animate={{
+                      boxShadow: isWarrantyFull
+                        ? [
+                            "0 0 0px rgba(0,0,0,0)",
+                            `0 0 12px ${ringGlow}`,
+                            "0 0 0px rgba(0,0,0,0)",
+                          ]
+                        : "0 0 0px rgba(0,0,0,0)",
+                    }}
+                    transition={{
+                      boxShadow: isWarrantyFull
+                        ? {
+                            duration: 1.4,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                          }
+                        : { duration: 0.2 },
+                    }}
+                  >
+                    <svg
+                      viewBox="0 0 36 36"
+                      className={`h-20 w-20 -rotate-90 ${statusColorClass}`}
+                    >
+                      <circle
+                        cx="18"
+                        cy="18"
+                        r={RING_R}
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        className="text-muted-foreground/20"
+                      />
+                      <motion.circle
+                        cx="18"
+                        cy="18"
+                        r={RING_R}
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeDasharray={RING_C}
+                        initial={{ strokeDashoffset: RING_C }}
+                        animate={{
+                          strokeDashoffset: RING_C * (1 - pctElapsed / 100),
+                        }}
+                        transition={{ duration: 0.8, ease: "easeOut" }}
+                      />
+                    </svg>
+                    <span
+                      className={`absolute text-base font-bold ${statusColorClass}`}
+                    >
+                      {pctElapsed}%
+                    </span>
+                  </motion.div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium uppercase text-muted-foreground">
+                      {timeSignalLabel}
+                    </p>
+                    <p
+                      className={`mt-0.5 text-2xl font-semibold tracking-tight ${statusColorClass}`}
+                    >
+                      {timeSignal}
+                    </p>
+                    <p className="mt-0.5 text-sm text-muted-foreground">
+                      {product.status === "EXPIRED"
+                        ? "Coverage has ended"
+                        : "Coverage still available"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-px bg-border text-sm">
+                  <div className="bg-card p-3">
+                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                      <CalendarDays className="h-3.5 w-3.5" />
+                      Purchased
                     </div>
+                    <p className="mt-1 font-medium text-foreground">
+                      {new Date(product.purchaseDate).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="bg-card p-3">
+                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                      <ShieldCheck className="h-3.5 w-3.5" />
+                      Expires
+                    </div>
+                    <p className="mt-1 font-medium text-foreground">
+                      {new Date(product.warrantyExpiry).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="bg-card p-3">
+                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                      <Store className="h-3.5 w-3.5" />
+                      Store
+                    </div>
+                    <p className="mt-1 truncate font-medium text-foreground">
+                      {product.store || "N/A"}
+                    </p>
+                  </div>
+                  <div className="bg-card p-3">
+                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                      <ShieldCheck className="h-3.5 w-3.5" />
+                      Warranty
+                    </div>
+                    <p className="mt-1 font-medium text-foreground">
+                      {product.warrantyMonths} months
+                    </p>
                   </div>
                 </div>
               </div>
