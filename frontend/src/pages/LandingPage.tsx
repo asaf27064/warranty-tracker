@@ -151,8 +151,8 @@ const LandingPage = () => {
           <p className="mt-4 text-xs text-muted-foreground">Free. Sign in with Google, no card needed.</p>
         </motion.div>
 
-        <div className="relative mx-auto max-w-5xl px-5 pb-16" style={{ perspective: "1700px" }}>
-          <div className="relative transition-transform duration-500 ease-out [transform:rotateX(7deg)] hover:[transform:rotateX(0deg)]">
+        <div className="relative mx-auto max-w-5xl px-5 pb-16">
+          <div className="relative">
           <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl">
             <div className="absolute -left-6 top-2 h-64 w-72 rounded-full bg-emerald-500/30 blur-3xl" />
             <div className="absolute -right-6 bottom-2 h-64 w-72 rounded-full bg-sky-500/25 blur-3xl" />
