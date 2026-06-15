@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import type { ReactNode } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import {
   Bell,
   BellRing,
@@ -103,7 +103,8 @@ const features = [
 ];
 
 const LandingPage = () => {
-  const { loginWithGoogle, user, lastUser, loading } = useAuth();
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
 
   if (loading) {
     return (
@@ -114,8 +115,7 @@ const LandingPage = () => {
   }
   if (user) return <Navigate to="/dashboard" />;
 
-  const signIn = () =>
-    lastUser ? loginWithGoogle({ loginHint: lastUser.email }) : loginWithGoogle({ selectAccount: true });
+  const signIn = () => navigate("/login");
 
   return (
     <div className="min-h-screen bg-background text-foreground">

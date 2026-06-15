@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
-import { Navigate } from "react-router-dom";
-import { ChevronRight, Clock, LockKeyhole, Smartphone } from "lucide-react";
+import { Navigate, Link } from "react-router-dom";
+import { ChevronRight, Clock, LockKeyhole, Smartphone, ArrowLeft } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { Button } from "../components/ui/button";
 import logo from "../assets/logo.png";
@@ -19,6 +19,13 @@ const LoginPage = () => {
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-6">
+      <Link
+        to="/"
+        className="absolute left-5 top-5 z-20 flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Home
+      </Link>
       <div
         className="absolute inset-0 opacity-[0.025]"
         style={{
