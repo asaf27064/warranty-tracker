@@ -139,7 +139,7 @@ const LandingPage = () => {
             <span className="text-emerald-600 dark:text-emerald-400">warranty</span> again.
           </h1>
           <p className="mx-auto mt-5 max-w-lg text-[15px] leading-relaxed text-muted-foreground">
-            Stop losing money on warranties you forgot you had. Keep every receipt and expiry date in one place, with reminders before coverage runs out.
+            The warranty you forget is the one you'll need. Keep every receipt and expiry date in one place, with reminders before coverage runs out.
           </p>
           <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
             <button onClick={signIn} className="inline-flex items-center gap-2 rounded-lg bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition-opacity hover:opacity-90">
