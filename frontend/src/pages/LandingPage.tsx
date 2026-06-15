@@ -157,8 +157,8 @@ const LandingPage = () => {
               <div className="hidden w-44 shrink-0 flex-col border-r border-border p-2.5 sm:flex">
                 <p className="mb-1 px-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70">Views</p>
                 {[
-                  { icon: LayoutGrid, label: "All products", count: 23, color: "", active: false },
-                  { icon: CircleCheck, label: "Active", count: 18, color: "c-active", active: true },
+                  { icon: LayoutGrid, label: "All products", count: 23, color: "", active: true },
+                  { icon: CircleCheck, label: "Active", count: 18, color: "c-active", active: false },
                   { icon: ClockAlert, label: "Expiring soon", count: 3, color: "c-expiring", active: false },
                   { icon: CircleX, label: "Expired", count: 2, color: "c-expired", active: false },
                 ].map((v) => {
@@ -171,7 +171,25 @@ const LandingPage = () => {
                     </div>
                   );
                 })}
-                <div className="mt-6 border-t border-border pt-2">
+                <p className="mb-1 mt-4 px-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70">Categories</p>
+                {[
+                  { icon: LayoutGrid, label: "All categories", count: undefined as number | undefined },
+                  { icon: Laptop, label: "Electronics", count: 12 },
+                  { icon: WashingMachine, label: "Appliances", count: 4 },
+                  { icon: Smartphone, label: "Phones", count: 3 },
+                ].map((c) => {
+                  const Icon = c.icon;
+                  return (
+                    <div key={c.label} className="flex items-center gap-2 rounded-md px-2 py-1.5 text-xs text-muted-foreground">
+                      <Icon className="h-4 w-4 shrink-0" />
+                      <span className="truncate">{c.label}</span>
+                      {c.count !== undefined && (
+                        <span className="ml-auto text-[10px] text-muted-foreground">{c.count}</span>
+                      )}
+                    </div>
+                  );
+                })}
+                <div className="mt-4 border-t border-border pt-2">
                   <div className="flex items-center gap-2 rounded-md px-2 py-1.5 text-xs text-sky-600 dark:text-sky-400"><Sparkles className="h-4 w-4" /> Ask assistant</div>
                 </div>
               </div>
