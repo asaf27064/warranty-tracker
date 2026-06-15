@@ -277,6 +277,21 @@ const ProductDetails = () => {
     return FileText;
   };
 
+  const docTone = (type: string) => {
+    switch (type) {
+      case "RECEIPT":
+        return "bg-emerald-600/10 text-emerald-600 dark:text-emerald-400";
+      case "INVOICE":
+        return "bg-amber-500/10 text-amber-600 dark:text-amber-400";
+      case "WARRANTY_CERTIFICATE":
+        return "bg-sky-500/10 text-sky-600 dark:text-sky-400";
+      case "PHOTO":
+        return "bg-violet-500/10 text-violet-600 dark:text-violet-400";
+      default:
+        return "bg-muted text-muted-foreground";
+    }
+  };
+
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -680,16 +695,21 @@ const ProductDetails = () => {
                           }`}
                         >
                           <div className="flex min-w-0 items-center gap-3">
-                            <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] uppercase text-muted-foreground">
-                              {DocTypeLabels[doc.docType] || doc.docType}
+                            <span
+                              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${docTone(doc.docType)}`}
+                            >
+                              <FileIcon className="h-4 w-4" />
                             </span>
-                            <FileIcon className="h-4 w-4 text-muted-foreground" />
-                            <span className="truncate text-sm text-foreground">
-                              {doc.fileName}
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              {formatFileSize(doc.fileSize)}
-                            </span>
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-medium text-foreground">
+                                {doc.fileName}
+                              </p>
+                              <p className="truncate text-xs text-muted-foreground">
+                                {DocTypeLabels[doc.docType] || doc.docType}
+                                {" · "}
+                                {formatFileSize(doc.fileSize)}
+                              </p>
+                            </div>
                           </div>
                           <div className="flex shrink-0 items-center gap-1">
                             <button
