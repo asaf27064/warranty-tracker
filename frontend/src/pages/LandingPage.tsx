@@ -12,6 +12,11 @@ import {
   Tv,
   LayoutGrid,
   List,
+  CircleCheck,
+  ClockAlert,
+  CircleX,
+  Plus,
+  Calendar,
   Receipt,
   Check,
   FileText,
@@ -134,36 +139,89 @@ const LandingPage = () => {
           <p className="mt-4 text-xs text-muted-foreground">Free. Sign in with Google, no card needed.</p>
         </motion.div>
 
-        <div className="relative mx-auto max-w-4xl px-5 pb-16">
-          <Reveal className="rounded-2xl border border-border bg-card p-3 shadow-xl sm:p-4">
-            <div className="mb-3 flex items-center justify-between">
-              <div className="flex flex-wrap gap-2">
-                <span className="inline-flex items-center gap-1.5 rounded-md bg-muted px-2.5 py-1 text-xs"><span className="h-1.5 w-1.5 rounded-full bg-[var(--status-active)]" /> Active 18</span>
-                <span className="inline-flex items-center gap-1.5 rounded-md bg-muted px-2.5 py-1 text-xs"><span className="h-1.5 w-1.5 rounded-full bg-[var(--status-expiring)]" /> Expiring 3</span>
-                <span className="inline-flex items-center gap-1.5 rounded-md bg-muted px-2.5 py-1 text-xs"><span className="h-1.5 w-1.5 rounded-full bg-[var(--status-expired)]" /> Expired 2</span>
+        <div className="relative mx-auto max-w-5xl px-5 pb-16">
+          <Reveal className="overflow-hidden rounded-2xl border border-border bg-card shadow-xl">
+            <div className="flex items-center gap-3 border-b border-border px-4 py-2.5">
+              <img src={logo} alt="" className="h-6 w-6 object-contain" />
+              <div className="hidden flex-1 items-center gap-2 rounded-md border border-border bg-muted/40 px-2.5 py-1.5 text-xs text-muted-foreground sm:flex">
+                <Search className="h-3.5 w-3.5" /> Search products
               </div>
-              <div className="hidden items-center rounded-lg border border-border p-0.5 sm:flex">
-                <span className="flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs"><LayoutGrid className="h-3.5 w-3.5" /> Cards</span>
-                <span className="flex items-center gap-1 px-2 py-1 text-xs text-muted-foreground"><List className="h-3.5 w-3.5" /> List</span>
+              <div className="ml-auto flex items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-600 px-2.5 py-1.5 text-xs font-medium text-white"><Plus className="h-3.5 w-3.5" /> Add</span>
+                <span className="h-7 w-7 rounded-full bg-muted" />
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
-              {products.map((c) => {
-                const Icon = c.icon;
-                return (
-                  <div key={c.name} className="overflow-hidden rounded-xl border border-border bg-background">
-                    <div className="relative flex h-16 items-center justify-center bg-muted text-muted-foreground sm:h-20">
-                      <Icon className="h-6 w-6 sm:h-7 sm:w-7" />
-                      <span className={`absolute right-2 top-2 rounded-full bg-background/85 px-2 py-0.5 text-[9px] font-medium shadow-sm backdrop-blur-sm sm:text-[10px] ${c.color}`}>{c.label}</span>
+            <div className="flex">
+              <div className="hidden w-44 shrink-0 flex-col border-r border-border p-2.5 sm:flex">
+                <p className="mb-1 px-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70">Views</p>
+                {[
+                  { icon: LayoutGrid, label: "All products", count: 23, color: "", active: false },
+                  { icon: CircleCheck, label: "Active", count: 18, color: "c-active", active: true },
+                  { icon: ClockAlert, label: "Expiring soon", count: 3, color: "c-expiring", active: false },
+                  { icon: CircleX, label: "Expired", count: 2, color: "c-expired", active: false },
+                ].map((v) => {
+                  const Icon = v.icon;
+                  return (
+                    <div key={v.label} className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-xs ${v.active ? "bg-muted text-foreground" : "text-muted-foreground"}`}>
+                      <Icon className={`h-4 w-4 shrink-0 ${v.color}`} />
+                      <span className="truncate">{v.label}</span>
+                      <span className="ml-auto text-[10px] text-muted-foreground">{v.count}</span>
                     </div>
-                    <div className="p-2 sm:p-2.5">
-                      <div className="truncate text-[11px] font-medium sm:text-xs">{c.name}</div>
-                      <div className="mt-0.5 truncate text-[9px] text-muted-foreground sm:text-[10px]">{c.cat}</div>
-                      <div className="mt-2 h-1 overflow-hidden rounded-full bg-muted"><div className={`h-full ${c.bar}`} style={{ width: c.pct }} /></div>
-                    </div>
+                  );
+                })}
+                <div className="mt-6 border-t border-border pt-2">
+                  <div className="flex items-center gap-2 rounded-md px-2 py-1.5 text-xs text-sky-600 dark:text-sky-400"><Sparkles className="h-4 w-4" /> Ask assistant</div>
+                </div>
+              </div>
+
+              <div className="min-w-0 flex-1 p-3 sm:p-4">
+                <div className="grid grid-cols-3 gap-2.5">
+                  {[
+                    { icon: CircleCheck, label: "Active", n: 18, sub: "75% of all", color: "c-active" },
+                    { icon: ClockAlert, label: "Expiring soon", n: 3, sub: "within 30 days", color: "c-expiring" },
+                    { icon: CircleX, label: "Expired", n: 2, sub: "needs review", color: "c-expired" },
+                  ].map((s) => {
+                    const Icon = s.icon;
+                    return (
+                      <div key={s.label} className="rounded-xl border border-border bg-card p-2.5 sm:p-3">
+                        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground sm:text-[11px]"><Icon className={`h-3.5 w-3.5 ${s.color}`} /> {s.label}</div>
+                        <div className="mt-1 text-xl font-bold sm:text-2xl">{s.n}</div>
+                        <div className={`mt-0.5 text-[9px] sm:text-[10px] ${s.color}`}>{s.sub}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="mt-3 flex justify-end">
+                  <div className="flex items-center rounded-lg border border-border p-0.5">
+                    <span className="flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-[11px]"><LayoutGrid className="h-3 w-3" /> Cards</span>
+                    <span className="flex items-center gap-1 px-2 py-1 text-[11px] text-muted-foreground"><List className="h-3 w-3" /> List</span>
                   </div>
-                );
-              })}
+                </div>
+
+                <div className="mt-2.5 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+                  {products.map((c) => {
+                    const Icon = c.icon;
+                    return (
+                      <div key={c.name} className="overflow-hidden rounded-xl border border-border bg-background">
+                        <div className="relative flex h-16 items-center justify-center bg-muted text-muted-foreground">
+                          <Icon className="h-6 w-6" />
+                          <span className={`absolute right-1.5 top-1.5 rounded-full bg-background/85 px-1.5 py-0.5 text-[9px] font-medium shadow-sm backdrop-blur-sm ${c.color}`}>{c.label}</span>
+                        </div>
+                        <div className="p-2">
+                          <div className="truncate text-[11px] font-medium">{c.name}</div>
+                          <div className="mt-0.5 truncate text-[9px] text-muted-foreground">{c.cat}</div>
+                          <div className="mt-1.5 flex items-center justify-between text-[9px]">
+                            <span className="flex items-center gap-1 text-muted-foreground"><Calendar className="h-2.5 w-2.5" /> 06 / 28</span>
+                            <span className={`font-medium ${c.color}`}>{c.left}</span>
+                          </div>
+                          <div className="mt-1 h-1 overflow-hidden rounded-full bg-muted"><div className={`h-full ${c.bar}`} style={{ width: c.pct }} /></div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </Reveal>
         </div>
