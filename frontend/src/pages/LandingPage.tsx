@@ -33,6 +33,9 @@ import {
   Download,
   Lock,
   ArrowRight,
+  PlayCircle,
+  ChevronDown,
+  LogIn,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { Button } from "../components/ui/button";
@@ -114,8 +117,10 @@ const LandingPage = () => {
   }
   if (user) return <Navigate to="/dashboard" />;
 
-  const signIn = () =>
-    lastUser ? loginWithGoogle({ loginHint: lastUser.email }) : loginWithGoogle({ selectAccount: true });
+  const signIn = (fresh = false) =>
+    !fresh && lastUser
+      ? loginWithGoogle({ loginHint: lastUser.email })
+      : loginWithGoogle({ selectAccount: true });
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -128,7 +133,7 @@ const LandingPage = () => {
           <nav className="flex items-center gap-5 text-sm text-muted-foreground">
             <a href="#features" className="hidden transition-colors hover:text-foreground sm:inline">Features</a>
             <a href="#how" className="hidden transition-colors hover:text-foreground sm:inline">How it works</a>
-            <Button size="sm" className="bg-emerald-600 text-white hover:bg-emerald-700" onClick={signIn}>Sign in</Button>
+            <Button size="sm" className="bg-emerald-600 text-white hover:bg-emerald-700" onClick={() => signIn()}>{lastUser ? "Continue" : "Sign in"}</Button>
           </nav>
         </div>
       </header>
@@ -143,21 +148,46 @@ const LandingPage = () => {
           <p className="mx-auto mt-5 max-w-lg text-[15px] leading-relaxed text-muted-foreground">
             The warranty you forget is the one you'll need. Keep every receipt and expiry date in one place, with reminders before coverage runs out.
           </p>
-          <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-            <button onClick={signIn} className="inline-flex items-center gap-2 rounded-lg bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition-opacity hover:opacity-90">
-              <GoogleIcon />
-              Sign in with Google
-            </button>
-            <a href="#how" className="inline-flex items-center gap-2 rounded-lg border border-border px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted">See how it works</a>
+          <div className="mt-7 flex flex-col items-center gap-3">
+            <div className="flex flex-wrap items-stretch justify-center gap-3">
+              {lastUser ? (
+                <button onClick={() => signIn()} className="group inline-flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-2.5 text-left transition-colors hover:border-emerald-600/40 hover:bg-muted">
+                  {lastUser.avatarUrl ? (
+                    <img src={lastUser.avatarUrl} alt="" referrerPolicy="no-referrer" className="h-9 w-9 rounded-full" />
+                  ) : (
+                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-600 text-sm font-medium text-white">{lastUser.name.charAt(0).toUpperCase()}</span>
+                  )}
+                  <span className="leading-tight">
+                    <span className="block text-sm font-semibold text-foreground">Continue as {lastUser.name.split(" ")[0]}</span>
+                    <span className="block max-w-[200px] truncate text-xs text-muted-foreground">{lastUser.email}</span>
+                  </span>
+                </button>
+              ) : (
+                <button onClick={() => signIn()} className="inline-flex items-center gap-2 rounded-lg bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition-opacity hover:opacity-90">
+                  <GoogleIcon />
+                  Sign in with Google
+                </button>
+              )}
+              <a href="#how" className="group inline-flex items-center gap-2 rounded-lg border border-border bg-card px-5 py-2.5 text-sm font-medium text-foreground shadow-sm transition-colors hover:border-emerald-600/40 hover:bg-muted">
+                <PlayCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                See how it works
+                <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-y-0.5" />
+              </a>
+            </div>
+            {lastUser ? (
+              <button onClick={() => signIn(true)} className="text-xs text-muted-foreground transition-colors hover:text-foreground">Use another account</button>
+            ) : (
+              <p className="text-xs text-muted-foreground">Free. Sign in with Google, no card needed.</p>
+            )}
           </div>
-          <p className="mt-4 text-xs text-muted-foreground">Free. Sign in with Google, no card needed.</p>
         </motion.div>
 
         <div className="relative mx-auto max-w-5xl px-5 pb-16">
           <div className="relative">
           <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl">
-            <div className="absolute -left-6 top-2 h-64 w-72 rounded-full bg-emerald-500/18 blur-3xl" />
-            <div className="absolute -right-6 bottom-2 h-64 w-72 rounded-full bg-sky-500/14 blur-3xl" />
+            <div className="absolute -left-6 top-2 h-64 w-72 rounded-full bg-emerald-500/35 blur-3xl dark:bg-emerald-500/18" />
+            <div className="absolute -right-6 bottom-2 h-64 w-72 rounded-full bg-sky-500/30 blur-3xl dark:bg-sky-500/14" />
+            <div className="absolute left-1/3 top-1/4 h-52 w-64 rounded-full bg-violet-500/20 blur-3xl dark:bg-violet-500/10" />
           </div>
           <Reveal hover className="shine glass relative overflow-hidden rounded-2xl border border-border shadow-2xl transition-shadow">
             <div className="flex items-center gap-3 border-b border-border/60 px-4 py-2.5">
@@ -243,11 +273,11 @@ const LandingPage = () => {
                     const Icon = c.icon;
                     return (
                       <div key={c.name} className="overflow-hidden rounded-xl border border-border bg-background">
-                        <div className="relative flex h-16 items-center justify-center bg-muted text-muted-foreground">
-                          <Icon className="h-6 w-6" />
-                          <span className={`absolute right-1.5 top-1.5 rounded-full bg-background/85 px-1.5 py-0.5 text-[9px] font-medium shadow-sm backdrop-blur-sm ${c.color}`}>{c.label}</span>
+                        <div className="relative flex h-24 items-center justify-center bg-muted p-1.5 text-muted-foreground">
+                          <Icon className="h-9 w-9" />
+                          <span className={`absolute right-2 top-2 rounded-full bg-background/85 px-2 py-0.5 text-[9px] font-medium shadow-sm backdrop-blur-sm ${c.color}`}>{c.label}</span>
                         </div>
-                        <div className="p-2">
+                        <div className="p-2.5">
                           <div className="truncate text-[11px] font-medium">{c.name}</div>
                           <div className="mt-0.5 truncate text-[9px] text-muted-foreground">{c.cat}</div>
                           <div className="mt-1.5 flex items-center justify-between text-[9px]">
@@ -417,7 +447,7 @@ const LandingPage = () => {
           <span className="h-px w-5 bg-border" />
           <span className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1"><Clock className="h-3.5 w-3.5" /> 1 day</span>
           <span className="h-px w-5 bg-border" />
-          <span className="flex items-center gap-1.5 rounded-full border border-emerald-600/40 bg-emerald-600/10 px-3 py-1 text-emerald-700 dark:text-emerald-400"><Sparkles className="h-3.5 w-3.5" /> + your own</span>
+          <span className="flex items-center gap-1.5 rounded-full border border-emerald-600/40 bg-emerald-600/10 px-3 py-1 text-emerald-700 dark:text-emerald-400"><Plus className="h-3.5 w-3.5" /> your own</span>
         </Reveal>
         <Reveal className="mt-8 grid gap-4 sm:grid-cols-3" delay={0.08}>
           {[
@@ -477,32 +507,51 @@ const LandingPage = () => {
         </div>
       </section>
 
-      <section id="how" className="mx-auto max-w-4xl px-5 py-16">
-        <h2 className="text-center text-2xl font-semibold sm:text-3xl">Up and running in seconds</h2>
-        <div className="mt-10 grid gap-8 sm:grid-cols-3">
+      <section id="how" className="mx-auto max-w-5xl px-5 py-16">
+        <Reveal><SectionHead title="Up and running in seconds" sub="Three steps, then it runs itself." /></Reveal>
+        <div className="mt-10 grid gap-4 sm:grid-cols-3">
           {[
-            { n: 1, title: "Sign in with Google", desc: "No password, no setup." },
-            { n: 2, title: "Add your products", desc: "Snap a receipt or tell the assistant." },
-            { n: 3, title: "Relax", desc: "We remind you before anything expires." },
-          ].map((s) => (
-            <Reveal key={s.n} className="text-center" delay={(s.n - 1) * 0.08}>
-              <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-emerald-600/10 font-semibold text-emerald-600 dark:text-emerald-400">{s.n}</div>
-              <h3 className="text-[15px] font-semibold">{s.title}</h3>
-              <p className="mt-1 text-[13px] text-muted-foreground">{s.desc}</p>
-            </Reveal>
-          ))}
+            { n: 1, title: "Sign in with Google", desc: "No password, no setup.", icon: LogIn },
+            { n: 2, title: "Add your products", desc: "Snap a receipt or just tell the assistant.", icon: Plus },
+            { n: 3, title: "Relax", desc: "We remind you before anything expires.", icon: BellRing },
+          ].map((s, i) => {
+            const Icon = s.icon;
+            return (
+              <Reveal key={s.n} className="rounded-2xl border border-border bg-card p-6 text-center" delay={i * 0.08}>
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-600/10 text-emerald-600 dark:text-emerald-400">
+                  <Icon className="h-6 w-6" />
+                </div>
+                <div className="mt-4 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Step {s.n}</div>
+                <h3 className="mt-1 text-base font-semibold">{s.title}</h3>
+                <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">{s.desc}</p>
+              </Reveal>
+            );
+          })}
         </div>
       </section>
 
       <section className="relative mx-auto max-w-4xl overflow-hidden px-5 pb-16">
-        <div className="pointer-events-none absolute left-1/2 top-1/2 h-56 w-[34rem] max-w-[90vw] -translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-500/10 blur-[110px] dark:bg-emerald-400/15" />
-        <div className="relative rounded-2xl border border-emerald-600/25 bg-emerald-600/10 px-6 py-12 text-center">
+        <div className="rounded-2xl border border-border bg-muted/40 px-6 py-12 text-center">
           <h2 className="text-2xl font-bold sm:text-3xl">Start protecting your purchases</h2>
           <p className="mx-auto mt-3 max-w-sm text-sm text-muted-foreground">Join in seconds with your Google account.</p>
-          <button onClick={signIn} className="mt-6 inline-flex items-center gap-2 rounded-lg bg-foreground px-6 py-3 text-sm font-semibold text-background transition-opacity hover:opacity-90">
-            <GoogleIcon />
-            Sign in with Google
-          </button>
+          {lastUser ? (
+            <button onClick={() => signIn()} className="mt-6 inline-flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-2.5 text-left transition-colors hover:border-emerald-600/40 hover:bg-muted">
+              {lastUser.avatarUrl ? (
+                <img src={lastUser.avatarUrl} alt="" referrerPolicy="no-referrer" className="h-9 w-9 rounded-full" />
+              ) : (
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-600 text-sm font-medium text-white">{lastUser.name.charAt(0).toUpperCase()}</span>
+              )}
+              <span className="leading-tight">
+                <span className="block text-sm font-semibold text-foreground">Continue as {lastUser.name.split(" ")[0]}</span>
+                <span className="block max-w-[200px] truncate text-xs text-muted-foreground">{lastUser.email}</span>
+              </span>
+            </button>
+          ) : (
+            <button onClick={() => signIn()} className="mt-6 inline-flex items-center gap-2 rounded-lg bg-foreground px-6 py-3 text-sm font-semibold text-background transition-opacity hover:opacity-90">
+              <GoogleIcon />
+              Sign in with Google
+            </button>
+          )}
         </div>
       </section>
 

@@ -2,7 +2,6 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeProvider";
 import LandingPage from "./pages/LandingPage";
-import LoginPage from "./pages/LoginPage";
 import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -33,7 +32,6 @@ function App() {
           <Toaster />
           <Routes>
             <Route path="/" element={<LandingPage />} />
-            <Route path="/login" element={<LoginPage />} />
             <Route
               path="/dashboard"
               element={
