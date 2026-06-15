@@ -35,6 +35,7 @@ import {
   ArrowRight,
   PlayCircle,
   ChevronDown,
+  LogIn,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { Button } from "../components/ui/button";
@@ -148,7 +149,7 @@ const LandingPage = () => {
             The warranty you forget is the one you'll need. Keep every receipt and expiry date in one place, with reminders before coverage runs out.
           </p>
           <div className="mt-7 flex flex-col items-center gap-3">
-            <div className="flex flex-wrap items-center justify-center gap-3">
+            <div className="flex flex-wrap items-stretch justify-center gap-3">
               {lastUser ? (
                 <button onClick={() => signIn()} className="group inline-flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-2.5 text-left transition-colors hover:border-emerald-600/40 hover:bg-muted">
                   {lastUser.avatarUrl ? (
@@ -506,20 +507,26 @@ const LandingPage = () => {
         </div>
       </section>
 
-      <section id="how" className="mx-auto max-w-4xl px-5 py-16">
-        <h2 className="text-center text-2xl font-semibold sm:text-3xl">Up and running in seconds</h2>
-        <div className="mt-10 grid gap-8 sm:grid-cols-3">
+      <section id="how" className="mx-auto max-w-5xl px-5 py-16">
+        <Reveal><SectionHead title="Up and running in seconds" sub="Three steps, then it runs itself." /></Reveal>
+        <div className="mt-10 grid gap-4 sm:grid-cols-3">
           {[
-            { n: 1, title: "Sign in with Google", desc: "No password, no setup." },
-            { n: 2, title: "Add your products", desc: "Snap a receipt or tell the assistant." },
-            { n: 3, title: "Relax", desc: "We remind you before anything expires." },
-          ].map((s) => (
-            <Reveal key={s.n} className="text-center" delay={(s.n - 1) * 0.08}>
-              <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-emerald-600/10 font-semibold text-emerald-600 dark:text-emerald-400">{s.n}</div>
-              <h3 className="text-[15px] font-semibold">{s.title}</h3>
-              <p className="mt-1 text-[13px] text-muted-foreground">{s.desc}</p>
-            </Reveal>
-          ))}
+            { n: 1, title: "Sign in with Google", desc: "No password, no setup.", icon: LogIn },
+            { n: 2, title: "Add your products", desc: "Snap a receipt or just tell the assistant.", icon: Plus },
+            { n: 3, title: "Relax", desc: "We remind you before anything expires.", icon: BellRing },
+          ].map((s, i) => {
+            const Icon = s.icon;
+            return (
+              <Reveal key={s.n} className="rounded-2xl border border-border bg-card p-6 text-center" delay={i * 0.08}>
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-600/10 text-emerald-600 dark:text-emerald-400">
+                  <Icon className="h-6 w-6" />
+                </div>
+                <div className="mt-4 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Step {s.n}</div>
+                <h3 className="mt-1 text-base font-semibold">{s.title}</h3>
+                <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">{s.desc}</p>
+              </Reveal>
+            );
+          })}
         </div>
       </section>
 
