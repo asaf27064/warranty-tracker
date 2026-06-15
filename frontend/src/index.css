@@ -207,3 +207,22 @@
   border-radius: var(--radius-sm);
   padding: 2px 4px;
 }
+
+/* Professional glare: a soft diagonal sheen that sweeps across on hover. */
+.shine {
+  position: relative;
+  overflow: hidden;
+}
+.shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.18) 50%, transparent 65%);
+  transform: translateX(-160%);
+  transition: transform 0.85s ease;
+  pointer-events: none;
+  z-index: 30;
+}
+.shine:hover::after {
+  transform: translateX(160%);
+}
