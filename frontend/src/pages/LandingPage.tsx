@@ -120,10 +120,6 @@ const LandingPage = () => {
         <div className="pointer-events-none absolute left-1/2 top-[-4rem] h-72 w-[40rem] max-w-[90vw] -translate-x-1/2 rounded-full bg-emerald-500/15 blur-[120px] dark:bg-emerald-400/20" />
         <div className="pointer-events-none absolute inset-0 opacity-[0.04]" style={{ backgroundImage: "linear-gradient(currentColor 1px, transparent 1px), linear-gradient(90deg, currentColor 1px, transparent 1px)", backgroundSize: "56px 56px" }} />
         <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: "easeOut" }} className="relative mx-auto max-w-3xl px-5 pb-10 pt-16 text-center">
-          <span className="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-600/30 bg-emerald-600/10 px-3 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-400">
-            <Bell className="h-3.5 w-3.5" />
-            Now with browser push reminders
-          </span>
           <h1 className="text-4xl font-bold leading-[1.08] tracking-tight sm:text-5xl">
             Never lose a<br />
             <span className="text-emerald-600 dark:text-emerald-400">warranty</span> again.
@@ -142,7 +138,17 @@ const LandingPage = () => {
         </motion.div>
 
         <div className="relative mx-auto max-w-5xl px-5 pb-16">
-          <Reveal className="overflow-hidden rounded-2xl border border-border bg-card shadow-xl">
+          <Reveal className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-xl">
+            <motion.div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 z-20"
+              initial={{ x: "-130%" }}
+              whileInView={{ x: "130%" }}
+              viewport={{ once: true }}
+              transition={{ duration: 1.1, ease: "easeInOut", delay: 0.35 }}
+            >
+              <div className="h-full w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/12 to-transparent" />
+            </motion.div>
             <div className="flex items-center gap-3 border-b border-border px-4 py-2.5">
               <img src={logo} alt="" className="h-6 w-6 object-contain" />
               <div className="hidden flex-1 items-center gap-2 rounded-md border border-border bg-muted/40 px-2.5 py-1.5 text-xs text-muted-foreground sm:flex">
