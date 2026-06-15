@@ -439,7 +439,7 @@ const LandingPage = () => {
           <span className="h-px w-5 bg-border" />
           <span className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1"><Clock className="h-3.5 w-3.5" /> 1 day</span>
           <span className="h-px w-5 bg-border" />
-          <span className="flex items-center gap-1.5 rounded-full border border-emerald-600/40 bg-emerald-600/10 px-3 py-1 text-emerald-700 dark:text-emerald-400"><Sparkles className="h-3.5 w-3.5" /> + your own</span>
+          <span className="flex items-center gap-1.5 rounded-full border border-emerald-600/40 bg-emerald-600/10 px-3 py-1 text-emerald-700 dark:text-emerald-400"><Plus className="h-3.5 w-3.5" /> your own</span>
         </Reveal>
         <Reveal className="mt-8 grid gap-4 sm:grid-cols-3" delay={0.08}>
           {[
@@ -517,8 +517,7 @@ const LandingPage = () => {
       </section>
 
       <section className="relative mx-auto max-w-4xl overflow-hidden px-5 pb-16">
-        <div className="pointer-events-none absolute left-1/2 top-1/2 h-56 w-[34rem] max-w-[90vw] -translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-500/10 blur-[110px] dark:bg-emerald-400/15" />
-        <div className="relative rounded-2xl border border-emerald-600/25 bg-emerald-600/10 px-6 py-12 text-center">
+        <div className="rounded-2xl border border-border bg-muted/40 px-6 py-12 text-center">
           <h2 className="text-2xl font-bold sm:text-3xl">Start protecting your purchases</h2>
           <p className="mx-auto mt-3 max-w-sm text-sm text-muted-foreground">Join in seconds with your Google account.</p>
           {lastUser ? (
