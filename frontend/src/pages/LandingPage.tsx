@@ -152,9 +152,11 @@ const LandingPage = () => {
         </motion.div>
 
         <div className="relative mx-auto max-w-5xl px-5 pb-16" style={{ perspective: "1700px" }}>
-          <div className="pointer-events-none absolute inset-x-12 top-8 bottom-24 rounded-[40px] bg-emerald-500/10 blur-3xl" />
+          <div className="pointer-events-none absolute -left-6 top-2 h-64 w-72 rounded-full bg-emerald-500/30 blur-3xl" />
+          <div className="pointer-events-none absolute -right-6 bottom-12 h-64 w-72 rounded-full bg-sky-500/25 blur-3xl" />
+          <div className="pointer-events-none absolute left-1/3 top-1/3 h-56 w-72 rounded-full bg-violet-500/15 blur-3xl" />
           <div className="relative transition-transform duration-500 ease-out [transform:rotateX(7deg)] hover:[transform:rotateX(0deg)]">
-          <Reveal className="shine relative overflow-hidden rounded-2xl border border-white/10 bg-card/75 shadow-2xl backdrop-blur-xl transition-shadow">
+          <Reveal className="shine relative overflow-hidden rounded-2xl border border-white/15 bg-card/45 shadow-2xl ring-1 ring-white/10 backdrop-blur-2xl transition-shadow">
             <div className="flex items-center gap-3 border-b border-border/60 px-4 py-2.5">
               <img src={logo} alt="" className="h-6 w-6 object-contain" />
               <div className="hidden flex-1 items-center gap-2 rounded-md border border-border bg-muted/40 px-2.5 py-1.5 text-xs text-muted-foreground sm:flex">
