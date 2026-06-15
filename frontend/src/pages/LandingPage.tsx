@@ -412,7 +412,7 @@ const LandingPage = () => {
           ].map((c) => {
             const Icon = c.icon;
             return (
-              <div key={c.title} className="rounded-xl border border-border bg-card p-5">
+              <div key={c.title} className="rounded-xl border border-border bg-card p-5 transition-all duration-200 hover:-translate-y-1.5 hover:border-emerald-600/40 hover:shadow-xl hover:shadow-emerald-600/5">
                 <div className="flex items-center justify-between">
                   <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-600/10 text-emerald-600 dark:text-emerald-400"><Icon className="h-5 w-5" /></span>
                   <span className="h-4 w-7 rounded-full bg-emerald-600/80 p-0.5"><span className="block h-3 w-3 translate-x-3 rounded-full bg-white" /></span>
@@ -431,7 +431,28 @@ const LandingPage = () => {
           {features.map((f, i) => {
             const Icon = f.icon;
             return (
-              <motion.div key={f.title} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-60px" }} transition={{ duration: 0.4, ease: "easeOut", delay: (i % 3) * 0.08 }} className="rounded-xl border border-border bg-card p-5 transition-colors hover:border-emerald-600/40">
+              <motion.div
+                key={f.title}
+                custom={i}
+                initial="hidden"
+                whileInView="show"
+                whileHover="hover"
+                viewport={{ once: true, margin: "-60px" }}
+                variants={{
+                  hidden: { opacity: 0, y: 16 },
+                  show: (idx: number) => ({
+                    opacity: 1,
+                    y: 0,
+                    transition: { duration: 0.4, ease: "easeOut", delay: (idx % 3) * 0.08 },
+                  }),
+                  hover: {
+                    y: -6,
+                    scale: 1.03,
+                    transition: { type: "spring", stiffness: 300, damping: 18 },
+                  },
+                }}
+                className="rounded-xl border border-border bg-card p-5 transition-[box-shadow,border-color] hover:border-emerald-600/40 hover:shadow-xl hover:shadow-emerald-600/5"
+              >
                 <span className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-600/10 text-emerald-600 dark:text-emerald-400"><Icon className="h-5 w-5" /></span>
                 <h3 className="text-[15px] font-semibold">{f.title}</h3>
                 <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">{f.desc}</p>
