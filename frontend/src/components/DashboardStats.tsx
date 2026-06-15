@@ -63,7 +63,7 @@ const DashboardStats = ({ stats }: Props) => {
         </div>
         <div className="mt-0.5 truncate text-xs text-muted-foreground">
           {next
-            ? `${next.name} · ${new Date(next.date).toLocaleDateString()}`
+            ? `${next.name}${next.count > 1 ? ` +${next.count - 1} more` : ""} · ${new Date(next.date).toLocaleDateString()}`
             : "Nothing upcoming"}
         </div>
       </div>

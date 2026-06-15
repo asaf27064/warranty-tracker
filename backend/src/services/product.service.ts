@@ -181,15 +181,29 @@ export async function getProductStats(userId: string) {
     }),
   ]);
 
+  let nextExpiry: { name: string; date: Date; count: number } | null = null;
+  if (soonest) {
+    const dayStart = new Date(soonest.warrantyExpiry);
+    dayStart.setHours(0, 0, 0, 0);
+    const dayEnd = new Date(soonest.warrantyExpiry);
+    dayEnd.setHours(23, 59, 59, 999);
+    const sameDay = await prisma.product.count({
+      where: { userId, warrantyExpiry: { gte: dayStart, lte: dayEnd } },
+    });
+    nextExpiry = {
+      name: soonest.name,
+      date: soonest.warrantyExpiry,
+      count: sameDay,
+    };
+  }
+
   const stats = {
     active: 0,
     expiringSoon: 0,
     expired: 0,
     total: 0,
     byCategory: {} as Record<string, number>,
-    nextExpiry: soonest
-      ? { name: soonest.name, date: soonest.warrantyExpiry }
-      : null,
+    nextExpiry,
   };
   for (const g of byStatus) {
     if (g.status === "ACTIVE") stats.active = g._count._all;
