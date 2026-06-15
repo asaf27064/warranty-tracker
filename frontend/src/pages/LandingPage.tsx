@@ -138,8 +138,8 @@ const LandingPage = () => {
             Never lose a<br />
             <span className="text-emerald-600 dark:text-emerald-400">warranty</span> again.
           </h1>
-          <p className="mx-auto mt-5 max-w-md text-[15px] leading-relaxed text-muted-foreground">
-            Track every product's warranty, store its receipts, and get reminded before coverage expires. Add things by simply chatting with the built-in assistant.
+          <p className="mx-auto mt-5 max-w-lg text-[15px] leading-relaxed text-muted-foreground">
+            Stop losing money on warranties you forgot you had. Keep every receipt and expiry date in one place, with reminders before coverage runs out.
           </p>
           <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
             <button onClick={signIn} className="inline-flex items-center gap-2 rounded-lg bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition-opacity hover:opacity-90">
