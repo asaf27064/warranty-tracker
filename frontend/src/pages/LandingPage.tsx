@@ -157,7 +157,7 @@ const LandingPage = () => {
             <div className="absolute -left-6 top-2 h-64 w-72 rounded-full bg-emerald-500/18 blur-3xl" />
             <div className="absolute -right-6 bottom-2 h-64 w-72 rounded-full bg-sky-500/14 blur-3xl" />
           </div>
-          <Reveal className="shine glass relative overflow-hidden rounded-2xl border border-border shadow-2xl transition-shadow">
+          <Reveal hover className="shine glass relative overflow-hidden rounded-2xl border border-border shadow-2xl transition-shadow">
             <div className="flex items-center gap-3 border-b border-border/60 px-4 py-2.5">
               <img src={logo} alt="" className="h-6 w-6 object-contain" />
               <div className="hidden flex-1 items-center gap-2 rounded-md border border-border bg-muted/40 px-2.5 py-1.5 text-xs text-muted-foreground sm:flex">
