@@ -154,11 +154,10 @@ const LandingPage = () => {
         <div className="relative mx-auto max-w-5xl px-5 pb-16">
           <div className="relative">
           <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl">
-            <div className="absolute -left-6 top-2 h-64 w-72 rounded-full bg-emerald-500/30 blur-3xl" />
-            <div className="absolute -right-6 bottom-2 h-64 w-72 rounded-full bg-sky-500/25 blur-3xl" />
-            <div className="absolute left-1/3 top-1/4 h-56 w-72 rounded-full bg-violet-500/15 blur-3xl" />
+            <div className="absolute -left-6 top-2 h-64 w-72 rounded-full bg-emerald-500/18 blur-3xl" />
+            <div className="absolute -right-6 bottom-2 h-64 w-72 rounded-full bg-sky-500/14 blur-3xl" />
           </div>
-          <Reveal className="shine relative overflow-hidden rounded-2xl border border-white/15 bg-card/45 shadow-2xl ring-1 ring-white/10 backdrop-blur-2xl transition-shadow">
+          <Reveal className="shine glass relative overflow-hidden rounded-2xl border border-border shadow-2xl transition-shadow">
             <div className="flex items-center gap-3 border-b border-border/60 px-4 py-2.5">
               <img src={logo} alt="" className="h-6 w-6 object-contain" />
               <div className="hidden flex-1 items-center gap-2 rounded-md border border-border bg-muted/40 px-2.5 py-1.5 text-xs text-muted-foreground sm:flex">
@@ -267,7 +266,7 @@ const LandingPage = () => {
       <section className="border-y border-border bg-muted/30 py-16">
         <div className="mx-auto max-w-3xl px-5">
           <Reveal><SectionHead eyebrow="Meet the assistant" title="Just tell it what you need" sub="Add products, find them, check what's expiring, and set reminders, all in plain language." /></Reveal>
-          <Reveal hover className="shine mx-auto mt-8 max-w-md space-y-2.5 rounded-2xl border border-border bg-card p-4 shadow-lg transition-shadow hover:shadow-2xl" delay={0.05}>
+          <Reveal hover className="shine glass mx-auto mt-8 max-w-md space-y-2.5 rounded-2xl border border-border p-4 shadow-lg transition-shadow hover:shadow-2xl" delay={0.05}>
             <div className="flex justify-end"><div className="max-w-[82%] rounded-2xl rounded-br-sm bg-emerald-600 px-3.5 py-2.5 text-[13px] text-white">I bought a Sony TV yesterday, 2 year warranty</div></div>
             <div className="flex gap-2">
               <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-600/10 text-emerald-600 dark:text-emerald-400"><Bot className="h-4 w-4" /></span>
@@ -312,7 +311,7 @@ const LandingPage = () => {
               <span className="text-[10px] uppercase tracking-wide text-muted-foreground">or scan a receipt</span>
               <div className="h-px flex-1 bg-border" />
             </div>
-            <div className="shine overflow-hidden rounded-xl border border-border bg-card p-4 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
+            <div className="shine glass overflow-hidden rounded-xl border border-border p-4 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
               <div className="mb-3 flex items-center justify-between border-b border-dashed border-border pb-2 text-[11px] text-muted-foreground"><span className="flex items-center gap-1.5"><Receipt className="h-3.5 w-3.5" /> receipt.jpg</span><span>scanning</span></div>
               <div className="relative space-y-2">
                 <div className="h-2 w-2/3 rounded bg-muted" />
@@ -332,7 +331,7 @@ const LandingPage = () => {
             </div>
           </div>
           <div className="flex items-center justify-center text-muted-foreground"><ArrowRight className="hidden h-6 w-6 sm:block" /><ArrowRight className="h-5 w-5 rotate-90 sm:hidden" /></div>
-          <div className="shine rounded-xl border border-border bg-card p-4 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
+          <div className="shine glass rounded-xl border border-border p-4 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
             {[
               ["Product", "MacBook Pro"],
               ["Store", "Apple Store"],
@@ -354,7 +353,7 @@ const LandingPage = () => {
       <section className="border-y border-border bg-muted/30 py-16">
         <div className="mx-auto max-w-4xl px-5">
           <Reveal><SectionHead title="Every detail in one place" sub="Each product gets its own page: a clear warranty gauge, its receipts and documents, and its reminders." /></Reveal>
-          <Reveal hover className="shine mt-9 overflow-hidden rounded-2xl border border-border bg-card shadow-lg transition-shadow hover:shadow-2xl" delay={0.05}>
+          <Reveal hover className="shine glass mt-9 overflow-hidden rounded-2xl border border-border shadow-lg transition-shadow hover:shadow-2xl" delay={0.05}>
             <div className="flex flex-col sm:flex-row">
               <div className="flex h-40 shrink-0 items-center justify-center bg-muted text-muted-foreground sm:h-auto sm:w-44"><Laptop className="h-16 w-16" /></div>
               <div className="min-w-0 flex-1 p-5">
