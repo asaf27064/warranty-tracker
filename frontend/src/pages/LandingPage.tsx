@@ -142,12 +142,11 @@ const LandingPage = () => {
             <motion.div
               aria-hidden="true"
               className="pointer-events-none absolute inset-0 z-20"
-              initial={{ x: "-130%" }}
-              whileInView={{ x: "130%" }}
-              viewport={{ once: true }}
-              transition={{ duration: 1.1, ease: "easeInOut", delay: 0.35 }}
+              initial={{ x: "-150%" }}
+              animate={{ x: "150%" }}
+              transition={{ duration: 1.2, ease: "easeInOut", delay: 0.7 }}
             >
-              <div className="h-full w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/12 to-transparent" />
+              <div className="h-full w-1/2 -skew-x-12 bg-gradient-to-r from-transparent via-white/30 to-transparent" />
             </motion.div>
             <div className="flex items-center gap-3 border-b border-border px-4 py-2.5">
               <img src={logo} alt="" className="h-6 w-6 object-contain" />
