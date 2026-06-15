@@ -148,13 +148,16 @@ const LandingPage = () => {
           <div className="mt-7 flex flex-col items-center gap-3">
             <div className="flex flex-wrap items-center justify-center gap-3">
               {lastUser ? (
-                <button onClick={() => signIn()} className="inline-flex items-center gap-2.5 rounded-lg bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition-opacity hover:opacity-90">
+                <button onClick={() => signIn()} className="inline-flex items-center gap-3 rounded-lg bg-foreground px-5 py-2.5 text-left text-background transition-opacity hover:opacity-90">
                   {lastUser.avatarUrl ? (
-                    <img src={lastUser.avatarUrl} alt="" referrerPolicy="no-referrer" className="h-6 w-6 rounded-full" />
+                    <img src={lastUser.avatarUrl} alt="" referrerPolicy="no-referrer" className="h-8 w-8 rounded-full" />
                   ) : (
-                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-600 text-xs font-medium text-white">{lastUser.name.charAt(0).toUpperCase()}</span>
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 text-sm font-medium text-white">{lastUser.name.charAt(0).toUpperCase()}</span>
                   )}
-                  Continue as {lastUser.name.split(" ")[0]}
+                  <span className="leading-tight">
+                    <span className="block text-sm font-semibold">Continue as {lastUser.name.split(" ")[0]}</span>
+                    <span className="block max-w-[200px] truncate text-xs font-normal text-background/70">{lastUser.email}</span>
+                  </span>
                 </button>
               ) : (
                 <button onClick={() => signIn()} className="inline-flex items-center gap-2 rounded-lg bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition-opacity hover:opacity-90">
@@ -522,11 +525,14 @@ const LandingPage = () => {
             {lastUser ? (
               <>
                 {lastUser.avatarUrl ? (
-                  <img src={lastUser.avatarUrl} alt="" referrerPolicy="no-referrer" className="h-6 w-6 rounded-full" />
+                  <img src={lastUser.avatarUrl} alt="" referrerPolicy="no-referrer" className="h-8 w-8 rounded-full" />
                 ) : (
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-600 text-xs font-medium text-white">{lastUser.name.charAt(0).toUpperCase()}</span>
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 text-sm font-medium text-white">{lastUser.name.charAt(0).toUpperCase()}</span>
                 )}
-                Continue as {lastUser.name.split(" ")[0]}
+                <span className="text-left leading-tight">
+                  <span className="block text-sm font-semibold">Continue as {lastUser.name.split(" ")[0]}</span>
+                  <span className="block max-w-[200px] truncate text-xs font-normal text-background/70">{lastUser.email}</span>
+                </span>
               </>
             ) : (
               <>
