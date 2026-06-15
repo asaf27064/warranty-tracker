@@ -150,10 +150,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(null);
       setAccessToken(null);
       tokenRef.current = null;
-      // Clear the cached "continue as" identity so the previous user's name
-      // and email are not shown on the login screen of a shared device.
-      setLastUser(null);
-      localStorage.removeItem(LAST_USER_KEY);
+      // Keep the remembered identity so the landing can offer "Continue as".
+      // Shared devices use "Use another account" to switch.
       navigate("/");
     }
   };
