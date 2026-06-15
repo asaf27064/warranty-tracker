@@ -252,7 +252,6 @@ const Dashboard = () => {
         )}
         <Sidebar
           collapsed={sidebarCollapsed}
-          onToggle={toggleSidebar}
           stats={stats}
           statusFilter={activeFilter}
           setStatusFilter={(v) => {

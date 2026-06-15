@@ -16,15 +16,12 @@ import {
   Wrench,
   CookingPot,
   Package,
-  PanelLeftClose,
-  PanelLeftOpen,
   type LucideIcon,
 } from "lucide-react";
 import { CategoryLabels, type Stats } from "../types";
 
 type Props = {
   collapsed: boolean;
-  onToggle: () => void;
   stats: Stats;
   statusFilter: string;
   setStatusFilter: (v: string) => void;
@@ -49,7 +46,6 @@ const categoryIcons: Record<string, LucideIcon> = {
 
 const Sidebar = ({
   collapsed,
-  onToggle,
   stats,
   statusFilter,
   setStatusFilter,
@@ -113,24 +109,8 @@ const Sidebar = ({
         collapsed ? "-translate-x-full md:w-[60px]" : "translate-x-0 md:w-56"
       }`}
     >
-      <div
-        className={`mb-1 hidden md:flex ${collapsed ? "justify-center" : "justify-end"}`}
-      >
-        <button
-          onClick={onToggle}
-          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
-        >
-          {collapsed ? (
-            <PanelLeftOpen className="h-[18px] w-[18px]" />
-          ) : (
-            <PanelLeftClose className="h-[18px] w-[18px]" />
-          )}
-        </button>
-      </div>
       {!collapsed && (
-        <p className="mb-1 px-2.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
+        <p className="mb-1 mt-1 px-2.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
           Views
         </p>
       )}
