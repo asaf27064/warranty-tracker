@@ -5,6 +5,11 @@ const api = axios.create({
   withCredentials: true,
 });
 
+export const authApi = axios.create({
+  baseURL: import.meta.env.VITE_AUTH_URL ?? "",
+  withCredentials: true,
+});
+
 export const setupInterceptors = (
   getToken: () => string | null,
   refreshToken: () => Promise<void>,

@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import api, { setupInterceptors } from "../api/axios";
+import api, { authApi, setupInterceptors } from "../api/axios";
 import type { User, UserPreferences } from "../types";
 
 type LoginOptions = {
@@ -49,7 +49,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     let lastHiddenAt = 0;
 
     const refreshAccessToken = async () => {
-      const res = await api.post("/auth/refresh");
+      const res = await authApi.post("/auth/refresh");
       setAccessToken(res.data.accessToken);
       tokenRef.current = res.data.accessToken;
       return res.data.accessToken as string;
@@ -115,7 +115,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [navigate]);
 
   const loginWithGoogle = (options: LoginOptions = {}) => {
-    const url = new URL(`${import.meta.env.VITE_API_URL}/auth/google`);
+    const authBase = import.meta.env.VITE_AUTH_URL || window.location.origin;
+    const url = new URL("/auth/google", authBase);
     if (options.selectAccount) {
       url.searchParams.set("prompt", "select_account");
     }
@@ -144,7 +145,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     try {
-      await api.post("/auth/logout");
+      await authApi.post("/auth/logout");
     } finally {
       setUser(null);
       setAccessToken(null);
