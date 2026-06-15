@@ -276,9 +276,16 @@ const LandingPage = () => {
               <span className="text-[10px] uppercase tracking-wide text-muted-foreground">or</span>
               <div className="h-px flex-1 bg-sky-500/15" />
             </div>
-            <div className="flex flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-sky-500/40 bg-sky-500/[0.03] px-4 py-4 text-center">
-              <span className="flex items-center gap-2 text-sm font-medium text-foreground"><Receipt className="h-4 w-4 text-sky-600 dark:text-sky-400" /> Scan a receipt or invoice</span>
-              <span className="text-xs text-muted-foreground">Upload a photo or PDF and we'll read the details</span>
+            <div className="rounded-lg border border-dashed border-sky-500/40 bg-background p-3">
+              <div className="mb-3 flex items-center justify-between border-b border-dashed border-border pb-2 text-[11px] text-muted-foreground"><span className="flex items-center gap-1.5"><Receipt className="h-3.5 w-3.5" /> receipt.jpg</span><span>scanning</span></div>
+              <div className="space-y-2">
+                <div className="h-2 w-2/3 rounded bg-muted" />
+                <div className="h-2 w-1/2 rounded bg-muted" />
+                <div className="h-2 w-5/6 rounded bg-muted" />
+                <div className="my-2 h-px w-full bg-emerald-500/60 shadow-[0_0_8px] shadow-emerald-500/40" />
+                <div className="h-2 w-3/4 rounded bg-muted" />
+                <div className="h-2 w-2/5 rounded bg-muted" />
+              </div>
             </div>
           </div>
           <div className="flex items-center justify-center text-muted-foreground"><ArrowRight className="hidden h-6 w-6 sm:block" /><ArrowRight className="h-5 w-5 rotate-90 sm:hidden" /></div>
