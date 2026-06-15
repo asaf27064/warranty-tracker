@@ -270,7 +270,7 @@ const Dashboard = () => {
         />
 
         <main className="nice-scroll flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-6xl p-6">
+          <div className="mx-auto max-w-[1680px] p-6">
             <div className="flex justify-end">
               <button
                 onClick={toggleStats}
@@ -416,7 +416,7 @@ const Dashboard = () => {
 
             {view === "cards" && (
             <motion.div
-              className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4"
+              className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 min-[1680px]:grid-cols-5"
               variants={containerVariants}
               initial="hidden"
               animate="show"
