@@ -1,18 +1,29 @@
 import { motion } from "framer-motion";
+import type { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
 import {
   Bell,
   BellRing,
-  Receipt,
   Bot,
-  Smartphone,
-  FileDown,
-  Lock,
   Sparkles,
   Laptop,
   WashingMachine,
   Headphones,
   Tv,
+  LayoutGrid,
+  List,
+  Receipt,
+  Check,
+  FileText,
+  Mail,
+  Smartphone,
+  Clock,
+  Search,
+  FileDown,
+  Moon,
+  Download,
+  Lock,
+  ArrowRight,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { Button } from "../components/ui/button";
@@ -20,80 +31,51 @@ import logo from "../assets/logo.png";
 
 const GoogleIcon = () => (
   <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
-    <path
-      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
-      fill="#4285F4"
-    />
-    <path
-      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-      fill="#34A853"
-    />
-    <path
-      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-      fill="#FBBC05"
-    />
-    <path
-      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-      fill="#EA4335"
-    />
+    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
+    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
   </svg>
 );
 
+const Reveal = ({ children, className, delay = 0 }: { children: ReactNode; className?: string; delay?: number }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 18 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true, margin: "-60px" }}
+    transition={{ duration: 0.45, ease: "easeOut", delay }}
+    className={className}
+  >
+    {children}
+  </motion.div>
+);
+
+const SectionHead = ({ eyebrow, title, sub }: { eyebrow?: string; title: string; sub?: string }) => (
+  <div className="mx-auto max-w-xl text-center">
+    {eyebrow && (
+      <span className="inline-flex items-center gap-2 rounded-full bg-emerald-600/10 px-3 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-400">
+        <Sparkles className="h-3.5 w-3.5" />
+        {eyebrow}
+      </span>
+    )}
+    <h2 className="mt-3 text-2xl font-semibold sm:text-3xl">{title}</h2>
+    {sub && <p className="mt-3 text-sm text-muted-foreground">{sub}</p>}
+  </div>
+);
+
+const products = [
+  { icon: Laptop, name: "MacBook Pro", cat: "Electronics", label: "Active", color: "c-active", bar: "bar-active", pct: "72%", left: "1.6y left" },
+  { icon: WashingMachine, name: "Dryer", cat: "Appliances", label: "Expiring", color: "c-expiring", bar: "bar-expiring", pct: "91%", left: "12d left" },
+  { icon: Headphones, name: "Headphones", cat: "Electronics", label: "Expired", color: "c-expired", bar: "bar-expired", pct: "100%", left: "Expired" },
+];
+
 const features = [
-  {
-    icon: Receipt,
-    title: "Receipts & documents",
-    desc: "Store receipts, invoices and certificates, and preview them inline.",
-  },
-  {
-    icon: BellRing,
-    title: "Smart reminders",
-    desc: "Nudges 30, 7 and 1 days before a warranty expires.",
-  },
-  {
-    icon: Bot,
-    title: "AI assistant",
-    desc: "Add products by chatting. It even reads your receipts.",
-  },
-  {
-    icon: Smartphone,
-    title: "Push & installable",
-    desc: "Install it like an app and get push even when it is closed.",
-  },
-  {
-    icon: FileDown,
-    title: "Export & search",
-    desc: "Filter, sort and export everything to CSV in a click.",
-  },
-  {
-    icon: Lock,
-    title: "Private by default",
-    desc: "Your data is yours. Delete your account and files anytime.",
-  },
-];
-
-const steps = [
-  {
-    n: 1,
-    title: "Sign in with Google",
-    desc: "No password, no setup.",
-  },
-  {
-    n: 2,
-    title: "Add your products",
-    desc: "Snap a receipt or tell the assistant.",
-  },
-  {
-    n: 3,
-    title: "Relax",
-    desc: "We remind you before anything expires.",
-  },
-];
-
-const heroCards = [
-  { icon: Laptop, name: "MacBook Pro", cat: "Electronics", label: "Active", color: "c-active", bar: "bar-active", pct: "72%" },
-  { icon: WashingMachine, name: "Dryer", cat: "Appliances", label: "Expiring", color: "c-expiring", bar: "bar-expiring", pct: "91%" },
-  { icon: Headphones, name: "Headphones", cat: "Electronics", label: "Expired", color: "c-expired", bar: "bar-expired", pct: "100%" },
+  { icon: LayoutGrid, title: "Cards & list views", desc: "Browse visually or scan a dense, sortable list. Your pick." },
+  { icon: Search, title: "Search, filter & sort", desc: "Find anything by name, store, category or status in a second." },
+  { icon: FileDown, title: "Export & bulk actions", desc: "Select many at once, delete in bulk, or export to CSV." },
+  { icon: Moon, title: "Dark, light & system", desc: "A calm theme for every taste, remembered across devices." },
+  { icon: Download, title: "Installable app", desc: "Add it to your home screen or desktop and open it like an app." },
+  { icon: Lock, title: "Private by default", desc: "Your data is yours. Delete your account and files anytime." },
 ];
 
 const LandingPage = () => {
@@ -109,9 +91,7 @@ const LandingPage = () => {
   if (user) return <Navigate to="/dashboard" />;
 
   const signIn = () =>
-    lastUser
-      ? loginWithGoogle({ loginHint: lastUser.email })
-      : loginWithGoogle({ selectAccount: true });
+    lastUser ? loginWithGoogle({ loginHint: lastUser.email }) : loginWithGoogle({ selectAccount: true });
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -122,35 +102,17 @@ const LandingPage = () => {
             <span className="text-[15px] font-semibold">Warranty Tracker</span>
           </div>
           <nav className="flex items-center gap-5 text-sm text-muted-foreground">
-            <a href="#features" className="hidden transition-colors hover:text-foreground sm:inline">
-              Features
-            </a>
-            <a href="#how" className="hidden transition-colors hover:text-foreground sm:inline">
-              How it works
-            </a>
-            <Button size="sm" className="gap-2 bg-emerald-600 text-white hover:bg-emerald-700" onClick={signIn}>
-              Sign in
-            </Button>
+            <a href="#features" className="hidden transition-colors hover:text-foreground sm:inline">Features</a>
+            <a href="#how" className="hidden transition-colors hover:text-foreground sm:inline">How it works</a>
+            <Button size="sm" className="bg-emerald-600 text-white hover:bg-emerald-700" onClick={signIn}>Sign in</Button>
           </nav>
         </div>
       </header>
 
       <section className="relative overflow-hidden">
         <div className="pointer-events-none absolute left-1/2 top-[-4rem] h-72 w-[40rem] max-w-[90vw] -translate-x-1/2 rounded-full bg-emerald-500/15 blur-[120px] dark:bg-emerald-400/20" />
-        <div
-          className="pointer-events-none absolute inset-0 opacity-[0.04]"
-          style={{
-            backgroundImage:
-              "linear-gradient(currentColor 1px, transparent 1px), linear-gradient(90deg, currentColor 1px, transparent 1px)",
-            backgroundSize: "56px 56px",
-          }}
-        />
-        <motion.div
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-          className="relative mx-auto max-w-3xl px-5 pb-10 pt-16 text-center"
-        >
+        <div className="pointer-events-none absolute inset-0 opacity-[0.04]" style={{ backgroundImage: "linear-gradient(currentColor 1px, transparent 1px), linear-gradient(90deg, currentColor 1px, transparent 1px)", backgroundSize: "56px 56px" }} />
+        <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: "easeOut" }} className="relative mx-auto max-w-3xl px-5 pb-10 pt-16 text-center">
           <span className="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-600/30 bg-emerald-600/10 px-3 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-400">
             <Bell className="h-3.5 w-3.5" />
             Now with browser push reminders
@@ -160,79 +122,192 @@ const LandingPage = () => {
             <span className="text-emerald-600 dark:text-emerald-400">warranty</span> again.
           </h1>
           <p className="mx-auto mt-5 max-w-md text-[15px] leading-relaxed text-muted-foreground">
-            Keep every receipt, document and warranty date in one place, and get
-            reminded before coverage expires by email, in-app, or push.
+            Track every product's warranty, store its receipts, and get reminded before coverage expires. Add things by simply chatting with the built-in assistant.
           </p>
           <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-            <button
-              onClick={signIn}
-              className="inline-flex items-center gap-2 rounded-lg bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition-opacity hover:opacity-90"
-            >
+            <button onClick={signIn} className="inline-flex items-center gap-2 rounded-lg bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition-opacity hover:opacity-90">
               <GoogleIcon />
               Sign in with Google
             </button>
-            <a
-              href="#how"
-              className="inline-flex items-center gap-2 rounded-lg border border-border px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-            >
-              See how it works
-            </a>
+            <a href="#how" className="inline-flex items-center gap-2 rounded-lg border border-border px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted">See how it works</a>
           </div>
-          <p className="mt-4 text-xs text-muted-foreground">
-            Free. Sign in with Google, no card needed.
-          </p>
+          <p className="mt-4 text-xs text-muted-foreground">Free. Sign in with Google, no card needed.</p>
         </motion.div>
 
-        <div className="relative mx-auto max-w-3xl px-5 pb-16">
-          <div className="rounded-2xl border border-border bg-card p-3 shadow-lg sm:p-4">
+        <div className="relative mx-auto max-w-4xl px-5 pb-16">
+          <Reveal className="rounded-2xl border border-border bg-card p-3 shadow-xl sm:p-4">
+            <div className="mb-3 flex items-center justify-between">
+              <div className="flex flex-wrap gap-2">
+                <span className="inline-flex items-center gap-1.5 rounded-md bg-muted px-2.5 py-1 text-xs"><span className="h-1.5 w-1.5 rounded-full bg-[var(--status-active)]" /> Active 18</span>
+                <span className="inline-flex items-center gap-1.5 rounded-md bg-muted px-2.5 py-1 text-xs"><span className="h-1.5 w-1.5 rounded-full bg-[var(--status-expiring)]" /> Expiring 3</span>
+                <span className="inline-flex items-center gap-1.5 rounded-md bg-muted px-2.5 py-1 text-xs"><span className="h-1.5 w-1.5 rounded-full bg-[var(--status-expired)]" /> Expired 2</span>
+              </div>
+              <div className="hidden items-center rounded-lg border border-border p-0.5 sm:flex">
+                <span className="flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs"><LayoutGrid className="h-3.5 w-3.5" /> Cards</span>
+                <span className="flex items-center gap-1 px-2 py-1 text-xs text-muted-foreground"><List className="h-3.5 w-3.5" /> List</span>
+              </div>
+            </div>
             <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
-              {heroCards.map((c) => {
+              {products.map((c) => {
                 const Icon = c.icon;
                 return (
                   <div key={c.name} className="overflow-hidden rounded-xl border border-border bg-background">
                     <div className="relative flex h-16 items-center justify-center bg-muted text-muted-foreground sm:h-20">
                       <Icon className="h-6 w-6 sm:h-7 sm:w-7" />
-                      <span className={`absolute right-2 top-2 rounded-full bg-background/85 px-2 py-0.5 text-[9px] font-medium shadow-sm backdrop-blur-sm sm:text-[10px] ${c.color}`}>
-                        {c.label}
-                      </span>
+                      <span className={`absolute right-2 top-2 rounded-full bg-background/85 px-2 py-0.5 text-[9px] font-medium shadow-sm backdrop-blur-sm sm:text-[10px] ${c.color}`}>{c.label}</span>
                     </div>
                     <div className="p-2 sm:p-2.5">
                       <div className="truncate text-[11px] font-medium sm:text-xs">{c.name}</div>
                       <div className="mt-0.5 truncate text-[9px] text-muted-foreground sm:text-[10px]">{c.cat}</div>
-                      <div className="mt-2 h-1 overflow-hidden rounded-full bg-muted">
-                        <div className={`h-full ${c.bar}`} style={{ width: c.pct }} />
-                      </div>
+                      <div className="mt-2 h-1 overflow-hidden rounded-full bg-muted"><div className={`h-full ${c.bar}`} style={{ width: c.pct }} /></div>
                     </div>
                   </div>
                 );
               })}
             </div>
-          </div>
+          </Reveal>
         </div>
       </section>
 
-      <section id="features" className="mx-auto max-w-6xl px-5 py-16">
-        <div className="mx-auto max-w-xl text-center">
-          <h2 className="text-2xl font-semibold sm:text-3xl">Everything in one place</h2>
-          <p className="mt-3 text-sm text-muted-foreground">
-            From the receipt to the reminder, the whole lifecycle of a warranty.
-          </p>
+      <section className="border-y border-border bg-muted/30 py-16">
+        <div className="mx-auto max-w-3xl px-5">
+          <Reveal><SectionHead eyebrow="Meet the assistant" title="Just tell it what you need" sub="Add products, find them, check what's expiring, and set reminders, all in plain language." /></Reveal>
+          <Reveal className="mx-auto mt-8 max-w-md space-y-2.5 rounded-2xl border border-border bg-card p-4" delay={0.05}>
+            <div className="flex justify-end"><div className="max-w-[82%] rounded-2xl rounded-br-sm bg-emerald-600 px-3.5 py-2.5 text-[13px] text-white">I bought a Sony TV yesterday, 2 year warranty</div></div>
+            <div className="flex gap-2">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-600/10 text-emerald-600 dark:text-emerald-400"><Bot className="h-4 w-4" /></span>
+              <div className="rounded-2xl rounded-bl-sm border border-border bg-background px-3 py-2.5 text-[13px] text-muted-foreground">
+                Added. Here it is:
+                <div className="mt-2 flex items-center gap-2.5 rounded-lg border border-border bg-card p-2">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-md bg-muted text-muted-foreground"><Tv className="h-4 w-4" /></span>
+                  <div><div className="text-xs font-medium text-foreground">Sony TV</div><div className="text-[10px] text-muted-foreground">Expires in 2 years · Electronics</div></div>
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end"><div className="max-w-[82%] rounded-2xl rounded-br-sm bg-emerald-600 px-3.5 py-2.5 text-[13px] text-white">What's expiring soon?</div></div>
+            <div className="flex gap-2">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-600/10 text-emerald-600 dark:text-emerald-400"><Bot className="h-4 w-4" /></span>
+              <div className="rounded-2xl rounded-bl-sm border border-border bg-background px-3 py-2.5 text-[13px] text-muted-foreground">2 things in the next 30 days: your <span className="text-foreground">Dryer</span> (12 days) and <span className="text-foreground">Coffee machine</span> (26 days).</div>
+            </div>
+            <div className="flex justify-end"><div className="max-w-[82%] rounded-2xl rounded-br-sm bg-emerald-600 px-3.5 py-2.5 text-[13px] text-white">Remind me 2 weeks before the laptop expires</div></div>
+            <div className="flex gap-2">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-600/10 text-emerald-600 dark:text-emerald-400"><Bot className="h-4 w-4" /></span>
+              <div className="rounded-2xl rounded-bl-sm border border-border bg-background px-3 py-2.5 text-[13px] text-muted-foreground">Done. I'll remind you on 28 Mar 2027.</div>
+            </div>
+          </Reveal>
         </div>
+      </section>
+
+      <section className="mx-auto max-w-5xl px-5 py-16">
+        <Reveal><SectionHead eyebrow="Quick fill" title="Snap a receipt, skip the typing" sub="Upload a photo or PDF and the app reads the product, store, date and warranty length, then fills in the form for you." /></Reveal>
+        <Reveal className="mt-9 grid items-center gap-5 sm:grid-cols-[1fr_auto_1fr]" delay={0.05}>
+          <div className="rounded-xl border border-border bg-card p-4">
+            <div className="mb-3 flex items-center justify-between border-b border-dashed border-border pb-2 text-[11px] text-muted-foreground"><span className="flex items-center gap-1.5"><Receipt className="h-3.5 w-3.5" /> receipt.jpg</span><span>scanning</span></div>
+            <div className="space-y-2">
+              <div className="h-2 w-2/3 rounded bg-muted" />
+              <div className="h-2 w-1/2 rounded bg-muted" />
+              <div className="h-2 w-5/6 rounded bg-muted" />
+              <div className="my-2 h-px w-full bg-emerald-500/60 shadow-[0_0_8px] shadow-emerald-500/40" />
+              <div className="h-2 w-3/4 rounded bg-muted" />
+              <div className="h-2 w-2/5 rounded bg-muted" />
+            </div>
+          </div>
+          <div className="flex items-center justify-center text-muted-foreground"><ArrowRight className="hidden h-6 w-6 sm:block" /><ArrowRight className="h-5 w-5 rotate-90 sm:hidden" /></div>
+          <div className="rounded-xl border border-border bg-card p-4">
+            {[
+              ["Product", "Bosch dishwasher"],
+              ["Store", "Best Buy"],
+              ["Purchase date", "12 / 06 / 2026"],
+              ["Warranty", "24 months"],
+            ].map(([label, value]) => (
+              <div key={label} className="mb-2.5 last:mb-0">
+                <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
+                <div className="mt-1 flex items-center justify-between rounded-md border border-emerald-600/30 bg-emerald-600/10 px-2.5 py-1.5 text-xs font-medium">
+                  {value}
+                  <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </Reveal>
+      </section>
+
+      <section className="border-y border-border bg-muted/30 py-16">
+        <div className="mx-auto max-w-4xl px-5">
+          <Reveal><SectionHead title="Every detail in one place" sub="Each product gets its own page: a clear warranty gauge, its receipts and documents, and its reminders." /></Reveal>
+          <Reveal className="mt-9 overflow-hidden rounded-2xl border border-border bg-card shadow-lg" delay={0.05}>
+            <div className="grid gap-0 sm:grid-cols-[200px_1fr]">
+              <div className="flex h-40 items-center justify-center bg-muted text-muted-foreground sm:h-auto"><Laptop className="h-14 w-14" /></div>
+              <div className="p-5">
+                <div className="flex items-center gap-2">
+                  <span className="rounded-full bg-background/85 px-2 py-0.5 text-[10px] font-medium shadow-sm c-active">Active</span>
+                  <span className="text-xs text-muted-foreground">Electronics · Apple</span>
+                </div>
+                <h3 className="mt-1.5 text-lg font-semibold">MacBook Pro 14"</h3>
+                <div className="mt-4 flex items-center gap-4">
+                  <div className="relative h-20 w-20 shrink-0">
+                    <div className="h-full w-full rounded-full" style={{ background: "conic-gradient(#059669 0% 68%, var(--muted) 0)" }} />
+                    <div className="absolute inset-[9px] flex items-center justify-center rounded-full bg-card text-center">
+                      <div><div className="text-sm font-semibold leading-none">1.6y</div><div className="mt-0.5 text-[9px] text-muted-foreground">left</div></div>
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex gap-4 border-b border-border pb-2 text-xs">
+                      <span className="flex items-center gap-1.5 border-b-2 border-emerald-600 pb-1.5 font-medium text-foreground"><FileText className="h-3.5 w-3.5" /> Documents</span>
+                      <span className="flex items-center gap-1.5 pb-1.5 text-muted-foreground"><BellRing className="h-3.5 w-3.5" /> Reminders</span>
+                    </div>
+                    <div className="mt-2.5 flex gap-2">
+                      <span className="flex h-12 w-12 items-center justify-center rounded-md border border-border bg-muted text-muted-foreground"><Receipt className="h-4 w-4" /></span>
+                      <span className="flex h-12 w-12 items-center justify-center rounded-md border border-border bg-muted text-muted-foreground"><FileText className="h-4 w-4" /></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-5xl px-5 py-16">
+        <Reveal><SectionHead title="Never caught off guard" sub="Automatic reminders at 30, 7 and 1 days before expiry, plus your own custom reminders at any lead time, delivered exactly where you want." /></Reveal>
+        <Reveal className="mt-8 flex flex-wrap items-center justify-center gap-2 text-xs text-muted-foreground" delay={0.04}>
+          <span className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1"><Clock className="h-3.5 w-3.5" /> 30 days</span>
+          <span className="h-px w-5 bg-border" />
+          <span className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1"><Clock className="h-3.5 w-3.5" /> 7 days</span>
+          <span className="h-px w-5 bg-border" />
+          <span className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1"><Clock className="h-3.5 w-3.5" /> 1 day</span>
+          <span className="h-px w-5 bg-border" />
+          <span className="flex items-center gap-1.5 rounded-full border border-emerald-600/40 bg-emerald-600/10 px-3 py-1 text-emerald-700 dark:text-emerald-400"><Sparkles className="h-3.5 w-3.5" /> + your own</span>
+        </Reveal>
+        <Reveal className="mt-8 grid gap-4 sm:grid-cols-3" delay={0.08}>
+          {[
+            { icon: Bell, title: "In-app", desc: "A live alert and a bell badge while you're using the app." },
+            { icon: Mail, title: "Email digest", desc: "A tidy weekly summary of what's expiring, straight to your inbox." },
+            { icon: Smartphone, title: "Browser push", desc: "A notification on your device even when the app is closed." },
+          ].map((c) => {
+            const Icon = c.icon;
+            return (
+              <div key={c.title} className="rounded-xl border border-border bg-card p-5">
+                <div className="flex items-center justify-between">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-600/10 text-emerald-600 dark:text-emerald-400"><Icon className="h-5 w-5" /></span>
+                  <span className="h-4 w-7 rounded-full bg-emerald-600/80 p-0.5"><span className="block h-3 w-3 translate-x-3 rounded-full bg-white" /></span>
+                </div>
+                <h3 className="mt-3 text-[15px] font-semibold">{c.title}</h3>
+                <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">{c.desc}</p>
+              </div>
+            );
+          })}
+        </Reveal>
+      </section>
+
+      <section id="features" className="mx-auto max-w-6xl px-5 py-16">
+        <Reveal><SectionHead title="And everything else" sub="The small things that make it pleasant to live in." /></Reveal>
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((f, i) => {
             const Icon = f.icon;
             return (
-              <motion.div
-                key={f.title}
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.4, ease: "easeOut", delay: (i % 3) * 0.08 }}
-                className="rounded-xl border border-border bg-card p-5 transition-colors hover:border-emerald-600/40"
-              >
-                <span className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-600/10 text-emerald-600 dark:text-emerald-400">
-                  <Icon className="h-5 w-5" />
-                </span>
+              <motion.div key={f.title} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-60px" }} transition={{ duration: 0.4, ease: "easeOut", delay: (i % 3) * 0.08 }} className="rounded-xl border border-border bg-card p-5 transition-colors hover:border-emerald-600/40">
+                <span className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-600/10 text-emerald-600 dark:text-emerald-400"><Icon className="h-5 w-5" /></span>
                 <h3 className="text-[15px] font-semibold">{f.title}</h3>
                 <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">{f.desc}</p>
               </motion.div>
@@ -241,53 +316,19 @@ const LandingPage = () => {
         </div>
       </section>
 
-      <section className="border-y border-border bg-muted/30 py-16">
-        <div className="mx-auto max-w-3xl px-5">
-          <div className="mb-8 text-center">
-            <span className="inline-flex items-center gap-2 rounded-full bg-emerald-600/10 px-3 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-400">
-              <Sparkles className="h-3.5 w-3.5" />
-              Meet the assistant
-            </span>
-            <h2 className="mt-3 text-2xl font-semibold sm:text-3xl">Add a warranty by just talking</h2>
-          </div>
-          <div className="mx-auto max-w-md rounded-2xl border border-border bg-card p-4">
-            <div className="mb-2.5 flex justify-end">
-              <div className="max-w-[80%] rounded-2xl rounded-br-sm bg-emerald-600 px-3.5 py-2.5 text-[13px] text-white">
-                I bought a Sony TV yesterday, 2 year warranty
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-600/10 text-emerald-600 dark:text-emerald-400">
-                <Bot className="h-4 w-4" />
-              </span>
-              <div className="rounded-2xl rounded-bl-sm border border-border bg-background px-3 py-2.5 text-[13px] text-muted-foreground">
-                Got it, here is what I will add:
-                <div className="mt-2.5 flex items-center gap-2.5 rounded-lg border border-border bg-card p-2">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-md bg-muted text-muted-foreground">
-                    <Tv className="h-4 w-4" />
-                  </span>
-                  <div>
-                    <div className="text-xs font-medium text-foreground">Sony TV</div>
-                    <div className="text-[10px] text-muted-foreground">Expires in 2 years · Electronics</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       <section id="how" className="mx-auto max-w-4xl px-5 py-16">
         <h2 className="text-center text-2xl font-semibold sm:text-3xl">Up and running in seconds</h2>
         <div className="mt-10 grid gap-8 sm:grid-cols-3">
-          {steps.map((s) => (
-            <div key={s.n} className="text-center">
-              <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-emerald-600/10 font-semibold text-emerald-600 dark:text-emerald-400">
-                {s.n}
-              </div>
+          {[
+            { n: 1, title: "Sign in with Google", desc: "No password, no setup." },
+            { n: 2, title: "Add your products", desc: "Snap a receipt or tell the assistant." },
+            { n: 3, title: "Relax", desc: "We remind you before anything expires." },
+          ].map((s) => (
+            <Reveal key={s.n} className="text-center" delay={(s.n - 1) * 0.08}>
+              <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-emerald-600/10 font-semibold text-emerald-600 dark:text-emerald-400">{s.n}</div>
               <h3 className="text-[15px] font-semibold">{s.title}</h3>
               <p className="mt-1 text-[13px] text-muted-foreground">{s.desc}</p>
-            </div>
+            </Reveal>
           ))}
         </div>
       </section>
@@ -296,13 +337,8 @@ const LandingPage = () => {
         <div className="pointer-events-none absolute left-1/2 top-1/2 h-56 w-[34rem] max-w-[90vw] -translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-500/10 blur-[110px] dark:bg-emerald-400/15" />
         <div className="relative rounded-2xl border border-emerald-600/25 bg-emerald-600/10 px-6 py-12 text-center">
           <h2 className="text-2xl font-bold sm:text-3xl">Start protecting your purchases</h2>
-          <p className="mx-auto mt-3 max-w-sm text-sm text-muted-foreground">
-            Join in seconds with your Google account.
-          </p>
-          <button
-            onClick={signIn}
-            className="mt-6 inline-flex items-center gap-2 rounded-lg bg-foreground px-6 py-3 text-sm font-semibold text-background transition-opacity hover:opacity-90"
-          >
+          <p className="mx-auto mt-3 max-w-sm text-sm text-muted-foreground">Join in seconds with your Google account.</p>
+          <button onClick={signIn} className="mt-6 inline-flex items-center gap-2 rounded-lg bg-foreground px-6 py-3 text-sm font-semibold text-background transition-opacity hover:opacity-90">
             <GoogleIcon />
             Sign in with Google
           </button>
@@ -311,10 +347,7 @@ const LandingPage = () => {
 
       <footer className="border-t border-border">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5 text-xs text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <img src={logo} alt="" className="h-5 w-5 object-contain" />
-            Warranty Tracker
-          </div>
+          <div className="flex items-center gap-2"><img src={logo} alt="" className="h-5 w-5 object-contain" /> Warranty Tracker</div>
           <div>Built by Asaf</div>
         </div>
       </footer>
