@@ -260,39 +260,42 @@ const LandingPage = () => {
 
       <section className="mx-auto max-w-5xl px-5 py-16">
         <Reveal><SectionHead eyebrow="Quick fill" title="Skip the typing" sub="Describe the purchase in a sentence, or upload a receipt. We read the product, store, date and warranty length and fill the form for you to review." /></Reveal>
-        <Reveal className="mt-9 grid items-center gap-5 sm:grid-cols-[1fr_auto_1fr]" delay={0.05}>
+        <Reveal className="mx-auto mt-9 max-w-lg" delay={0.05}>
           <div className="rounded-xl border border-sky-500/20 bg-sky-500/5 p-4">
             <div className="flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-sky-600 dark:text-sky-400" />
-              <span className="text-sm font-medium">Quick fill</span>
+              <span className="text-sm font-medium">Describe it</span>
             </div>
-            <p className="mt-1 text-xs text-muted-foreground">Describe the purchase, or scan a receipt, and we'll fill the form for you to review.</p>
             <div className="mt-3 flex gap-2">
               <div className="flex-1 truncate rounded-md border border-border bg-background px-2.5 py-2 text-xs text-muted-foreground">bought a MacBook last month, 3 year warranty</div>
               <span className="shrink-0 rounded-md bg-foreground px-3 py-2 text-xs font-medium text-background">Fill</span>
             </div>
-            <div className="my-3 flex items-center gap-3">
-              <div className="h-px flex-1 bg-sky-500/15" />
-              <span className="text-[10px] uppercase tracking-wide text-muted-foreground">or</span>
-              <div className="h-px flex-1 bg-sky-500/15" />
-            </div>
-            <div className="overflow-hidden rounded-lg border border-dashed border-sky-500/40 bg-background p-3">
-              <div className="mb-3 flex items-center justify-between border-b border-dashed border-border pb-2 text-[11px] text-muted-foreground"><span className="flex items-center gap-1.5"><Receipt className="h-3.5 w-3.5" /> receipt.jpg</span><span>scanning</span></div>
-              <div className="relative space-y-2">
-                <div className="h-2 w-2/3 rounded bg-muted" />
-                <div className="h-2 w-1/2 rounded bg-muted" />
-                <div className="h-2 w-5/6 rounded bg-muted" />
-                <div className="h-2 w-3/4 rounded bg-muted" />
-                <div className="h-2 w-2/5 rounded bg-muted" />
-                <div className="h-2 w-3/5 rounded bg-muted" />
-                <motion.div
-                  aria-hidden="true"
-                  className="pointer-events-none absolute inset-x-0 h-0.5 rounded bg-emerald-500/80 shadow-[0_0_10px_1px] shadow-emerald-500/60"
-                  initial={{ top: "0%" }}
-                  animate={{ top: ["0%", "100%", "0%"] }}
-                  transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
-                />
-              </div>
+          </div>
+        </Reveal>
+
+        <div className="mx-auto my-6 flex max-w-lg items-center gap-3">
+          <div className="h-px flex-1 bg-border" />
+          <span className="text-[11px] uppercase tracking-wide text-muted-foreground">or scan a receipt</span>
+          <div className="h-px flex-1 bg-border" />
+        </div>
+
+        <Reveal className="grid items-center gap-5 sm:grid-cols-[1fr_auto_1fr]" delay={0.05}>
+          <div className="overflow-hidden rounded-xl border border-border bg-card p-4">
+            <div className="mb-3 flex items-center justify-between border-b border-dashed border-border pb-2 text-[11px] text-muted-foreground"><span className="flex items-center gap-1.5"><Receipt className="h-3.5 w-3.5" /> receipt.jpg</span><span>scanning</span></div>
+            <div className="relative space-y-2">
+              <div className="h-2 w-2/3 rounded bg-muted" />
+              <div className="h-2 w-1/2 rounded bg-muted" />
+              <div className="h-2 w-5/6 rounded bg-muted" />
+              <div className="h-2 w-3/4 rounded bg-muted" />
+              <div className="h-2 w-2/5 rounded bg-muted" />
+              <div className="h-2 w-3/5 rounded bg-muted" />
+              <motion.div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-x-0 h-0.5 rounded bg-emerald-500/80 shadow-[0_0_10px_1px] shadow-emerald-500/60"
+                initial={{ top: "0%" }}
+                animate={{ top: ["0%", "100%", "0%"] }}
+                transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+              />
             </div>
           </div>
           <div className="flex items-center justify-center text-muted-foreground"><ArrowRight className="hidden h-6 w-6 sm:block" /><ArrowRight className="h-5 w-5 rotate-90 sm:hidden" /></div>
