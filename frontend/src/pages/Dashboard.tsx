@@ -9,6 +9,8 @@ import {
   CheckSquare,
   Trash2,
   X,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { FaFileCsv } from "react-icons/fa";
 import { motion } from "framer-motion";
@@ -82,6 +84,15 @@ const Dashboard = () => {
     localStorage.setItem("wtView", v);
     updatePreferences({ defaultView: v }).catch(() => {});
   };
+
+  const [statsHidden, setStatsHidden] = useState(
+    () => localStorage.getItem("wtStatsHidden") === "1",
+  );
+  const toggleStats = () =>
+    setStatsHidden((h) => {
+      localStorage.setItem("wtStatsHidden", h ? "0" : "1");
+      return !h;
+    });
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(searchQuery), 300);
@@ -260,7 +271,25 @@ const Dashboard = () => {
 
         <main className="nice-scroll flex-1 overflow-y-auto">
           <div className="mx-auto max-w-6xl p-6">
-            <DashboardStats stats={stats} />
+            <div className="flex justify-end">
+              <button
+                onClick={toggleStats}
+                className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
+              >
+                {statsHidden ? (
+                  <>
+                    <Eye className="h-3.5 w-3.5" />
+                    Show summary
+                  </>
+                ) : (
+                  <>
+                    <EyeOff className="h-3.5 w-3.5" />
+                    Hide summary
+                  </>
+                )}
+              </button>
+            </div>
+            {!statsHidden && <DashboardStats stats={stats} />}
 
             <motion.div
               initial={{ opacity: 0 }}
