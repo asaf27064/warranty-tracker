@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import type { ReactNode } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import {
   Bell,
   BellRing,
@@ -103,8 +103,7 @@ const features = [
 ];
 
 const LandingPage = () => {
-  const { user, loading } = useAuth();
-  const navigate = useNavigate();
+  const { loginWithGoogle, user, lastUser, loading } = useAuth();
 
   if (loading) {
     return (
@@ -115,7 +114,10 @@ const LandingPage = () => {
   }
   if (user) return <Navigate to="/dashboard" />;
 
-  const signIn = () => navigate("/login");
+  const signIn = (fresh = false) =>
+    !fresh && lastUser
+      ? loginWithGoogle({ loginHint: lastUser.email })
+      : loginWithGoogle({ selectAccount: true });
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -128,7 +130,7 @@ const LandingPage = () => {
           <nav className="flex items-center gap-5 text-sm text-muted-foreground">
             <a href="#features" className="hidden transition-colors hover:text-foreground sm:inline">Features</a>
             <a href="#how" className="hidden transition-colors hover:text-foreground sm:inline">How it works</a>
-            <Button size="sm" className="bg-emerald-600 text-white hover:bg-emerald-700" onClick={signIn}>Sign in</Button>
+            <Button size="sm" className="bg-emerald-600 text-white hover:bg-emerald-700" onClick={() => signIn()}>{lastUser ? "Continue" : "Sign in"}</Button>
           </nav>
         </div>
       </header>
@@ -143,14 +145,31 @@ const LandingPage = () => {
           <p className="mx-auto mt-5 max-w-lg text-[15px] leading-relaxed text-muted-foreground">
             The warranty you forget is the one you'll need. Keep every receipt and expiry date in one place, with reminders before coverage runs out.
           </p>
-          <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-            <button onClick={signIn} className="inline-flex items-center gap-2 rounded-lg bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition-opacity hover:opacity-90">
-              <GoogleIcon />
-              Sign in with Google
-            </button>
-            <a href="#how" className="inline-flex items-center gap-2 rounded-lg border border-border px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted">See how it works</a>
+          <div className="mt-7 flex flex-col items-center gap-3">
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              {lastUser ? (
+                <button onClick={() => signIn()} className="inline-flex items-center gap-2.5 rounded-lg bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition-opacity hover:opacity-90">
+                  {lastUser.avatarUrl ? (
+                    <img src={lastUser.avatarUrl} alt="" referrerPolicy="no-referrer" className="h-6 w-6 rounded-full" />
+                  ) : (
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-600 text-xs font-medium text-white">{lastUser.name.charAt(0).toUpperCase()}</span>
+                  )}
+                  Continue as {lastUser.name.split(" ")[0]}
+                </button>
+              ) : (
+                <button onClick={() => signIn()} className="inline-flex items-center gap-2 rounded-lg bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition-opacity hover:opacity-90">
+                  <GoogleIcon />
+                  Sign in with Google
+                </button>
+              )}
+              <a href="#how" className="inline-flex items-center gap-2 rounded-lg border border-border px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted">See how it works</a>
+            </div>
+            {lastUser ? (
+              <button onClick={() => signIn(true)} className="text-xs text-muted-foreground transition-colors hover:text-foreground">Use another account</button>
+            ) : (
+              <p className="text-xs text-muted-foreground">Free. Sign in with Google, no card needed.</p>
+            )}
           </div>
-          <p className="mt-4 text-xs text-muted-foreground">Free. Sign in with Google, no card needed.</p>
         </motion.div>
 
         <div className="relative mx-auto max-w-5xl px-5 pb-16">
@@ -499,9 +518,22 @@ const LandingPage = () => {
         <div className="relative rounded-2xl border border-emerald-600/25 bg-emerald-600/10 px-6 py-12 text-center">
           <h2 className="text-2xl font-bold sm:text-3xl">Start protecting your purchases</h2>
           <p className="mx-auto mt-3 max-w-sm text-sm text-muted-foreground">Join in seconds with your Google account.</p>
-          <button onClick={signIn} className="mt-6 inline-flex items-center gap-2 rounded-lg bg-foreground px-6 py-3 text-sm font-semibold text-background transition-opacity hover:opacity-90">
-            <GoogleIcon />
-            Sign in with Google
+          <button onClick={() => signIn()} className="mt-6 inline-flex items-center gap-2.5 rounded-lg bg-foreground px-6 py-3 text-sm font-semibold text-background transition-opacity hover:opacity-90">
+            {lastUser ? (
+              <>
+                {lastUser.avatarUrl ? (
+                  <img src={lastUser.avatarUrl} alt="" referrerPolicy="no-referrer" className="h-6 w-6 rounded-full" />
+                ) : (
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-600 text-xs font-medium text-white">{lastUser.name.charAt(0).toUpperCase()}</span>
+                )}
+                Continue as {lastUser.name.split(" ")[0]}
+              </>
+            ) : (
+              <>
+                <GoogleIcon />
+                Sign in with Google
+              </>
+            )}
           </button>
         </div>
       </section>
