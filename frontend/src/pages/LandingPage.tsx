@@ -15,6 +15,8 @@ import {
   CircleCheck,
   ClockAlert,
   CircleX,
+  AlertTriangle,
+  CalendarClock,
   Plus,
   Calendar,
   Store,
@@ -211,20 +213,22 @@ const LandingPage = () => {
 
               <div className="min-w-0 flex-1 p-3 sm:p-4">
                 <div className="grid grid-cols-3 gap-2.5">
-                  {[
-                    { icon: CircleCheck, label: "Active", n: 18, sub: "75% of all", color: "c-active" },
-                    { icon: ClockAlert, label: "Expiring soon", n: 3, sub: "within 30 days", color: "c-expiring" },
-                    { icon: CircleX, label: "Expired", n: 2, sub: "needs review", color: "c-expired" },
-                  ].map((s) => {
-                    const Icon = s.icon;
-                    return (
-                      <div key={s.label} className="rounded-xl border border-border bg-card p-2.5 sm:p-3">
-                        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground sm:text-[11px]"><Icon className={`h-3.5 w-3.5 ${s.color}`} /> {s.label}</div>
-                        <div className="mt-1 text-xl font-bold sm:text-2xl">{s.n}</div>
-                        <div className={`mt-0.5 text-[9px] sm:text-[10px] ${s.color}`}>{s.sub}</div>
-                      </div>
-                    );
-                  })}
+                  <div className="rounded-xl border border-border bg-card p-2.5 sm:p-3">
+                    <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground sm:text-[11px]"><ShieldCheck className="h-3.5 w-3.5 c-active" /> Coverage</div>
+                    <div className="mt-1 text-xl font-bold sm:text-2xl">75%</div>
+                    <div className="mt-0.5 text-[9px] text-muted-foreground sm:text-[10px]">18 of 24 active</div>
+                    <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-muted"><div className="h-full bar-active" style={{ width: "75%" }} /></div>
+                  </div>
+                  <div className="rounded-xl border border-border bg-card p-2.5 sm:p-3">
+                    <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground sm:text-[11px]"><AlertTriangle className="h-3.5 w-3.5 c-expiring" /> Needs attention</div>
+                    <div className="mt-1 text-xl font-bold sm:text-2xl">5</div>
+                    <div className="mt-0.5 text-[9px] sm:text-[10px]"><span className="c-expiring">3 expiring</span> · <span className="c-expired">2 expired</span></div>
+                  </div>
+                  <div className="rounded-xl border border-border bg-card p-2.5 sm:p-3">
+                    <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground sm:text-[11px]"><CalendarClock className="h-3.5 w-3.5" /> Next expiry</div>
+                    <div className="mt-1 text-xl font-bold sm:text-2xl">12 days</div>
+                    <div className="mt-0.5 truncate text-[9px] text-muted-foreground sm:text-[10px]">Dryer · 28 Jun</div>
+                  </div>
                 </div>
 
                 <div className="mt-3 flex justify-end">
