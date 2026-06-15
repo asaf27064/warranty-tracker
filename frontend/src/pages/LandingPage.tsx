@@ -17,6 +17,8 @@ import {
   CircleX,
   Plus,
   Calendar,
+  Store,
+  ShieldCheck,
   Receipt,
   Check,
   FileText,
@@ -294,30 +296,48 @@ const LandingPage = () => {
         <div className="mx-auto max-w-4xl px-5">
           <Reveal><SectionHead title="Every detail in one place" sub="Each product gets its own page: a clear warranty gauge, its receipts and documents, and its reminders." /></Reveal>
           <Reveal className="mt-9 overflow-hidden rounded-2xl border border-border bg-card shadow-lg" delay={0.05}>
-            <div className="grid gap-0 sm:grid-cols-[200px_1fr]">
-              <div className="flex h-40 items-center justify-center bg-muted text-muted-foreground sm:h-auto"><Laptop className="h-14 w-14" /></div>
-              <div className="p-5">
-                <div className="flex items-center gap-2">
-                  <span className="rounded-full bg-background/85 px-2 py-0.5 text-[10px] font-medium shadow-sm c-active">Active</span>
-                  <span className="text-xs text-muted-foreground">Electronics · Apple</span>
+            <div className="flex flex-col sm:flex-row">
+              <div className="flex h-40 shrink-0 items-center justify-center bg-muted text-muted-foreground sm:h-auto sm:w-44"><Laptop className="h-16 w-16" /></div>
+              <div className="min-w-0 flex-1 p-5">
+                <h3 className="truncate text-xl font-bold">MacBook Pro 14"</h3>
+                <div className="mt-1 flex flex-wrap items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Electronics</span>
+                  <span className="rounded-full px-2 py-0.5 text-xs font-medium badge-active">Active</span>
                 </div>
-                <h3 className="mt-1.5 text-lg font-semibold">MacBook Pro 14"</h3>
-                <div className="mt-4 flex items-center gap-4">
-                  <div className="relative h-20 w-20 shrink-0">
-                    <div className="h-full w-full rounded-full" style={{ background: "conic-gradient(#059669 0% 68%, var(--muted) 0)" }} />
-                    <div className="absolute inset-[9px] flex items-center justify-center rounded-full bg-card text-center">
-                      <div><div className="text-sm font-semibold leading-none">1.6y</div><div className="mt-0.5 text-[9px] text-muted-foreground">left</div></div>
+
+                <div className="mt-4 overflow-hidden rounded-lg border border-border bg-muted/25">
+                  <div className="grid sm:grid-cols-[0.9fr_1.1fr]">
+                    <div className="flex items-center gap-4 border-b border-border p-4 sm:border-b-0 sm:border-r">
+                      <div className="relative flex h-20 w-20 shrink-0 items-center justify-center">
+                        <svg viewBox="0 0 36 36" className="h-20 w-20 -rotate-90 c-active">
+                          <circle cx="18" cy="18" r="15.5" fill="none" stroke="currentColor" strokeWidth="3" className="text-muted-foreground/20" />
+                          <motion.circle cx="18" cy="18" r="15.5" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeDasharray={97.39} initial={{ strokeDashoffset: 97.39 }} whileInView={{ strokeDashoffset: 66.2 }} viewport={{ once: true }} transition={{ duration: 0.9, ease: "easeOut" }} />
+                        </svg>
+                        <span className="absolute text-base font-bold c-active">32%</span>
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[11px] font-medium uppercase text-muted-foreground">Remaining</p>
+                        <p className="mt-0.5 text-2xl font-semibold tracking-tight c-active">587 days</p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">Coverage still available</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-px bg-border text-xs">
+                      <div className="bg-card p-3"><div className="flex items-center gap-1.5 text-muted-foreground"><Calendar className="h-3.5 w-3.5" /> Purchased</div><p className="mt-1 font-medium text-foreground">12 Jun 2026</p></div>
+                      <div className="bg-card p-3"><div className="flex items-center gap-1.5 text-muted-foreground"><ShieldCheck className="h-3.5 w-3.5" /> Expires</div><p className="mt-1 font-medium text-foreground">12 Jun 2029</p></div>
+                      <div className="bg-card p-3"><div className="flex items-center gap-1.5 text-muted-foreground"><Store className="h-3.5 w-3.5" /> Store</div><p className="mt-1 font-medium text-foreground">Apple Store</p></div>
+                      <div className="bg-card p-3"><div className="flex items-center gap-1.5 text-muted-foreground"><ShieldCheck className="h-3.5 w-3.5" /> Warranty</div><p className="mt-1 font-medium text-foreground">36 months</p></div>
                     </div>
                   </div>
-                  <div className="flex-1">
-                    <div className="flex gap-4 border-b border-border pb-2 text-xs">
-                      <span className="flex items-center gap-1.5 border-b-2 border-emerald-600 pb-1.5 font-medium text-foreground"><FileText className="h-3.5 w-3.5" /> Documents</span>
-                      <span className="flex items-center gap-1.5 pb-1.5 text-muted-foreground"><BellRing className="h-3.5 w-3.5" /> Reminders</span>
-                    </div>
-                    <div className="mt-2.5 flex gap-2">
-                      <span className="flex h-12 w-12 items-center justify-center rounded-md border border-border bg-muted text-muted-foreground"><Receipt className="h-4 w-4" /></span>
-                      <span className="flex h-12 w-12 items-center justify-center rounded-md border border-border bg-muted text-muted-foreground"><FileText className="h-4 w-4" /></span>
-                    </div>
+                </div>
+
+                <div className="mt-4">
+                  <div className="inline-flex rounded-lg border border-border p-0.5 text-xs">
+                    <span className="flex items-center gap-1.5 rounded-md bg-muted px-2.5 py-1 font-medium text-foreground"><FileText className="h-3.5 w-3.5" /> Documents (2)</span>
+                    <span className="flex items-center gap-1.5 px-2.5 py-1 text-muted-foreground"><BellRing className="h-3.5 w-3.5" /> Reminders (3)</span>
+                  </div>
+                  <div className="mt-3 flex gap-2">
+                    <span className="flex items-center gap-2 rounded-md border border-border px-2.5 py-2 text-xs"><span className="flex h-7 w-7 items-center justify-center rounded-md bg-emerald-600/10 text-emerald-600 dark:text-emerald-400"><Receipt className="h-4 w-4" /></span> Receipt.pdf</span>
+                    <span className="flex items-center gap-2 rounded-md border border-border px-2.5 py-2 text-xs"><span className="flex h-7 w-7 items-center justify-center rounded-md bg-sky-500/10 text-sky-600 dark:text-sky-400"><FileText className="h-4 w-4" /></span> Warranty.jpg</span>
                   </div>
                 </div>
               </div>
