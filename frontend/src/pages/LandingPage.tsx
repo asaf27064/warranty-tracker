@@ -268,7 +268,7 @@ const LandingPage = () => {
                 <span className="text-sm font-medium">Describe it</span>
               </div>
               <div className="mt-3 flex gap-2">
-                <div className="flex-1 truncate rounded-md border border-border bg-background px-2.5 py-2 text-xs text-muted-foreground">bought a MacBook last month, 3 year warranty</div>
+                <div className="flex-1 truncate rounded-md border border-border bg-background px-2.5 py-2 text-xs text-muted-foreground">bought a MacBook Pro at Apple Store last month, 3 year warranty</div>
                 <span className="shrink-0 rounded-md bg-foreground px-3 py-2 text-xs font-medium text-background">Fill</span>
               </div>
             </div>
@@ -299,9 +299,9 @@ const LandingPage = () => {
           <div className="flex items-center justify-center text-muted-foreground"><ArrowRight className="hidden h-6 w-6 sm:block" /><ArrowRight className="h-5 w-5 rotate-90 sm:hidden" /></div>
           <div className="rounded-xl border border-border bg-card p-4">
             {[
-              ["Product", "MacBook Pro 14\""],
+              ["Product", "MacBook Pro"],
               ["Store", "Apple Store"],
-              ["Purchase date", "12 / 05 / 2026"],
+              ["Purchase date", "May 2026"],
               ["Warranty", "36 months"],
             ].map(([label, value]) => (
               <div key={label} className="mb-2.5 last:mb-0">
