@@ -97,7 +97,8 @@ const Navbar = ({ onToggleSidebar, searchValue, onSearchChange, onAdd }: Props) 
           variant="ghost"
           size="icon"
           onClick={logout}
-          className="text-muted-foreground hover:text-foreground"
+          aria-label="Log out"
+          className="text-red-500 hover:bg-red-500/10 hover:text-red-500"
         >
           <LogOut className="h-4 w-4" />
         </Button>
