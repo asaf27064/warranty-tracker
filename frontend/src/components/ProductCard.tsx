@@ -53,10 +53,14 @@ const timeLeft = (expiry: string): string => {
     return `Expired ${Math.floor(a / 365)}y ago`;
   }
   if (days === 0) return "Expires today";
-  if (days < 60) return `${days} days left`;
-  if (days < 365) return `${Math.round(days / 30)} months left`;
+  if (days < 60) return `${days} day${days === 1 ? "" : "s"} left`;
+  if (days < 365) {
+    const months = Math.round(days / 30);
+    return `${months} month${months === 1 ? "" : "s"} left`;
+  }
   const years = days / 365;
-  return `${years < 2 ? years.toFixed(1) : Math.round(years)} years left`;
+  const value = years < 2 ? Number(years.toFixed(1)) : Math.round(years);
+  return `${value} year${value === 1 ? "" : "s"} left`;
 };
 
 const ProductCard = ({ product, onClick, selectable, selected }: Props) => {
