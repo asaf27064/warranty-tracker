@@ -178,8 +178,9 @@ const LandingPage = () => {
         <div className="relative mx-auto max-w-5xl px-5 pb-16">
           <div className="relative">
           <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl">
-            <div className="absolute -left-6 top-2 h-64 w-72 rounded-full bg-emerald-500/18 blur-3xl" />
-            <div className="absolute -right-6 bottom-2 h-64 w-72 rounded-full bg-sky-500/14 blur-3xl" />
+            <div className="absolute -left-6 top-2 h-64 w-72 rounded-full bg-emerald-500/35 blur-3xl dark:bg-emerald-500/18" />
+            <div className="absolute -right-6 bottom-2 h-64 w-72 rounded-full bg-sky-500/30 blur-3xl dark:bg-sky-500/14" />
+            <div className="absolute left-1/3 top-1/4 h-52 w-64 rounded-full bg-violet-500/20 blur-3xl dark:bg-violet-500/10" />
           </div>
           <Reveal hover className="shine glass relative overflow-hidden rounded-2xl border border-border shadow-2xl transition-shadow">
             <div className="flex items-center gap-3 border-b border-border/60 px-4 py-2.5">

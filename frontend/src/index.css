@@ -223,7 +223,7 @@
 
 /* Light frosted glass: a translucent surface with a soft blur of what's behind. */
 .glass {
-  background-color: color-mix(in oklch, var(--card) 72%, transparent);
+  background-color: color-mix(in oklch, var(--card) 66%, transparent);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
