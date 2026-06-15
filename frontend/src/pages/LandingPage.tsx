@@ -273,11 +273,11 @@ const LandingPage = () => {
                     const Icon = c.icon;
                     return (
                       <div key={c.name} className="overflow-hidden rounded-xl border border-border bg-background">
-                        <div className="relative flex h-16 items-center justify-center bg-muted text-muted-foreground">
-                          <Icon className="h-6 w-6" />
-                          <span className={`absolute right-1.5 top-1.5 rounded-full bg-background/85 px-1.5 py-0.5 text-[9px] font-medium shadow-sm backdrop-blur-sm ${c.color}`}>{c.label}</span>
+                        <div className="relative flex h-24 items-center justify-center bg-muted p-1.5 text-muted-foreground">
+                          <Icon className="h-9 w-9" />
+                          <span className={`absolute right-2 top-2 rounded-full bg-background/85 px-2 py-0.5 text-[9px] font-medium shadow-sm backdrop-blur-sm ${c.color}`}>{c.label}</span>
                         </div>
-                        <div className="p-2">
+                        <div className="p-2.5">
                           <div className="truncate text-[11px] font-medium">{c.name}</div>
                           <div className="mt-0.5 truncate text-[9px] text-muted-foreground">{c.cat}</div>
                           <div className="mt-1.5 flex items-center justify-between text-[9px]">
