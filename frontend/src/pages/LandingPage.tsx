@@ -33,6 +33,8 @@ import {
   Download,
   Lock,
   ArrowRight,
+  PlayCircle,
+  ChevronDown,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { Button } from "../components/ui/button";
@@ -165,7 +167,11 @@ const LandingPage = () => {
                   Sign in with Google
                 </button>
               )}
-              <a href="#how" className="inline-flex items-center gap-2 rounded-lg border border-border px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted">See how it works</a>
+              <a href="#how" className="group inline-flex items-center gap-2 rounded-lg border border-border bg-card px-5 py-2.5 text-sm font-medium text-foreground shadow-sm transition-colors hover:border-emerald-600/40 hover:bg-muted">
+                <PlayCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                See how it works
+                <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-y-0.5" />
+              </a>
             </div>
             {lastUser ? (
               <button onClick={() => signIn(true)} className="text-xs text-muted-foreground transition-colors hover:text-foreground">Use another account</button>
