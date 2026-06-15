@@ -151,18 +151,11 @@ const LandingPage = () => {
           <p className="mt-4 text-xs text-muted-foreground">Free. Sign in with Google, no card needed.</p>
         </motion.div>
 
-        <div className="relative mx-auto max-w-5xl px-5 pb-16">
-          <Reveal hover className="shine relative overflow-hidden rounded-2xl border border-border bg-card shadow-xl transition-shadow hover:shadow-2xl">
-            <motion.div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0 z-20"
-              initial={{ x: "-150%" }}
-              animate={{ x: "150%" }}
-              transition={{ duration: 1.2, ease: "easeInOut", delay: 0.7 }}
-            >
-              <div className="h-full w-1/2 -skew-x-12 bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-            </motion.div>
-            <div className="flex items-center gap-3 border-b border-border px-4 py-2.5">
+        <div className="relative mx-auto max-w-5xl px-5 pb-16" style={{ perspective: "1700px" }}>
+          <div className="pointer-events-none absolute inset-x-12 top-8 bottom-24 rounded-[40px] bg-emerald-500/10 blur-3xl" />
+          <div className="relative transition-transform duration-500 ease-out [transform:rotateX(7deg)] hover:[transform:rotateX(0deg)]">
+          <Reveal className="shine relative overflow-hidden rounded-2xl border border-white/10 bg-card/75 shadow-2xl backdrop-blur-xl transition-shadow">
+            <div className="flex items-center gap-3 border-b border-border/60 px-4 py-2.5">
               <img src={logo} alt="" className="h-6 w-6 object-contain" />
               <div className="hidden flex-1 items-center gap-2 rounded-md border border-border bg-muted/40 px-2.5 py-1.5 text-xs text-muted-foreground sm:flex">
                 <Search className="h-3.5 w-3.5" /> Search products
@@ -263,6 +256,7 @@ const LandingPage = () => {
               </div>
             </div>
           </Reveal>
+          </div>
         </div>
       </section>
 
