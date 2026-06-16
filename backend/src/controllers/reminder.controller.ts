@@ -58,6 +58,23 @@ export const createReminder = async (req: Request, res: Response) => {
   }
 };
 
+export const restoreDefaultReminders = async (req: Request, res: Response) => {
+  try {
+    const productId = req.params.productId as string;
+    const created = await reminderService.restoreDefaultReminders(
+      req.user!.id,
+      productId,
+    );
+    if (created === null) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+    return res.status(200).json({ created });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Failed to restore default reminders" });
+  }
+};
+
 export const deleteReminder = async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;

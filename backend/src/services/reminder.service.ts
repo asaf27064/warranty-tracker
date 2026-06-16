@@ -185,6 +185,43 @@ export async function createReminder(
   return { status: "created", reminder };
 }
 
+const DEFAULT_REMINDER_DAYS = [30, 7, 1];
+
+// Recreate any of the 30/7/1-day default reminders that are missing and still
+// in the future. Used to undo deleting a default. Idempotent: existing ones are
+// left alone. Returns the number of reminders created, or null if not found.
+export async function restoreDefaultReminders(
+  userId: string,
+  productId: string,
+): Promise<number | null> {
+  const product = await prisma.product.findFirst({
+    where: { id: productId, userId },
+  });
+  if (!product) return null;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  let created = 0;
+  for (const days of DEFAULT_REMINDER_DAYS) {
+    const remindAt = new Date(product.warrantyExpiry);
+    remindAt.setDate(remindAt.getDate() - days);
+    remindAt.setHours(8, 0, 0, 0);
+    if (remindAt < today) continue;
+
+    const existing = await prisma.reminder.findFirst({
+      where: { productId, remindAt },
+    });
+    if (existing) continue;
+
+    await prisma.reminder.create({
+      data: { remindAt, productId, isDefault: true },
+    });
+    created += 1;
+  }
+  return created;
+}
+
 export async function getUserReminders(userId: string) {
   return prisma.reminder.findMany({
     where: { product: { userId } },

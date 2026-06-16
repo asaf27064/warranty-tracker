@@ -27,6 +27,7 @@ import {
   Store,
   CalendarDays,
   ShieldCheck,
+  RotateCcw,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import Navbar from "../components/Navbar";
@@ -151,8 +152,13 @@ const ProductDetails = () => {
   const { getProductById, deleteProduct } = useProducts();
   const { documents, getAllDocs, uploadDoc, updateDocType, deleteDoc } =
     useDocuments();
-  const { reminders, getAllReminders, createReminder, deleteReminder } =
-    useReminders();
+  const {
+    reminders,
+    getAllReminders,
+    createReminder,
+    deleteReminder,
+    restoreDefaults,
+  } = useReminders();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [product, setProduct] = useState<Product | null>(null);
@@ -303,6 +309,20 @@ const ProductDetails = () => {
     }
   };
 
+  const handleRestoreDefaults = async () => {
+    if (!id) return;
+    try {
+      const created = await restoreDefaults(id);
+      toast.success(
+        created > 0
+          ? `Restored ${created} default reminder${created === 1 ? "" : "s"}`
+          : "Default reminders are already set",
+      );
+    } catch {
+      toast.error("Failed to restore default reminders");
+    }
+  };
+
   const getFileIcon = (mimeType: string) => {
     if (mimeType.startsWith("image/")) return Image;
     return FileText;
@@ -333,6 +353,22 @@ const ProductDetails = () => {
     (new Date(product.warrantyExpiry).getTime() - Date.now()) /
       (1000 * 60 * 60 * 24),
   );
+
+  // A default reminder (30/7/1 days before expiry) is "missing" if its future
+  // slot has no reminder. Mirrors the backend restore logic.
+  const futureDefaultSlots = [30, 7, 1]
+    .map((days) => {
+      const slot = new Date(product.warrantyExpiry);
+      slot.setDate(slot.getDate() - days);
+      slot.setHours(8, 0, 0, 0);
+      return slot.getTime();
+    })
+    .filter((t) => t > Date.now());
+  const missingDefaults =
+    product.status !== "EXPIRED" &&
+    futureDefaultSlots.some(
+      (t) => !reminders.some((r) => new Date(r.remindAt).getTime() === t),
+    );
   const timeSignal =
     daysLeft < 0
       ? `${Math.abs(daysLeft)} days ago`
@@ -838,9 +874,22 @@ const ProductDetails = () => {
                 </div>
               ) : (
                 <div className="mt-4 flex flex-col gap-2">
-                  <p className="text-xs text-muted-foreground">
-                    Reminders are set 30, 7, and 1 days before expiry by default.
-                  </p>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-xs text-muted-foreground">
+                      Reminders are set 30, 7, and 1 days before expiry by
+                      default.
+                    </p>
+                    {missingDefaults && (
+                      <button
+                        type="button"
+                        onClick={handleRestoreDefaults}
+                        className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-emerald-600 transition-colors hover:text-emerald-700 dark:text-emerald-400"
+                      >
+                        <RotateCcw className="h-3.5 w-3.5" />
+                        Restore defaults
+                      </button>
+                    )}
+                  </div>
                   {reminders.length === 0 ? (
                     <p className="py-4 text-center text-sm text-muted-foreground">
                       No reminders yet
@@ -869,7 +918,7 @@ const ProductDetails = () => {
                           daysBeforeExpiry > 0
                             ? `${daysBeforeExpiry} day${daysBeforeExpiry === 1 ? "" : "s"} before expiry`
                             : `Reminds on ${new Date(reminder.remindAt).toLocaleDateString()}`;
-                        const isDefault = [30, 7, 1].includes(daysBeforeExpiry);
+                        const isDefault = reminder.isDefault;
                         const when =
                           daysUntil > 0
                             ? `in ${daysUntil} day${daysUntil === 1 ? "" : "s"}`

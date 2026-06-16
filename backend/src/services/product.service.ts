@@ -55,7 +55,9 @@ async function createExpiryReminders(
     remindAt.setDate(remindAt.getDate() - days);
     remindAt.setHours(8, 0, 0, 0);
     if (remindAt >= today) {
-      await db.reminder.create({ data: { remindAt, productId } });
+      await db.reminder.create({
+        data: { remindAt, productId, isDefault: true },
+      });
     }
   }
 }

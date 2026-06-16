@@ -19,5 +19,19 @@ export const useReminders = () => {
     await getAllReminders(productId);
   };
 
-  return { reminders, getAllReminders, createReminder, deleteReminder };
+  const restoreDefaults = async (productId: string) => {
+    const res = await api.post(
+      `/api/reminders/product/${productId}/restore-defaults`,
+    );
+    await getAllReminders(productId);
+    return res.data.created as number;
+  };
+
+  return {
+    reminders,
+    getAllReminders,
+    createReminder,
+    deleteReminder,
+    restoreDefaults,
+  };
 };
