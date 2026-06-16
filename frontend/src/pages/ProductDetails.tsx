@@ -658,27 +658,14 @@ const ProductDetails = () => {
                 </div>
 
                 {leftTab === "documents" ? (
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="gap-2"
-                      onClick={() =>
-                        document.getElementById("docUpload")?.click()
-                      }
-                    >
-                      <Upload className="h-3.5 w-3.5" />
-                      Upload
-                    </Button>
-                    <input
-                      id="docUpload"
-                      type="file"
-                      multiple
-                      accept="image/*,application/pdf"
-                      className="hidden"
-                      onChange={handleUploadDoc}
-                    />
-                  </div>
+                  <input
+                    id="docUpload"
+                    type="file"
+                    multiple
+                    accept="image/*,application/pdf"
+                    className="hidden"
+                    onChange={handleUploadDoc}
+                  />
                 ) : product.status === "EXPIRED" ? (
                   <span className="text-xs text-muted-foreground">
                     Warranty already expired
