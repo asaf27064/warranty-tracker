@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarImage, AvatarFallback } from "../components/ui/avatar";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
-import { LogOut, Sun, Moon, Menu, Search, Plus, Settings } from "lucide-react";
+import { LogOut, Sun, Moon, Menu, Search, Settings } from "lucide-react";
 import logo from "../assets/logo.png";
 import NotificationBell from "./NotificationBell";
 
@@ -12,10 +12,9 @@ type Props = {
   onToggleSidebar?: () => void;
   searchValue?: string;
   onSearchChange?: (v: string) => void;
-  onAdd?: () => void;
 };
 
-const Navbar = ({ onToggleSidebar, searchValue, onSearchChange, onAdd }: Props) => {
+const Navbar = ({ onToggleSidebar, searchValue, onSearchChange }: Props) => {
   const { user, logout } = useAuth();
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
@@ -55,15 +54,6 @@ const Navbar = ({ onToggleSidebar, searchValue, onSearchChange, onAdd }: Props) 
       )}
 
       <div className="ml-auto flex items-center gap-2">
-        {onAdd && (
-          <Button
-            onClick={onAdd}
-            className="gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
-          >
-            <Plus className="h-4 w-4" />
-            <span className="hidden sm:inline">Add</span>
-          </Button>
-        )}
         <button
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           aria-label="Toggle theme"

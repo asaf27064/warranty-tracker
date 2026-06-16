@@ -239,7 +239,6 @@ const Dashboard = () => {
         onToggleSidebar={toggleSidebar}
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
-        onAdd={() => setShowAddProduct(true)}
       />
 
       <div className="relative flex flex-1 overflow-hidden">
@@ -322,6 +321,14 @@ const Dashboard = () => {
                 </button>
               </div>
               <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  className="gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
+                  onClick={() => setShowAddProduct(true)}
+                >
+                  <Plus className="h-4 w-4" />
+                  Add product
+                </Button>
                 <Button
                   variant="outline"
                   size="sm"
