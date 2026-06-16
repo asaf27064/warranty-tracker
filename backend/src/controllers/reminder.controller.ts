@@ -41,6 +41,11 @@ export const createReminder = async (req: Request, res: Response) => {
     if (result.status === "not_found") {
       return res.status(404).json({ error: "Product not found" });
     }
+    if (result.status === "expired") {
+      return res
+        .status(400)
+        .json({ error: "This warranty has already expired" });
+    }
     if (result.status === "exists") {
       return res
         .status(409)

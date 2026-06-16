@@ -136,6 +136,7 @@ type Reminder = Awaited<ReturnType<typeof prisma.reminder.create>>;
 
 export type CreateReminderResult =
   | { status: "not_found" }
+  | { status: "expired" }
   | { status: "exists"; reminder: Reminder }
   | { status: "created"; reminder: Reminder };
 
@@ -157,13 +158,20 @@ export async function createReminder(
   });
   if (!product) return { status: "not_found" };
 
+  // A reminder is pointless once the warranty has already expired.
+  if (product.warrantyExpiry.getTime() <= Date.now()) {
+    return { status: "expired" };
+  }
+
   const remindAt = new Date(product.warrantyExpiry);
   remindAt.setDate(remindAt.getDate() - Number(daysBefore));
   remindAt.setHours(8, 0, 0, 0);
-  // If that time has already passed (e.g. a short remaining warranty), schedule
-  // it for now so it still fires on the next run instead of being silently lost.
+  // If that lead time is already in the past (short remaining warranty),
+  // schedule it for now, floored to the minute so repeat clicks dedupe cleanly.
   if (remindAt.getTime() < Date.now()) {
-    remindAt.setTime(Date.now());
+    const soon = new Date();
+    soon.setSeconds(0, 0);
+    remindAt.setTime(soon.getTime());
   }
 
   const existing = await prisma.reminder.findFirst({

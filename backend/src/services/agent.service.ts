@@ -152,6 +152,8 @@ async function executeTool(
         input.daysBefore,
       );
       if (result.status === "not_found") return { error: "Product not found" };
+      if (result.status === "expired")
+        return { error: "This warranty has already expired" };
       return result.reminder;
     }
 
