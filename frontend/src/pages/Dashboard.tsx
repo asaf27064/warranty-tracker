@@ -288,7 +288,9 @@ const Dashboard = () => {
                 )}
               </button>
             </div>
-            {!statsHidden && <DashboardStats stats={stats} />}
+            {!statsHidden && (
+              <DashboardStats stats={stats} onSelectStatus={setActiveFilter} />
+            )}
 
             <motion.div
               initial={{ opacity: 0 }}

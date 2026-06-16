@@ -14,7 +14,7 @@ export type SortDir = "asc" | "desc";
 
 export type ProductFilters = {
   query?: string;
-  status?: "ACTIVE" | "EXPIRING_SOON" | "EXPIRED";
+  status?: "ACTIVE" | "EXPIRING_SOON" | "EXPIRED" | "ATTENTION";
   category?: string;
   sort?: SortField;
   dir?: SortDir;
@@ -95,7 +95,11 @@ function buildWhere(userId: string, filters: ProductFilters) {
   const query = filters.query?.trim();
   return {
     userId,
-    ...(filters.status ? { status: filters.status } : {}),
+    ...(filters.status
+      ? filters.status === "ATTENTION"
+        ? { status: { in: ["EXPIRING_SOON", "EXPIRED"] } as never }
+        : { status: filters.status }
+      : {}),
     ...(filters.category ? { category: filters.category as never } : {}),
     ...(query
       ? {

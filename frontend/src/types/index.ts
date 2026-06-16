@@ -150,4 +150,5 @@ export const StatusLabels: Record<string, string> = {
   ACTIVE: "Active",
   EXPIRING_SOON: "Expiring Soon",
   EXPIRED: "Expired",
+  ATTENTION: "Needs attention",
 };
