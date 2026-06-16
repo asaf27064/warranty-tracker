@@ -670,9 +670,6 @@ const ProductDetails = () => {
                       <Upload className="h-3.5 w-3.5" />
                       Upload
                     </Button>
-                    <span className="hidden text-xs text-muted-foreground sm:inline">
-                      or drop files below
-                    </span>
                     <input
                       id="docUpload"
                       type="file"
@@ -740,8 +737,9 @@ const ProductDetails = () => {
                       </Button>
                     ))}
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       size="sm"
+                      className="border-dashed"
                       onClick={() => setShowCustomReminder(true)}
                     >
                       Custom…
@@ -786,7 +784,8 @@ const ProductDetails = () => {
                       </Button>
                     </div>
                   ) : (
-                    documents.map((doc) => {
+                    <>
+                    {documents.map((doc) => {
                       const FileIcon = getFileIcon(doc.mimeType);
                       return (
                         <div
@@ -828,7 +827,7 @@ const ProductDetails = () => {
                                     updateDocType(doc.id, product.id, value)
                                   }
                                 >
-                                  <SelectTrigger className="h-6 w-auto gap-1 border-none bg-transparent px-0 py-0 text-xs text-muted-foreground shadow-none hover:text-foreground focus:ring-0">
+                                  <SelectTrigger className="h-7 w-auto gap-1 rounded-md border-border bg-transparent px-2 text-xs text-muted-foreground hover:bg-muted hover:text-foreground">
                                     <SelectValue>
                                       {DocTypeLabels[doc.docType] || doc.docType}
                                     </SelectValue>
@@ -877,7 +876,22 @@ const ProductDetails = () => {
                           </div>
                         </div>
                       );
-                    })
+                    })}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        document.getElementById("docUpload")?.click()
+                      }
+                      className={`flex items-center justify-center gap-2 rounded-lg border border-dashed py-3 text-sm transition-colors ${
+                        dragOver
+                          ? "border-emerald-500 bg-emerald-500/5 text-foreground"
+                          : "border-border text-muted-foreground hover:border-emerald-500/60 hover:bg-muted/40"
+                      }`}
+                    >
+                      <Upload className="h-4 w-4" />
+                      Drop files here or click to upload
+                    </button>
+                    </>
                   )}
                 </div>
               ) : (
