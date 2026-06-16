@@ -838,6 +838,9 @@ const ProductDetails = () => {
                 </div>
               ) : (
                 <div className="mt-4 flex flex-col gap-2">
+                  <p className="text-xs text-muted-foreground">
+                    Reminders are set 30, 7, and 1 days before expiry by default.
+                  </p>
                   {reminders.length === 0 ? (
                     <p className="py-4 text-center text-sm text-muted-foreground">
                       No reminders yet
@@ -866,6 +869,7 @@ const ProductDetails = () => {
                           daysBeforeExpiry > 0
                             ? `${daysBeforeExpiry} day${daysBeforeExpiry === 1 ? "" : "s"} before expiry`
                             : `Reminds on ${new Date(reminder.remindAt).toLocaleDateString()}`;
+                        const isDefault = [30, 7, 1].includes(daysBeforeExpiry);
                         const when =
                           daysUntil > 0
                             ? `in ${daysUntil} day${daysUntil === 1 ? "" : "s"}`
@@ -882,7 +886,14 @@ const ProductDetails = () => {
                                 className={`h-4 w-4 shrink-0 ${reminder.sent ? "text-emerald-500" : "text-amber-500"}`}
                               />
                               <div className="min-w-0">
-                                <p className="text-sm text-foreground">{lead}</p>
+                                <p className="flex items-center gap-2 text-sm text-foreground">
+                                  <span className="truncate">{lead}</span>
+                                  {isDefault && (
+                                    <span className="shrink-0 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                                      Default
+                                    </span>
+                                  )}
+                                </p>
                                 <p className="text-xs text-muted-foreground">
                                   {new Date(
                                     reminder.remindAt,
