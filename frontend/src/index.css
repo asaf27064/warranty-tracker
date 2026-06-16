@@ -171,6 +171,27 @@
   background-color: color-mix(in oklch, var(--muted-foreground) 70%, transparent);
 }
 
+/* Receipt-scan line: a sweeping highlight while the AI reads a document */
+@keyframes scan-sweep {
+  0% {
+    top: 6%;
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    top: 94%;
+    opacity: 0;
+  }
+}
+.scan-line {
+  animation: scan-sweep 1.3s ease-in-out infinite;
+}
+
 /* Date picker (react-day-picker) themed to match the app */
 .rdp-root {
   --rdp-accent-color: #059669;

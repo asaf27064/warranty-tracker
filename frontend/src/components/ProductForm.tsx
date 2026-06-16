@@ -521,13 +521,20 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
                   onClick={() =>
                     document.getElementById("receiptUpload")?.click()
                   }
-                  className="flex w-full flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-sky-500/40 bg-sky-500/[0.03] px-4 py-4 text-center transition-colors hover:bg-sky-500/10 disabled:opacity-60"
+                  className="relative flex w-full flex-col items-center justify-center gap-1 overflow-hidden rounded-lg border border-dashed border-sky-500/40 bg-sky-500/[0.03] px-4 py-4 text-center transition-colors hover:bg-sky-500/10 disabled:cursor-progress"
                 >
-                  <span className="flex items-center gap-2 text-sm font-medium text-foreground">
-                    <ReceiptText className="h-4 w-4 text-sky-600 dark:text-sky-400" />
-                    {aiLoading ? "Reading..." : "Scan a receipt or invoice"}
+                  {aiLoading && (
+                    <span className="scan-line pointer-events-none absolute inset-x-3 z-0 h-px bg-gradient-to-r from-transparent via-sky-400 to-transparent shadow-[0_0_8px_1px] shadow-sky-400/50" />
+                  )}
+                  <span className="relative z-10 flex items-center gap-2 text-sm font-medium text-foreground">
+                    <ReceiptText
+                      className={`h-4 w-4 text-sky-600 dark:text-sky-400 ${
+                        aiLoading ? "animate-pulse" : ""
+                      }`}
+                    />
+                    {aiLoading ? "Scanning..." : "Scan a receipt or invoice"}
                   </span>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="relative z-10 text-xs text-muted-foreground">
                     Upload a photo or PDF and we'll read the details
                   </span>
                 </button>
