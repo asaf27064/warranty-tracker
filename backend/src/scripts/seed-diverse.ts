@@ -188,6 +188,7 @@ async function main() {
           sent: r.past,
           sentAt: r.past ? new Date(r.remindAt) : null,
           isRead: r.past && !isRecentLatest,
+          isDefault: true,
         };
       });
       await prisma.reminder.createMany({ data });
