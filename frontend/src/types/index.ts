@@ -117,6 +117,7 @@ export type Reminder = {
   sent: boolean;
   sentAt?: string;
   isRead: boolean;
+  isDefault: boolean;
   productId: string;
   createdAt: string;
 };

@@ -149,6 +149,7 @@ model Reminder {
   sent      Boolean   @default(false)
   sentAt    DateTime?
   isRead    Boolean   @default(false)
+  isDefault Boolean   @default(false)
   productId String
   product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
   createdAt DateTime  @default(now())

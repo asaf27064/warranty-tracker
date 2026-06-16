@@ -41,6 +41,11 @@ export const createReminder = async (req: Request, res: Response) => {
     if (result.status === "not_found") {
       return res.status(404).json({ error: "Product not found" });
     }
+    if (result.status === "expired") {
+      return res
+        .status(400)
+        .json({ error: "This warranty has already expired" });
+    }
     if (result.status === "exists") {
       return res
         .status(409)
@@ -50,6 +55,23 @@ export const createReminder = async (req: Request, res: Response) => {
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Failed to create reminder" });
+  }
+};
+
+export const restoreDefaultReminders = async (req: Request, res: Response) => {
+  try {
+    const productId = req.params.productId as string;
+    const created = await reminderService.restoreDefaultReminders(
+      req.user!.id,
+      productId,
+    );
+    if (created === null) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+    return res.status(200).json({ created });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Failed to restore default reminders" });
   }
 };
 
@@ -80,6 +102,26 @@ export const getUserReminders = async (req: Request, res: Response) => {
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Failed to fetch reminders" });
+  }
+};
+
+export const markAllRemindersRead = async (req: Request, res: Response) => {
+  try {
+    const count = await reminderService.markAllRemindersRead(req.user!.id);
+    return res.status(200).json({ count });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Failed to mark reminders as read" });
+  }
+};
+
+export const clearReminders = async (req: Request, res: Response) => {
+  try {
+    const count = await reminderService.clearFiredReminders(req.user!.id);
+    return res.status(200).json({ count });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Failed to clear reminders" });
   }
 };
 
