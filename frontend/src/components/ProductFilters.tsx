@@ -22,9 +22,9 @@ const ProductFilters = ({ value, onChange }: Props) => {
   const label = options.find((o) => o.value === value)?.label ?? "Sort";
   return (
     <Select value={value} onValueChange={(v) => onChange(v ?? "created:desc")}>
-      <SelectTrigger className="w-44 text-sm">
+      <SelectTrigger size="sm" className="w-44 text-[0.8rem]">
         <span className="flex items-center gap-2">
-          <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+          <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
           {label}
         </span>
       </SelectTrigger>
