@@ -196,7 +196,7 @@ const LandingPage = () => {
                 <Search className="h-3.5 w-3.5" /> Search products
               </div>
               <div className="ml-auto flex items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-600 px-2.5 py-1.5 text-xs font-medium text-white"><Plus className="h-3.5 w-3.5" /> Add</span>
+                <span className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground"><Bell className="h-4 w-4" /></span>
                 <span className="h-7 w-7 rounded-full bg-muted" />
               </div>
             </div>
@@ -261,11 +261,12 @@ const LandingPage = () => {
                   </div>
                 </div>
 
-                <div className="mt-3 flex justify-end">
+                <div className="mt-3 flex items-center justify-between">
                   <div className="flex items-center rounded-lg border border-border p-0.5">
                     <span className="flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-[11px]"><LayoutGrid className="h-3 w-3" /> Cards</span>
                     <span className="flex items-center gap-1 px-2 py-1 text-[11px] text-muted-foreground"><List className="h-3 w-3" /> List</span>
                   </div>
+                  <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-600 px-2.5 py-1 text-[11px] font-medium text-white"><Plus className="h-3 w-3" /> Add product</span>
                 </div>
 
                 <div className="mt-2.5 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
@@ -452,7 +453,7 @@ const LandingPage = () => {
         <Reveal className="mt-8 grid gap-4 sm:grid-cols-3" delay={0.08}>
           {[
             { icon: Bell, title: "In-app", desc: "A live alert and a bell badge while you're using the app." },
-            { icon: Mail, title: "Email digest", desc: "A tidy weekly summary of what's expiring, straight to your inbox." },
+            { icon: Mail, title: "Email digest", desc: "A tidy summary of what's expiring, straight to your inbox." },
             { icon: Smartphone, title: "Browser push", desc: "A notification on your device even when the app is closed." },
           ].map((c) => {
             const Icon = c.icon;
