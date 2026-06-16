@@ -621,7 +621,11 @@ const ProductDetails = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className={documents.length === 0 ? "lg:col-span-2" : undefined}
+            className={
+              leftTab === "reminders" || documents.length === 0
+                ? "lg:col-span-2"
+                : undefined
+            }
           >
             <Card className="border-border bg-card p-6">
               <div className="flex flex-wrap items-center justify-between gap-3">
@@ -1007,7 +1011,7 @@ const ProductDetails = () => {
             </Card>
           </motion.div>
 
-          {documents.length > 0 && (
+          {leftTab === "documents" && documents.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
