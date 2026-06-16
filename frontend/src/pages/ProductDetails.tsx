@@ -628,7 +628,10 @@ const ProductDetails = () => {
                 <div className="inline-flex rounded-lg border border-border p-0.5">
                   <button
                     type="button"
-                    onClick={() => setLeftTab("documents")}
+                    onClick={() => {
+                      setLeftTab("documents");
+                      setShowCustomReminder(false);
+                    }}
                     className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
                       leftTab === "documents"
                         ? "bg-muted text-foreground"
@@ -715,19 +718,20 @@ const ProductDetails = () => {
                   </div>
                 ) : (
                   <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="mr-1 text-xs text-muted-foreground">
+                      Remind me
+                    </span>
                     {[
-                      { label: "1 week", d: 7 },
-                      { label: "1 month", d: 30 },
-                      { label: "3 months", d: 90 },
+                      { label: "1 week before", d: 7 },
+                      { label: "1 month before", d: 30 },
+                      { label: "3 months before", d: 90 },
                     ].map((p) => (
                       <Button
                         key={p.d}
                         variant="outline"
                         size="sm"
-                        className="gap-1.5"
                         onClick={() => handleAddReminder(p.d)}
                       >
-                        <Plus className="h-3.5 w-3.5" />
                         {p.label}
                       </Button>
                     ))}
