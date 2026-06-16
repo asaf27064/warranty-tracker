@@ -20,7 +20,7 @@ const DatePicker = ({ id, value, onChange, invalid }: Props) => {
       <PopoverTrigger
         id={id}
         type="button"
-        className={`flex h-9 w-full items-center gap-2 rounded-md border bg-transparent px-3 text-left text-sm transition-colors hover:bg-muted/50 ${
+        className={`flex h-9 w-full items-center gap-2 rounded-md border bg-muted/40 px-3 text-left text-sm transition-colors hover:bg-muted/50 ${
           invalid ? "border-red-500 ring-1 ring-red-500" : "border-input"
         }`}
       >
