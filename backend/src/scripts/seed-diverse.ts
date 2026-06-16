@@ -161,22 +161,37 @@ async function main() {
     }
 
     if (s.reminders !== false) {
-      const leads = [60, 30, 14, 7, 1];
+      // Mirror the app's real reminders (30/7/1 days before expiry).
+      const leads = [30, 7, 1];
       const rows = leads.map((d) => {
         const remindAt = new Date(warrantyExpiry);
         remindAt.setDate(remindAt.getDate() - d);
         remindAt.setHours(8, 0, 0, 0);
-        const past = remindAt.getTime() < now;
+        return { remindAt, past: remindAt.getTime() < now };
+      });
+      // Already-fired reminders are "sent". To avoid flooding the bell, mark
+      // them read except the single most-recent one, and only if it fired
+      // recently (so long-expired items don't show stale notifications).
+      const RECENT_MS = 45 * 24 * 60 * 60 * 1000;
+      const latestPast = Math.max(
+        ...rows.filter((r) => r.past).map((r) => r.remindAt.getTime()),
+        -Infinity,
+      );
+      const data = rows.map((r) => {
+        const isRecentLatest =
+          r.past &&
+          r.remindAt.getTime() === latestPast &&
+          now - r.remindAt.getTime() < RECENT_MS;
         return {
           productId: product.id,
-          remindAt,
-          sent: past,
-          sentAt: past ? new Date(remindAt) : null,
-          isRead: false,
+          remindAt: r.remindAt,
+          sent: r.past,
+          sentAt: r.past ? new Date(r.remindAt) : null,
+          isRead: r.past && !isRecentLatest,
         };
       });
-      await prisma.reminder.createMany({ data: rows });
-      reminderCount += rows.length;
+      await prisma.reminder.createMany({ data });
+      reminderCount += data.length;
     }
   }
 
