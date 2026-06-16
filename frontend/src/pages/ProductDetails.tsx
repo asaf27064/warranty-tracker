@@ -169,6 +169,8 @@ const ProductDetails = () => {
   );
   // Falls back to the icon if the photo is missing (e.g. deleted from R2).
   const [heroFailed, setHeroFailed] = useState(false);
+  const [showCustomReminder, setShowCustomReminder] = useState(false);
+  const [showPastReminders, setShowPastReminders] = useState(false);
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -257,15 +259,19 @@ const ProductDetails = () => {
     }
   };
 
-  const handleAddReminder = async () => {
+  const handleAddReminder = async (days: number = daysBefore) => {
     if (!id) return;
+    const d = Math.min(365, Math.max(1, Math.round(days || 0)));
     try {
-      await createReminder(id, daysBefore);
-      toast.success(`Reminder set for ${daysBefore} days before expiry`);
+      await createReminder(id, d);
+      toast.success(`Reminder added (${d} day${d === 1 ? "" : "s"} before expiry)`);
+      setShowCustomReminder(false);
     } catch (e) {
       const status = (e as { response?: { status?: number } }).response?.status;
-      if (status === 409) {
-        toast.info("A reminder for that date already exists");
+      if (status === 400) {
+        toast.error("This warranty has already expired");
+      } else if (status === 409) {
+        toast.info("That reminder already exists");
       } else {
         toast.error("Failed to add reminder");
       }
@@ -623,14 +629,22 @@ const ProductDetails = () => {
                       onChange={handleUploadDoc}
                     />
                   </div>
-                ) : (
+                ) : product.status === "EXPIRED" ? (
+                  <span className="text-xs text-muted-foreground">
+                    Warranty already expired
+                  </span>
+                ) : showCustomReminder ? (
                   <div className="flex flex-wrap items-center gap-2">
                     <Input
                       type="number"
                       min={1}
                       max={365}
                       value={daysBefore}
-                      onChange={(e) => setDaysBefore(Number(e.target.value))}
+                      onChange={(e) =>
+                        setDaysBefore(
+                          Math.min(365, Math.max(1, Number(e.target.value) || 1)),
+                        )
+                      }
                       className="w-20 text-center text-sm"
                     />
                     <span className="text-xs text-muted-foreground">
@@ -640,10 +654,43 @@ const ProductDetails = () => {
                       variant="outline"
                       size="sm"
                       className="gap-2"
-                      onClick={handleAddReminder}
+                      onClick={() => handleAddReminder(daysBefore)}
                     >
                       <Plus className="h-3.5 w-3.5" />
                       Add
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowCustomReminder(false)}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {[
+                      { label: "1 week", d: 7 },
+                      { label: "1 month", d: 30 },
+                      { label: "3 months", d: 90 },
+                    ].map((p) => (
+                      <Button
+                        key={p.d}
+                        variant="outline"
+                        size="sm"
+                        className="gap-1.5"
+                        onClick={() => handleAddReminder(p.d)}
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                        {p.label}
+                      </Button>
+                    ))}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowCustomReminder(true)}
+                    >
+                      Custom…
                     </Button>
                   </div>
                 )}
@@ -748,54 +795,95 @@ const ProductDetails = () => {
                       No reminders yet
                     </p>
                   ) : (
-                    reminders.map((reminder) => {
-                      const daysUntil = Math.ceil(
-                        (new Date(reminder.remindAt).getTime() - Date.now()) /
-                          (1000 * 60 * 60 * 24),
-                      );
-                      const daysBeforeExpiry = Math.round(
-                        (new Date(product.warrantyExpiry).getTime() -
-                          new Date(reminder.remindAt).getTime()) /
-                          (1000 * 60 * 60 * 24),
-                      );
-                      return (
-                        <div
-                          key={reminder.id}
-                          className="flex items-center justify-between gap-3 rounded-lg bg-muted/50 px-4 py-3"
-                        >
-                          <div className="flex min-w-0 items-center gap-3">
-                            <Bell
-                              className={`h-4 w-4 shrink-0 ${reminder.sent ? "text-emerald-500" : "text-amber-500"}`}
-                            />
-                            <div className="min-w-0">
-                              <p className="text-sm text-foreground">
-                                {daysBeforeExpiry} day
-                                {daysBeforeExpiry === 1 ? "" : "s"} before expiry
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {new Date(
-                                  reminder.remindAt,
-                                ).toLocaleDateString()}
-                                {" · "}
-                                {daysUntil > 0
-                                  ? `in ${daysUntil} days`
-                                  : reminder.sent
-                                    ? "Sent"
-                                    : "Due"}
-                              </p>
-                            </div>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => setReminderToDelete(reminder.id)}
-                            className="inline-flex shrink-0 items-center gap-1 rounded-md border border-border px-2 py-1 text-xs font-medium text-red-500 transition-colors hover:bg-red-500/10"
+                    (() => {
+                      const now = Date.now();
+                      const renderRow = (
+                        reminder: (typeof reminders)[number],
+                      ) => {
+                        const daysUntil = Math.ceil(
+                          (new Date(reminder.remindAt).getTime() - now) /
+                            (1000 * 60 * 60 * 24),
+                        );
+                        const daysBeforeExpiry = Math.round(
+                          (new Date(product.warrantyExpiry).getTime() -
+                            new Date(reminder.remindAt).getTime()) /
+                            (1000 * 60 * 60 * 24),
+                        );
+                        const lead =
+                          daysBeforeExpiry > 0
+                            ? `${daysBeforeExpiry} day${daysBeforeExpiry === 1 ? "" : "s"} before expiry`
+                            : `Reminds on ${new Date(reminder.remindAt).toLocaleDateString()}`;
+                        const when =
+                          daysUntil > 0
+                            ? `in ${daysUntil} day${daysUntil === 1 ? "" : "s"}`
+                            : reminder.sent
+                              ? "Sent"
+                              : "Due";
+                        return (
+                          <div
+                            key={reminder.id}
+                            className="flex items-center justify-between gap-3 rounded-lg bg-muted/50 px-4 py-3"
                           >
-                            <Trash2 className="h-3.5 w-3.5" />
-                            Delete
-                          </button>
-                        </div>
+                            <div className="flex min-w-0 items-center gap-3">
+                              <Bell
+                                className={`h-4 w-4 shrink-0 ${reminder.sent ? "text-emerald-500" : "text-amber-500"}`}
+                              />
+                              <div className="min-w-0">
+                                <p className="text-sm text-foreground">{lead}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {new Date(
+                                    reminder.remindAt,
+                                  ).toLocaleDateString()}
+                                  {" · "}
+                                  {when}
+                                </p>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setReminderToDelete(reminder.id)}
+                              className="inline-flex shrink-0 items-center gap-1 rounded-md border border-border px-2 py-1 text-xs font-medium text-red-500 transition-colors hover:bg-red-500/10"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                              Delete
+                            </button>
+                          </div>
+                        );
+                      };
+                      const sorted = [...reminders].sort(
+                        (a, b) =>
+                          new Date(a.remindAt).getTime() -
+                          new Date(b.remindAt).getTime(),
                       );
-                    })
+                      const upcoming = sorted.filter(
+                        (r) => new Date(r.remindAt).getTime() > now,
+                      );
+                      const past = sorted
+                        .filter((r) => new Date(r.remindAt).getTime() <= now)
+                        .reverse();
+                      return (
+                        <>
+                          {upcoming.length === 0 && (
+                            <p className="py-2 text-center text-xs text-muted-foreground">
+                              No upcoming reminders
+                            </p>
+                          )}
+                          {upcoming.map(renderRow)}
+                          {past.length > 0 && (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => setShowPastReminders((v) => !v)}
+                                className="mt-1 self-start text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+                              >
+                                {showPastReminders ? "Hide" : "Show"} past ({past.length})
+                              </button>
+                              {showPastReminders && past.map(renderRow)}
+                            </>
+                          )}
+                        </>
+                      );
+                    })()
                   )}
                 </div>
               )}
