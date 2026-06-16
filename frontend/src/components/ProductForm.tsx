@@ -696,6 +696,11 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
                     )}
                   </div>
                 </div>
+                {!isEdit && (
+                  <p className="text-xs text-muted-foreground">
+                    We'll remind you 30, 7, and 1 days before it expires.
+                  </p>
+                )}
               </section>
 
               {!isEdit && (
