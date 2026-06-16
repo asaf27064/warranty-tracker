@@ -852,9 +852,14 @@ const ProductDetails = () => {
                           (new Date(reminder.remindAt).getTime() - now) /
                             (1000 * 60 * 60 * 24),
                         );
+                        const dayStart = (d: string) => {
+                          const x = new Date(d);
+                          x.setHours(0, 0, 0, 0);
+                          return x.getTime();
+                        };
                         const daysBeforeExpiry = Math.round(
-                          (new Date(product.warrantyExpiry).getTime() -
-                            new Date(reminder.remindAt).getTime()) /
+                          (dayStart(product.warrantyExpiry) -
+                            dayStart(reminder.remindAt)) /
                             (1000 * 60 * 60 * 24),
                         );
                         const lead =
