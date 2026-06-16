@@ -215,3 +215,21 @@ export async function deleteReminder(userId: string, id: string) {
   await prisma.reminder.delete({ where: { id } });
   return true;
 }
+
+// Mark every unread reminder for the user as read (clears the bell's badge).
+export async function markAllRemindersRead(userId: string) {
+  const res = await prisma.reminder.updateMany({
+    where: { product: { userId }, isRead: false },
+    data: { isRead: true },
+  });
+  return res.count;
+}
+
+// Clear notifications: delete the already-fired reminders (remindAt in the
+// past). Upcoming reminders are kept.
+export async function clearFiredReminders(userId: string) {
+  const res = await prisma.reminder.deleteMany({
+    where: { product: { userId }, remindAt: { lte: new Date() } },
+  });
+  return res.count;
+}

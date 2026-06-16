@@ -88,6 +88,26 @@ export const getUserReminders = async (req: Request, res: Response) => {
   }
 };
 
+export const markAllRemindersRead = async (req: Request, res: Response) => {
+  try {
+    const count = await reminderService.markAllRemindersRead(req.user!.id);
+    return res.status(200).json({ count });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Failed to mark reminders as read" });
+  }
+};
+
+export const clearReminders = async (req: Request, res: Response) => {
+  try {
+    const count = await reminderService.clearFiredReminders(req.user!.id);
+    return res.status(200).json({ count });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Failed to clear reminders" });
+  }
+};
+
 export const markReminderRead = async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
