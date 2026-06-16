@@ -91,6 +91,27 @@ export const uploadDoc = async (req: Request, res: Response) => {
   }
 };
 
+export const updateDoc = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id as string;
+    const doc = await prisma.document.findUnique({
+      where: { id },
+      include: { product: { select: { userId: true } } },
+    });
+    if (!doc || doc.product.userId !== req.user!.id) {
+      return res.status(404).json({ error: "Document not found" });
+    }
+    const updated = await prisma.document.update({
+      where: { id },
+      data: { docType: req.body.docType },
+    });
+    return res.status(200).json(updated);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Failed to update doc" });
+  }
+};
+
 export const deleteDoc = async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;

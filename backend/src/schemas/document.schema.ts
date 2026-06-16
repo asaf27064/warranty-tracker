@@ -8,3 +8,10 @@ export const uploadDocSchema = z.object({
     .optional()
     .default("OTHER"),
 });
+
+export const updateDocSchema = z.object({
+  docType: z.enum(
+    ["RECEIPT", "INVOICE", "WARRANTY_CERTIFICATE", "PHOTO", "OTHER"],
+    { error: () => ({ message: "Invalid document type" }) },
+  ),
+});

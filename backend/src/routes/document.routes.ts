@@ -4,11 +4,12 @@ import { verifyJWT } from "../middlewares/auth";
 import {
   getAllDocs,
   uploadDoc,
+  updateDoc,
   deleteDoc,
 } from "../controllers/document.controller";
 import { validateRequest } from "../middlewares/validate";
 import { idParamSchema, productIdParamSchema } from "../schemas/common.schema";
-import { uploadDocSchema } from "../schemas/document.schema";
+import { uploadDocSchema, updateDocSchema } from "../schemas/document.schema";
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -30,6 +31,12 @@ router.post(
   upload.single("file"),
   validateRequest(uploadDocSchema, "body"),
   uploadDoc,
+);
+router.patch(
+  "/:id",
+  validateRequest(idParamSchema, "params"),
+  validateRequest(updateDocSchema, "body"),
+  updateDoc,
 );
 router.delete("/:id", validateRequest(idParamSchema, "params"), deleteDoc);
 

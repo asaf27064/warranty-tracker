@@ -28,5 +28,14 @@ export const useDocuments = () => {
     await getAllDocs(productId);
   };
 
-  return { documents, getAllDocs, uploadDoc, deleteDoc };
+  const updateDocType = async (
+    docId: string,
+    productId: string,
+    docType: string,
+  ) => {
+    await api.patch(`/api/documents/${docId}`, { docType });
+    await getAllDocs(productId);
+  };
+
+  return { documents, getAllDocs, uploadDoc, updateDocType, deleteDoc };
 };

@@ -149,7 +149,8 @@ const DocumentPreview = ({
 
 const ProductDetails = () => {
   const { getProductById, deleteProduct } = useProducts();
-  const { documents, getAllDocs, uploadDoc, deleteDoc } = useDocuments();
+  const { documents, getAllDocs, uploadDoc, updateDocType, deleteDoc } =
+    useDocuments();
   const { reminders, getAllReminders, createReminder, deleteReminder } =
     useReminders();
   const { id } = useParams<{ id: string }>();
@@ -157,7 +158,7 @@ const ProductDetails = () => {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [daysBefore, setDaysBefore] = useState(30);
-  const [selectedDocType, setSelectedDocType] = useState("OTHER");
+  const [dragOver, setDragOver] = useState(false);
   const [showProductModal, setShowProductModal] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState<ProductDocument | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -246,17 +247,41 @@ const ProductDetails = () => {
     }
   };
 
-  const handleUploadDoc = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !id) return;
+  // Guess the document type from the file so the user uploads first and only
+  // re-classifies if the guess is wrong.
+  const guessDocType = (file: File) => {
+    const n = file.name.toLowerCase();
+    if (n.includes("invoice")) return "INVOICE";
+    if (n.includes("warrant")) return "WARRANTY_CERTIFICATE";
+    if (n.includes("receipt")) return "RECEIPT";
+    if (file.type.startsWith("image/")) return "PHOTO";
+    return "RECEIPT";
+  };
+
+  const uploadFiles = async (files: File[]) => {
+    if (!id || files.length === 0) return;
     try {
-      await uploadDoc(id, file, selectedDocType);
-      toast.success("Document uploaded");
+      for (const file of files) {
+        await uploadDoc(id, file, guessDocType(file));
+      }
+      toast.success(
+        files.length > 1 ? `${files.length} documents added` : "Document added",
+      );
     } catch {
-      toast.error("Failed to upload document");
-    } finally {
-      e.target.value = ""; // allow re-selecting the same file
+      toast.error("Failed to upload");
     }
+  };
+
+  const handleUploadDoc = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    e.target.value = ""; // allow re-selecting the same file
+    await uploadFiles(files);
+  };
+
+  const handleDropDocs = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    await uploadFiles(Array.from(e.dataTransfer.files ?? []));
   };
 
   const handleAddReminder = async (days: number = daysBefore) => {
@@ -591,25 +616,6 @@ const ProductDetails = () => {
 
                 {leftTab === "documents" ? (
                   <div className="flex flex-wrap items-center gap-2">
-                    <Select
-                      value={selectedDocType}
-                      onValueChange={(value) =>
-                        setSelectedDocType(value ?? "OTHER")
-                      }
-                    >
-                      <SelectTrigger className="w-40 text-sm">
-                        <SelectValue>
-                          {DocTypeLabels[selectedDocType]}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(DocTypeLabels).map(([value, label]) => (
-                          <SelectItem key={value} value={value}>
-                            {label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
                     <Button
                       variant="outline"
                       size="sm"
@@ -621,9 +627,13 @@ const ProductDetails = () => {
                       <Upload className="h-3.5 w-3.5" />
                       Upload
                     </Button>
+                    <span className="hidden text-xs text-muted-foreground sm:inline">
+                      or drop files below
+                    </span>
                     <input
                       id="docUpload"
                       type="file"
+                      multiple
                       accept="image/*,application/pdf"
                       className="hidden"
                       onChange={handleUploadDoc}
@@ -697,7 +707,19 @@ const ProductDetails = () => {
               </div>
 
               {leftTab === "documents" ? (
-                <div className="mt-4 flex flex-col gap-2">
+                <div
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setDragOver(true);
+                  }}
+                  onDragLeave={() => setDragOver(false)}
+                  onDrop={handleDropDocs}
+                  className={`mt-4 flex flex-col gap-2 rounded-lg transition-colors ${
+                    dragOver
+                      ? "ring-2 ring-emerald-500/40 ring-offset-2 ring-offset-background"
+                      : ""
+                  }`}
+                >
                   {documents.length === 0 ? (
                     <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-10 text-center">
                       <ReceiptText className="h-9 w-9 text-muted-foreground" />
@@ -751,11 +773,37 @@ const ProductDetails = () => {
                               <p className="truncate text-sm font-medium text-foreground">
                                 {doc.fileName}
                               </p>
-                              <p className="truncate text-xs text-muted-foreground">
-                                {DocTypeLabels[doc.docType] || doc.docType}
-                                {" · "}
-                                {formatFileSize(doc.fileSize)}
-                              </p>
+                              <div
+                                className="mt-0.5 flex items-center gap-2"
+                                onClick={(event) => event.stopPropagation()}
+                              >
+                                <Select
+                                  value={doc.docType}
+                                  onValueChange={(value) =>
+                                    value &&
+                                    updateDocType(doc.id, product.id, value)
+                                  }
+                                >
+                                  <SelectTrigger className="h-6 w-auto gap-1 border-none bg-transparent px-0 py-0 text-xs text-muted-foreground shadow-none hover:text-foreground focus:ring-0">
+                                    <SelectValue>
+                                      {DocTypeLabels[doc.docType] || doc.docType}
+                                    </SelectValue>
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {Object.entries(DocTypeLabels).map(
+                                      ([value, label]) => (
+                                        <SelectItem key={value} value={value}>
+                                          {label}
+                                        </SelectItem>
+                                      ),
+                                    )}
+                                  </SelectContent>
+                                </Select>
+                                <span className="text-xs text-muted-foreground">
+                                  {" · "}
+                                  {formatFileSize(doc.fileSize)}
+                                </span>
+                              </div>
                             </div>
                           </div>
                           <div className="flex shrink-0 items-center gap-1">
