@@ -159,6 +159,30 @@ export async function setProductsArchived(
   return result.count;
 }
 
+const AUTO_ARCHIVE_AFTER_DAYS = 90;
+
+// For users who opted in, archive products that expired more than 90 days ago.
+export async function autoArchiveExpiredProducts() {
+  const optedIn = await prisma.user.findMany({
+    where: { autoArchiveExpired: true },
+    select: { id: true },
+  });
+  if (optedIn.length === 0) return 0;
+
+  const cutoff = startOfTodayDate();
+  cutoff.setDate(cutoff.getDate() - AUTO_ARCHIVE_AFTER_DAYS);
+
+  const result = await prisma.product.updateMany({
+    where: {
+      userId: { in: optedIn.map((u) => u.id) },
+      archived: false,
+      warrantyExpiry: { lt: cutoff },
+    },
+    data: { archived: true },
+  });
+  return result.count;
+}
+
 // Used by the agent - returns a bounded array of matching products.
 export async function searchProducts(
   userId: string,

@@ -57,6 +57,7 @@ model User {
   theme              String    @default("dark")
   defaultView        String    @default("cards")
   onboarded          Boolean   @default(false)
+  autoArchiveExpired Boolean   @default(false)
   pushSubscriptions  PushSubscription[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt

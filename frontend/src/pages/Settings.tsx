@@ -23,6 +23,7 @@ import {
   LayoutGrid,
   List,
   Trash2,
+  Archive,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import {
@@ -277,6 +278,16 @@ const Settings = () => {
                   </Button>
                 </div>
               )}
+            </Section>
+
+            <Section title="Products">
+              <ToggleRow
+                icon={Archive}
+                title="Auto-archive expired"
+                desc="Archive products automatically 90 days after their warranty expires."
+                checked={user?.autoArchiveExpired}
+                onChange={(v) => setPref({ autoArchiveExpired: v })}
+              />
             </Section>
 
             <Section title="Danger zone">

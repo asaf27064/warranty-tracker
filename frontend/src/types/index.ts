@@ -41,6 +41,7 @@ export type User = {
   emailNotifications: boolean;
   pushNotifications: boolean;
   inAppNotifications: boolean;
+  autoArchiveExpired: boolean;
   theme: string;
   defaultView: string;
   onboarded: boolean;
@@ -53,6 +54,7 @@ export type UserPreferences = Pick<
   | "emailNotifications"
   | "pushNotifications"
   | "inAppNotifications"
+  | "autoArchiveExpired"
   | "theme"
   | "defaultView"
   | "onboarded"
