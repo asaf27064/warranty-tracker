@@ -20,7 +20,7 @@ export type SortDir = "asc" | "desc";
 
 export type ProductFilters = {
   query?: string;
-  status?: "ACTIVE" | "EXPIRING_SOON" | "EXPIRED" | "ATTENTION";
+  status?: "ACTIVE" | "EXPIRING_SOON" | "EXPIRED" | "ATTENTION" | "ARCHIVED";
   category?: string;
   sort?: SortField;
   dir?: SortDir;
@@ -103,9 +103,13 @@ export async function createProduct(userId: string, input: CreateProductInput) {
 
 function buildWhere(userId: string, filters: ProductFilters) {
   const query = filters.query?.trim();
+  const archivedView = filters.status === "ARCHIVED";
   return {
     userId,
-    ...(filters.status
+    // The archived view shows only archived products; every other view hides
+    // them.
+    archived: archivedView,
+    ...(filters.status && filters.status !== "ARCHIVED"
       ? filters.status === "ATTENTION"
         ? { status: { in: ["EXPIRING_SOON", "EXPIRED"] } as never }
         : { status: filters.status }
@@ -138,6 +142,19 @@ export async function getProductsForExport(
 export async function deleteProducts(userId: string, ids: string[]) {
   const result = await prisma.product.deleteMany({
     where: { id: { in: ids }, userId },
+  });
+  return result.count;
+}
+
+// Archive or unarchive one or more products. Scoped by userId. Returns count.
+export async function setProductsArchived(
+  userId: string,
+  ids: string[],
+  archived: boolean,
+) {
+  const result = await prisma.product.updateMany({
+    where: { id: { in: ids }, userId },
+    data: { archived },
   });
   return result.count;
 }
@@ -184,22 +201,27 @@ export async function listProducts(
 }
 
 export async function getProductStats(userId: string) {
-  const [byStatus, byCategory, soonest] = await Promise.all([
+  const [byStatus, byCategory, soonest, archivedCount] = await Promise.all([
     prisma.product.groupBy({
       by: ["status"],
-      where: { userId },
+      where: { userId, archived: false },
       _count: { _all: true },
     }),
     prisma.product.groupBy({
       by: ["category"],
-      where: { userId },
+      where: { userId, archived: false },
       _count: { _all: true },
     }),
     prisma.product.findFirst({
-      where: { userId, warrantyExpiry: { gte: startOfTodayDate() } },
+      where: {
+        userId,
+        archived: false,
+        warrantyExpiry: { gte: startOfTodayDate() },
+      },
       orderBy: { warrantyExpiry: "asc" },
       select: { name: true, warrantyExpiry: true },
     }),
+    prisma.product.count({ where: { userId, archived: true } }),
   ]);
 
   let nextExpiry: { name: string; date: Date; count: number } | null = null;
@@ -209,7 +231,11 @@ export async function getProductStats(userId: string) {
     const dayEnd = new Date(soonest.warrantyExpiry);
     dayEnd.setHours(23, 59, 59, 999);
     const sameDay = await prisma.product.count({
-      where: { userId, warrantyExpiry: { gte: dayStart, lte: dayEnd } },
+      where: {
+        userId,
+        archived: false,
+        warrantyExpiry: { gte: dayStart, lte: dayEnd },
+      },
     });
     nextExpiry = {
       name: soonest.name,
@@ -222,6 +248,7 @@ export async function getProductStats(userId: string) {
     active: 0,
     expiringSoon: 0,
     expired: 0,
+    archived: archivedCount,
     total: 0,
     byCategory: {} as Record<string, number>,
     nextExpiry,

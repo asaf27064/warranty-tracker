@@ -99,10 +99,12 @@ model Product {
   warrantyExpiry DateTime
   warrantyMonths Int
   category       Category       @default(NONE)
+  archived       Boolean        @default(false)
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
   @@index([userId])
+  @@index([userId, archived])
 }
 
 model Document {

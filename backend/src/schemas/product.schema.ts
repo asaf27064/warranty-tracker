@@ -44,10 +44,18 @@ export const bulkDeleteSchema = z.object({
     .max(200, { error: "Too many ids" }),
 });
 
+export const archiveSchema = z.object({
+  ids: z
+    .array(z.string().min(1))
+    .min(1, { error: "At least one id is required" })
+    .max(200, { error: "Too many ids" }),
+  archived: z.boolean(),
+});
+
 export const getAllProductsQuerySchema = z.object({
   search: z.string().optional(),
   status: z
-    .enum(["ACTIVE", "EXPIRING_SOON", "EXPIRED", "ATTENTION"])
+    .enum(["ACTIVE", "EXPIRING_SOON", "EXPIRED", "ATTENTION", "ARCHIVED"])
     .optional(),
   category: z
     .enum([
