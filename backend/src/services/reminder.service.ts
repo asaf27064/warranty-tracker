@@ -5,22 +5,26 @@ import { sendPushToUser } from "./push.service";
 
 export const processReminders = async () => {
   const now = new Date();
-  const thirtyDaysFromNow = new Date();
-  thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+  // Status is evaluated by calendar day: a warranty stays covered through its
+  // whole expiry day and only becomes expired once that day has passed.
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+  const thirtyDaysFromNow = new Date(startOfToday);
+  thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 31);
 
   // 1. expired
   await prisma.product.updateMany({
     where: {
-      warrantyExpiry: { lt: now },
+      warrantyExpiry: { lt: startOfToday },
       status: { not: "EXPIRED" },
     },
     data: { status: "EXPIRED" },
   });
 
-  // 2. expiring soon (within 30 days)
+  // 2. expiring soon (within 30 days, including today)
   await prisma.product.updateMany({
     where: {
-      warrantyExpiry: { gte: now, lte: thirtyDaysFromNow },
+      warrantyExpiry: { gte: startOfToday, lt: thirtyDaysFromNow },
       status: "ACTIVE",
     },
     data: { status: "EXPIRING_SOON" },

@@ -6,6 +6,14 @@ import { getWarrantyStatus } from "../utils/getWarrantyStatus";
 // Framework-agnostic product business logic, shared by the HTTP controllers
 // and the chat agent so there is a single source of truth (validated by Zod).
 
+// Warranties are covered through their whole expiry day, so "upcoming" is
+// measured from the start of today rather than the current instant.
+function startOfTodayDate(): Date {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
 export type CreateProductInput = z.infer<typeof createProductSchema>;
 export type UpdateProductInput = Partial<CreateProductInput>;
 
@@ -181,7 +189,7 @@ export async function getProductStats(userId: string) {
       _count: { _all: true },
     }),
     prisma.product.findFirst({
-      where: { userId, warrantyExpiry: { gte: new Date() } },
+      where: { userId, warrantyExpiry: { gte: startOfTodayDate() } },
       orderBy: { warrantyExpiry: "asc" },
       select: { name: true, warrantyExpiry: true },
     }),
@@ -231,7 +239,10 @@ export async function getExpiringWarranties(
   const until = new Date();
   until.setDate(until.getDate() + days);
   return prisma.product.findMany({
-    where: { userId, warrantyExpiry: { gte: new Date(), lte: until } },
+    where: {
+      userId,
+      warrantyExpiry: { gte: startOfTodayDate(), lte: until },
+    },
     orderBy: { warrantyExpiry: "asc" },
   });
 }
