@@ -38,9 +38,14 @@ const SORT_COLUMN: Record<SortField, string> = {
 
 // A unique `id` tiebreaker (same direction) keeps cursor pagination
 // deterministic even when the primary sort field has ties.
-function buildOrderBy(sort?: SortField, dir?: SortDir): object[] {
-  const field = sort ?? "created";
-  const direction = dir ?? (sort ? "asc" : "desc");
+function buildOrderBy(filters: ProductFilters): object[] {
+  // The "needs attention" view leads with actionable items (expiring soon,
+  // soonest first) and lists the already-expired ones after.
+  if (filters.status === "ATTENTION") {
+    return [{ status: "asc" }, { warrantyExpiry: "asc" }, { id: "asc" }];
+  }
+  const field = filters.sort ?? "created";
+  const direction = filters.dir ?? (filters.sort ? "asc" : "desc");
   const column = SORT_COLUMN[field];
   return [{ [column]: direction }, { id: direction }];
 }
@@ -127,7 +132,7 @@ export async function getProductsForExport(
 ) {
   return prisma.product.findMany({
     where: buildWhere(userId, filters),
-    orderBy: buildOrderBy(filters.sort, filters.dir),
+    orderBy: buildOrderBy(filters),
   });
 }
 
@@ -147,7 +152,7 @@ export async function searchProducts(
 ) {
   return prisma.product.findMany({
     where: buildWhere(userId, filters),
-    orderBy: buildOrderBy(filters.sort, filters.dir),
+    orderBy: buildOrderBy(filters),
     take: AGENT_LIMIT,
   });
 }
@@ -160,18 +165,23 @@ export async function listProducts(
   page: { limit?: number; cursor?: string } = {},
 ) {
   const limit = Math.min(Math.max(page.limit ?? 20, 1), 100);
+  const where = buildWhere(userId, filters);
 
-  const rows = await prisma.product.findMany({
-    where: buildWhere(userId, filters),
-    orderBy: buildOrderBy(filters.sort, filters.dir),
-    take: limit + 1,
-    ...(page.cursor ? { cursor: { id: page.cursor }, skip: 1 } : {}),
-  });
+  const [rows, total] = await Promise.all([
+    prisma.product.findMany({
+      where,
+      orderBy: buildOrderBy(filters),
+      take: limit + 1,
+      ...(page.cursor ? { cursor: { id: page.cursor }, skip: 1 } : {}),
+    }),
+    prisma.product.count({ where }),
+  ]);
 
   const hasMore = rows.length > limit;
   const items = hasMore ? rows.slice(0, limit) : rows;
   return {
     items,
+    total,
     nextCursor: hasMore ? items[items.length - 1].id : null,
   };
 }
