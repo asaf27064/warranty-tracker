@@ -666,11 +666,7 @@ const ProductDetails = () => {
                     className="hidden"
                     onChange={handleUploadDoc}
                   />
-                ) : product.status === "EXPIRED" ? (
-                  <span className="text-xs text-muted-foreground">
-                    Warranty already expired
-                  </span>
-                ) : showCustomReminder ? (
+                ) : product.status === "EXPIRED" ? null : showCustomReminder ? (
                   <div className="flex flex-wrap items-center gap-2">
                     <Input
                       type="number"
@@ -883,26 +879,36 @@ const ProductDetails = () => {
                 </div>
               ) : (
                 <div className="mt-4 flex flex-col gap-2">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
+                  {product.status === "EXPIRED" ? (
                     <p className="text-xs text-muted-foreground">
-                      Reminders are set 30, 7, and 1 days before expiry by
-                      default.
+                      This warranty expired on{" "}
+                      {new Date(product.warrantyExpiry).toLocaleDateString()}.
+                      Reminders are no longer scheduled.
                     </p>
-                    {missingDefaults && (
-                      <button
-                        type="button"
-                        onClick={handleRestoreDefaults}
-                        className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-emerald-600 transition-colors hover:text-emerald-700 dark:text-emerald-400"
-                      >
-                        <RotateCcw className="h-3.5 w-3.5" />
-                        Restore defaults
-                      </button>
-                    )}
-                  </div>
+                  ) : (
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-xs text-muted-foreground">
+                        Reminders are set 30, 7, and 1 days before expiry by
+                        default.
+                      </p>
+                      {missingDefaults && (
+                        <button
+                          type="button"
+                          onClick={handleRestoreDefaults}
+                          className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-emerald-600 transition-colors hover:text-emerald-700 dark:text-emerald-400"
+                        >
+                          <RotateCcw className="h-3.5 w-3.5" />
+                          Restore defaults
+                        </button>
+                      )}
+                    </div>
+                  )}
                   {reminders.length === 0 ? (
-                    <p className="py-4 text-center text-sm text-muted-foreground">
-                      No reminders yet
-                    </p>
+                    product.status !== "EXPIRED" && (
+                      <p className="py-4 text-center text-sm text-muted-foreground">
+                        No reminders yet
+                      </p>
+                    )
                   ) : (
                     (() => {
                       const now = Date.now();
