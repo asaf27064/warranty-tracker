@@ -22,18 +22,19 @@ const Navbar = ({ onToggleSidebar, searchValue, onSearchChange }: Props) => {
 
   return (
     <nav className="flex items-center gap-3 border-b border-border bg-card/80 px-4 py-2.5 backdrop-blur-xl">
-      <div className="flex flex-1 items-center gap-2.5">
-        {onToggleSidebar && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onToggleSidebar}
-            aria-label="Toggle sidebar"
-            className="text-muted-foreground hover:text-foreground"
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
-        )}
+      {onToggleSidebar && (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onToggleSidebar}
+          aria-label="Toggle sidebar"
+          className="text-muted-foreground hover:text-foreground"
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+      )}
+
+      <div className="flex items-center gap-2.5">
         <img src={logo} alt="logo" className="h-9 w-auto object-contain" />
         <span className="hidden text-lg font-bold text-foreground sm:inline">
           Warranty Tracker
@@ -41,18 +42,18 @@ const Navbar = ({ onToggleSidebar, searchValue, onSearchChange }: Props) => {
       </div>
 
       {showSearch && (
-        <div className="relative w-full max-w-md">
+        <div className="relative mx-2 max-w-md flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search products..."
             value={searchValue}
             onChange={(e) => onSearchChange?.(e.target.value)}
-            className="h-9 rounded-lg border-border bg-muted/40 pl-10 dark:bg-input/30"
+            className="pl-10"
           />
         </div>
       )}
 
-      <div className="flex flex-1 items-center justify-end gap-2">
+      <div className="ml-auto flex items-center gap-2">
         <button
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           aria-label="Toggle theme"

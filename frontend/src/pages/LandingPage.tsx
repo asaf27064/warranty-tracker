@@ -191,13 +191,11 @@ const LandingPage = () => {
           </div>
           <Reveal hover className="shine glass relative overflow-hidden rounded-2xl border border-border shadow-2xl transition-shadow">
             <div className="flex items-center gap-3 border-b border-border/60 px-4 py-2.5">
-              <div className="flex flex-1 items-center">
-                <img src={logo} alt="" className="h-6 w-6 object-contain" />
-              </div>
-              <div className="hidden w-full max-w-xs items-center gap-2 rounded-md border border-border bg-muted/40 px-2.5 py-1.5 text-xs text-muted-foreground sm:flex">
+              <img src={logo} alt="" className="h-6 w-6 object-contain" />
+              <div className="hidden flex-1 items-center gap-2 rounded-md border border-border bg-muted/40 px-2.5 py-1.5 text-xs text-muted-foreground sm:flex">
                 <Search className="h-3.5 w-3.5" /> Search products
               </div>
-              <div className="flex flex-1 items-center justify-end gap-2">
+              <div className="ml-auto flex items-center gap-2">
                 <span className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground"><Bell className="h-4 w-4" /></span>
                 <span className="h-7 w-7 rounded-full bg-muted" />
               </div>
