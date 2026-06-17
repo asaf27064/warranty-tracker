@@ -439,7 +439,7 @@ const Dashboard = () => {
                     Delete
                   </Button>
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
                     className="gap-1"
                     onClick={exitSelectMode}

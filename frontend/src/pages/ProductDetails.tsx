@@ -691,7 +691,7 @@ const ProductDetails = () => {
                       Add
                     </Button>
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       size="sm"
                       onClick={() => setShowCustomReminder(false)}
                     >
