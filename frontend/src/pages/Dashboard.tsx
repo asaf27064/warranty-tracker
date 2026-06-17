@@ -11,6 +11,8 @@ import {
   X,
   Eye,
   EyeOff,
+  Archive,
+  ArchiveRestore,
 } from "lucide-react";
 import { FaFileCsv } from "react-icons/fa";
 import { motion } from "framer-motion";
@@ -55,7 +57,7 @@ const Dashboard = () => {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
-  const { bulkDeleteProducts, fetchForExport } = useProducts();
+  const { bulkDeleteProducts, setArchived, fetchForExport } = useProducts();
   const { updatePreferences } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     const stored = localStorage.getItem("wtSidebarCollapsed");
@@ -129,7 +131,6 @@ const Dashboard = () => {
     data,
     isLoading,
     isError,
-    error,
     refetch,
     fetchNextPage,
     hasNextPage,
@@ -231,6 +232,21 @@ const Dashboard = () => {
     } catch (e) {
       toast.error("Failed to delete products");
       throw e;
+    }
+  };
+
+  const archivedView = activeFilter === "ARCHIVED";
+  const handleBulkArchive = async () => {
+    const ids = [...selectedIds];
+    try {
+      const count = await setArchived(ids, !archivedView);
+      toast.success(
+        `${archivedView ? "Unarchived" : "Archived"} ${count} product${count === 1 ? "" : "s"}`,
+      );
+      exitSelectMode();
+      await refreshAfterMutation();
+    } catch {
+      toast.error(`Failed to ${archivedView ? "unarchive" : "archive"} products`);
     }
   };
 
@@ -431,6 +447,20 @@ const Dashboard = () => {
                   <Button
                     variant="outline"
                     size="sm"
+                    className="gap-2"
+                    disabled={selectedIds.size === 0}
+                    onClick={handleBulkArchive}
+                  >
+                    {archivedView ? (
+                      <ArchiveRestore className="h-4 w-4" />
+                    ) : (
+                      <Archive className="h-4 w-4" />
+                    )}
+                    {archivedView ? "Unarchive" : "Archive"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
                     className="gap-2 text-red-500 hover:bg-red-500/10 hover:text-red-500"
                     disabled={selectedIds.size === 0}
                     onClick={() => setBulkDeleteOpen(true)}
@@ -532,9 +562,8 @@ const Dashboard = () => {
                   Could not load products
                 </p>
                 <p className="mt-1 max-w-md text-sm text-muted-foreground">
-                  {error instanceof Error
-                    ? error.message
-                    : "Please check that the backend is running and try again."}
+                  Something went wrong while loading your products. Please try
+                  again in a moment.
                 </p>
                 <Button
                   variant="outline"

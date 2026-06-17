@@ -41,6 +41,7 @@ export type User = {
   emailNotifications: boolean;
   pushNotifications: boolean;
   inAppNotifications: boolean;
+  autoArchiveExpired: boolean;
   theme: string;
   defaultView: string;
   onboarded: boolean;
@@ -53,6 +54,7 @@ export type UserPreferences = Pick<
   | "emailNotifications"
   | "pushNotifications"
   | "inAppNotifications"
+  | "autoArchiveExpired"
   | "theme"
   | "defaultView"
   | "onboarded"
@@ -68,6 +70,7 @@ export type Product = {
   purchaseDate: string;
   warrantyExpiry: string;
   warrantyMonths: number;
+  archived: boolean;
   createdAt: string;
   updatedAt: string;
 };
@@ -94,6 +97,7 @@ export type Stats = {
   active: number;
   expiringSoon: number;
   expired: number;
+  archived?: number;
   total?: number;
   byCategory?: Record<string, number>;
   nextExpiry?: { name: string; date: string; count: number } | null;
@@ -151,4 +155,5 @@ export const StatusLabels: Record<string, string> = {
   EXPIRING_SOON: "Expiring Soon",
   EXPIRED: "Expired",
   ATTENTION: "Needs attention",
+  ARCHIVED: "Archived",
 };

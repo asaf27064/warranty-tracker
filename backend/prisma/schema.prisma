@@ -57,6 +57,7 @@ model User {
   theme              String    @default("dark")
   defaultView        String    @default("cards")
   onboarded          Boolean   @default(false)
+  autoArchiveExpired Boolean   @default(false)
   pushSubscriptions  PushSubscription[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
@@ -99,10 +100,12 @@ model Product {
   warrantyExpiry DateTime
   warrantyMonths Int
   category       Category       @default(NONE)
+  archived       Boolean        @default(false)
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
   @@index([userId])
+  @@index([userId, archived])
 }
 
 model Document {

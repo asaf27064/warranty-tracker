@@ -2,6 +2,7 @@ import cron from "node-cron";
 import prisma from "../config/db";
 import { sendReminderDigestEmail, type ReminderItem } from "./email.service";
 import { sendPushToUser } from "./push.service";
+import { autoArchiveExpiredProducts } from "./product.service";
 
 export const processReminders = async () => {
   const now = new Date();
@@ -127,8 +128,13 @@ export const processReminders = async () => {
   }
 };
 
+const dailyMaintenance = async () => {
+  await processReminders();
+  await autoArchiveExpiredProducts();
+};
+
 export const startReminderCron = () => {
-  cron.schedule("0 8 * * *", processReminders, {
+  cron.schedule("0 8 * * *", dailyMaintenance, {
     timezone: "Asia/Jerusalem",
   });
   console.log("Reminder cron scheduled (daily 08:00 IST)");

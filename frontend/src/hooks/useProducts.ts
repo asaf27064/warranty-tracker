@@ -29,6 +29,14 @@ export const useProducts = () => {
     return res.data.deleted;
   };
 
+  const setArchived = async (ids: string[], archived: boolean) => {
+    const res = await api.post<{ count: number }>("/api/products/archive", {
+      ids,
+      archived,
+    });
+    return res.data.count;
+  };
+
   // All products matching the given filter params (no pagination), for export.
   const fetchForExport = async (params: Record<string, string>) => {
     const res = await api.get<Product[]>("/api/products/export", { params });
@@ -41,6 +49,7 @@ export const useProducts = () => {
     updateProduct,
     deleteProduct,
     bulkDeleteProducts,
+    setArchived,
     fetchForExport,
   };
 };

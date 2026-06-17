@@ -65,6 +65,7 @@ export const updatePreferences = async (req: Request, res: Response) => {
     emailNotifications?: boolean;
     pushNotifications?: boolean;
     inAppNotifications?: boolean;
+    autoArchiveExpired?: boolean;
     theme?: string;
     defaultView?: string;
     onboarded?: boolean;
@@ -74,6 +75,7 @@ export const updatePreferences = async (req: Request, res: Response) => {
     "emailNotifications",
     "pushNotifications",
     "inAppNotifications",
+    "autoArchiveExpired",
     "onboarded",
   ] as const;
   for (const key of bools) {

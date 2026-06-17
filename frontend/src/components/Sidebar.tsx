@@ -16,6 +16,7 @@ import {
   Wrench,
   CookingPot,
   Package,
+  Archive,
   type LucideIcon,
 } from "lucide-react";
 import { CategoryLabels, type Stats } from "../types";
@@ -160,6 +161,18 @@ const Sidebar = ({
         </>
       )}
       </div>
+
+      {(stats.archived ?? 0) > 0 && (
+        <div className="mt-2 shrink-0 border-t border-border pt-2">
+          <Item
+            active={statusFilter === "ARCHIVED"}
+            onClick={() => setStatusFilter("ARCHIVED")}
+            Icon={Archive}
+            label="Archived"
+            count={stats.archived}
+          />
+        </div>
+      )}
 
       <div className="mt-3 shrink-0 border-t border-border pt-3">
         <button

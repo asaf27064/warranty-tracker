@@ -28,6 +28,8 @@ import {
   CalendarDays,
   ShieldCheck,
   RotateCcw,
+  Archive,
+  ArchiveRestore,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import Navbar from "../components/Navbar";
@@ -149,7 +151,7 @@ const DocumentPreview = ({
 };
 
 const ProductDetails = () => {
-  const { getProductById, deleteProduct } = useProducts();
+  const { getProductById, deleteProduct, setArchived } = useProducts();
   const { documents, getAllDocs, uploadDoc, updateDocType, deleteDoc } =
     useDocuments();
   const {
@@ -228,6 +230,16 @@ const ProductDetails = () => {
     } catch (e) {
       toast.error("Failed to delete product");
       throw e; // keep the confirm dialog open
+    }
+  };
+
+  const handleToggleArchive = async () => {
+    try {
+      await setArchived([product.id], !product.archived);
+      setProduct({ ...product, archived: !product.archived });
+      toast.success(product.archived ? "Product unarchived" : "Product archived");
+    } catch {
+      toast.error("Failed to update product");
     }
   };
 
@@ -470,6 +482,12 @@ const ProductDetails = () => {
                             ].label
                           }
                         </Badge>
+                        {product.archived && (
+                          <Badge className="gap-1 border-0 bg-muted text-muted-foreground">
+                            <Archive className="h-3 w-3" />
+                            Archived
+                          </Badge>
+                        )}
                       </div>
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
@@ -481,6 +499,21 @@ const ProductDetails = () => {
                       >
                         <Pencil className="h-4 w-4" />
                         <span className="hidden sm:inline">Edit</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                        onClick={handleToggleArchive}
+                      >
+                        {product.archived ? (
+                          <ArchiveRestore className="h-4 w-4" />
+                        ) : (
+                          <Archive className="h-4 w-4" />
+                        )}
+                        <span className="hidden sm:inline">
+                          {product.archived ? "Unarchive" : "Archive"}
+                        </span>
                       </Button>
                       <Button
                         variant="outline"

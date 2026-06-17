@@ -76,6 +76,21 @@ export const bulkDeleteProducts = async (req: Request, res: Response) => {
   }
 };
 
+export const setProductsArchived = async (req: Request, res: Response) => {
+  try {
+    const { ids, archived } = req.body as { ids: string[]; archived: boolean };
+    const count = await productService.setProductsArchived(
+      req.user!.id,
+      ids,
+      archived,
+    );
+    return res.status(200).json({ count });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Failed to update products" });
+  }
+};
+
 export const getProductById = async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
