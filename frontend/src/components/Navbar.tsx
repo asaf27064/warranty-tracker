@@ -47,7 +47,7 @@ const Navbar = ({ onToggleSidebar, searchValue, onSearchChange }: Props) => {
             placeholder="Search products..."
             value={searchValue}
             onChange={(e) => onSearchChange?.(e.target.value)}
-            className="pl-10"
+            className="h-9 rounded-lg border-border bg-muted/40 pl-10 dark:bg-input/30"
           />
         </div>
       )}
