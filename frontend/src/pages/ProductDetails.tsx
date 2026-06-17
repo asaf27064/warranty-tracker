@@ -27,6 +27,7 @@ import {
   Store,
   CalendarDays,
   ShieldCheck,
+  RotateCcw,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import Navbar from "../components/Navbar";
@@ -149,15 +150,21 @@ const DocumentPreview = ({
 
 const ProductDetails = () => {
   const { getProductById, deleteProduct } = useProducts();
-  const { documents, getAllDocs, uploadDoc, deleteDoc } = useDocuments();
-  const { reminders, getAllReminders, createReminder, deleteReminder } =
-    useReminders();
+  const { documents, getAllDocs, uploadDoc, updateDocType, deleteDoc } =
+    useDocuments();
+  const {
+    reminders,
+    getAllReminders,
+    createReminder,
+    deleteReminder,
+    restoreDefaults,
+  } = useReminders();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [daysBefore, setDaysBefore] = useState(30);
-  const [selectedDocType, setSelectedDocType] = useState("OTHER");
+  const [dragOver, setDragOver] = useState(false);
   const [showProductModal, setShowProductModal] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState<ProductDocument | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -169,6 +176,8 @@ const ProductDetails = () => {
   );
   // Falls back to the icon if the photo is missing (e.g. deleted from R2).
   const [heroFailed, setHeroFailed] = useState(false);
+  const [showCustomReminder, setShowCustomReminder] = useState(false);
+  const [showPastReminders, setShowPastReminders] = useState(false);
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -244,31 +253,72 @@ const ProductDetails = () => {
     }
   };
 
-  const handleUploadDoc = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !id) return;
+  // Guess the document type from the file name / mime.
+  const guessDocType = (file: File) => {
+    const n = file.name.toLowerCase();
+    if (n.includes("invoice")) return "INVOICE";
+    if (n.includes("warrant")) return "WARRANTY_CERTIFICATE";
+    if (n.includes("receipt")) return "RECEIPT";
+    if (file.type.startsWith("image/")) return "PHOTO";
+    return "RECEIPT";
+  };
+
+  const uploadFiles = async (files: File[]) => {
+    if (!id || files.length === 0) return;
     try {
-      await uploadDoc(id, file, selectedDocType);
-      toast.success("Document uploaded");
+      for (const file of files) {
+        await uploadDoc(id, file, guessDocType(file));
+      }
+      toast.success(
+        files.length > 1 ? `${files.length} documents added` : "Document added",
+      );
     } catch {
-      toast.error("Failed to upload document");
-    } finally {
-      e.target.value = ""; // allow re-selecting the same file
+      toast.error("Failed to upload");
     }
   };
 
-  const handleAddReminder = async () => {
+  const handleUploadDoc = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    e.target.value = ""; // allow re-selecting the same file
+    await uploadFiles(files);
+  };
+
+  const handleDropDocs = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    await uploadFiles(Array.from(e.dataTransfer.files ?? []));
+  };
+
+  const handleAddReminder = async (days: number = daysBefore) => {
     if (!id) return;
+    const d = Math.min(365, Math.max(1, Math.round(days || 0)));
     try {
-      await createReminder(id, daysBefore);
-      toast.success(`Reminder set for ${daysBefore} days before expiry`);
+      await createReminder(id, d);
+      toast.success(`Reminder added (${d} day${d === 1 ? "" : "s"} before expiry)`);
+      setShowCustomReminder(false);
     } catch (e) {
       const status = (e as { response?: { status?: number } }).response?.status;
-      if (status === 409) {
-        toast.info("A reminder for that date already exists");
+      if (status === 400) {
+        toast.error("This warranty has already expired");
+      } else if (status === 409) {
+        toast.info("That reminder already exists");
       } else {
         toast.error("Failed to add reminder");
       }
+    }
+  };
+
+  const handleRestoreDefaults = async () => {
+    if (!id) return;
+    try {
+      const created = await restoreDefaults(id);
+      toast.success(
+        created > 0
+          ? `Restored ${created} default reminder${created === 1 ? "" : "s"}`
+          : "Default reminders are already set",
+      );
+    } catch {
+      toast.error("Failed to restore default reminders");
     }
   };
 
@@ -302,6 +352,21 @@ const ProductDetails = () => {
     (new Date(product.warrantyExpiry).getTime() - Date.now()) /
       (1000 * 60 * 60 * 24),
   );
+
+  // True when a future 30/7/1 default slot has no reminder.
+  const futureDefaultSlots = [30, 7, 1]
+    .map((days) => {
+      const slot = new Date(product.warrantyExpiry);
+      slot.setDate(slot.getDate() - days);
+      slot.setHours(8, 0, 0, 0);
+      return slot.getTime();
+    })
+    .filter((t) => t > Date.now());
+  const missingDefaults =
+    product.status !== "EXPIRED" &&
+    futureDefaultSlots.some(
+      (t) => !reminders.some((r) => new Date(r.remindAt).getTime() === t),
+    );
   const timeSignal =
     daysLeft < 0
       ? `${Math.abs(daysLeft)} days ago`
@@ -554,14 +619,21 @@ const ProductDetails = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className={documents.length === 0 ? "lg:col-span-2" : undefined}
+            className={
+              leftTab === "reminders" || documents.length === 0
+                ? "lg:col-span-2"
+                : undefined
+            }
           >
             <Card className="border-border bg-card p-6">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="inline-flex rounded-lg border border-border p-0.5">
                   <button
                     type="button"
-                    onClick={() => setLeftTab("documents")}
+                    onClick={() => {
+                      setLeftTab("documents");
+                      setShowCustomReminder(false);
+                    }}
                     className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
                       leftTab === "documents"
                         ? "bg-muted text-foreground"
@@ -584,53 +656,26 @@ const ProductDetails = () => {
                 </div>
 
                 {leftTab === "documents" ? (
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Select
-                      value={selectedDocType}
-                      onValueChange={(value) =>
-                        setSelectedDocType(value ?? "OTHER")
-                      }
-                    >
-                      <SelectTrigger className="w-40 text-sm">
-                        <SelectValue>
-                          {DocTypeLabels[selectedDocType]}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(DocTypeLabels).map(([value, label]) => (
-                          <SelectItem key={value} value={value}>
-                            {label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="gap-2"
-                      onClick={() =>
-                        document.getElementById("docUpload")?.click()
-                      }
-                    >
-                      <Upload className="h-3.5 w-3.5" />
-                      Upload
-                    </Button>
-                    <input
-                      id="docUpload"
-                      type="file"
-                      accept="image/*,application/pdf"
-                      className="hidden"
-                      onChange={handleUploadDoc}
-                    />
-                  </div>
-                ) : (
+                  <input
+                    id="docUpload"
+                    type="file"
+                    multiple
+                    accept="image/*,application/pdf"
+                    className="hidden"
+                    onChange={handleUploadDoc}
+                  />
+                ) : product.status === "EXPIRED" ? null : showCustomReminder ? (
                   <div className="flex flex-wrap items-center gap-2">
                     <Input
                       type="number"
                       min={1}
                       max={365}
                       value={daysBefore}
-                      onChange={(e) => setDaysBefore(Number(e.target.value))}
+                      onChange={(e) =>
+                        setDaysBefore(
+                          Math.min(365, Math.max(1, Number(e.target.value) || 1)),
+                        )
+                      }
                       className="w-20 text-center text-sm"
                     />
                     <span className="text-xs text-muted-foreground">
@@ -640,17 +685,64 @@ const ProductDetails = () => {
                       variant="outline"
                       size="sm"
                       className="gap-2"
-                      onClick={handleAddReminder}
+                      onClick={() => handleAddReminder(daysBefore)}
                     >
                       <Plus className="h-3.5 w-3.5" />
                       Add
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowCustomReminder(false)}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="mr-1 text-xs text-muted-foreground">
+                      Remind me
+                    </span>
+                    {[
+                      { label: "1 week before", d: 7 },
+                      { label: "1 month before", d: 30 },
+                      { label: "3 months before", d: 90 },
+                    ].map((p) => (
+                      <Button
+                        key={p.d}
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleAddReminder(p.d)}
+                      >
+                        {p.label}
+                      </Button>
+                    ))}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-dashed"
+                      onClick={() => setShowCustomReminder(true)}
+                    >
+                      Custom…
                     </Button>
                   </div>
                 )}
               </div>
 
               {leftTab === "documents" ? (
-                <div className="mt-4 flex flex-col gap-2">
+                <div
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setDragOver(true);
+                  }}
+                  onDragLeave={() => setDragOver(false)}
+                  onDrop={handleDropDocs}
+                  className={`mt-4 flex flex-col gap-2 rounded-lg transition-colors ${
+                    dragOver
+                      ? "ring-2 ring-emerald-500/40 ring-offset-2 ring-offset-background"
+                      : ""
+                  }`}
+                >
                   {documents.length === 0 ? (
                     <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-10 text-center">
                       <ReceiptText className="h-9 w-9 text-muted-foreground" />
@@ -673,7 +765,8 @@ const ProductDetails = () => {
                       </Button>
                     </div>
                   ) : (
-                    documents.map((doc) => {
+                    <>
+                    {documents.map((doc) => {
                       const FileIcon = getFileIcon(doc.mimeType);
                       return (
                         <div
@@ -704,11 +797,37 @@ const ProductDetails = () => {
                               <p className="truncate text-sm font-medium text-foreground">
                                 {doc.fileName}
                               </p>
-                              <p className="truncate text-xs text-muted-foreground">
-                                {DocTypeLabels[doc.docType] || doc.docType}
-                                {" · "}
-                                {formatFileSize(doc.fileSize)}
-                              </p>
+                              <div
+                                className="mt-0.5 flex items-center gap-2"
+                                onClick={(event) => event.stopPropagation()}
+                              >
+                                <Select
+                                  value={doc.docType}
+                                  onValueChange={(value) =>
+                                    value &&
+                                    updateDocType(doc.id, product.id, value)
+                                  }
+                                >
+                                  <SelectTrigger className="h-7 w-auto gap-1 rounded-md border-border bg-transparent px-2 text-xs text-muted-foreground hover:bg-muted hover:text-foreground">
+                                    <SelectValue>
+                                      {DocTypeLabels[doc.docType] || doc.docType}
+                                    </SelectValue>
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {Object.entries(DocTypeLabels).map(
+                                      ([value, label]) => (
+                                        <SelectItem key={value} value={value}>
+                                          {label}
+                                        </SelectItem>
+                                      ),
+                                    )}
+                                  </SelectContent>
+                                </Select>
+                                <span className="text-xs text-muted-foreground">
+                                  {" · "}
+                                  {formatFileSize(doc.fileSize)}
+                                </span>
+                              </div>
                             </div>
                           </div>
                           <div className="flex shrink-0 items-center gap-1">
@@ -738,71 +857,166 @@ const ProductDetails = () => {
                           </div>
                         </div>
                       );
-                    })
+                    })}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        document.getElementById("docUpload")?.click()
+                      }
+                      className={`flex items-center justify-center gap-2 rounded-lg border border-dashed py-3 text-sm transition-colors ${
+                        dragOver
+                          ? "border-emerald-500 bg-emerald-500/5 text-foreground"
+                          : "border-border text-muted-foreground hover:border-emerald-500/60 hover:bg-muted/40"
+                      }`}
+                    >
+                      <Upload className="h-4 w-4" />
+                      Drop files here or click to upload
+                    </button>
+                    </>
                   )}
                 </div>
               ) : (
                 <div className="mt-4 flex flex-col gap-2">
-                  {reminders.length === 0 ? (
-                    <p className="py-4 text-center text-sm text-muted-foreground">
-                      No reminders yet
+                  {product.status === "EXPIRED" ? (
+                    <p className="text-xs text-muted-foreground">
+                      This warranty expired on{" "}
+                      {new Date(product.warrantyExpiry).toLocaleDateString()}.
+                      Reminders are no longer scheduled.
                     </p>
                   ) : (
-                    reminders.map((reminder) => {
-                      const daysUntil = Math.ceil(
-                        (new Date(reminder.remindAt).getTime() - Date.now()) /
-                          (1000 * 60 * 60 * 24),
-                      );
-                      const daysBeforeExpiry = Math.round(
-                        (new Date(product.warrantyExpiry).getTime() -
-                          new Date(reminder.remindAt).getTime()) /
-                          (1000 * 60 * 60 * 24),
-                      );
-                      return (
-                        <div
-                          key={reminder.id}
-                          className="flex items-center justify-between gap-3 rounded-lg bg-muted/50 px-4 py-3"
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-xs text-muted-foreground">
+                        Reminders are set 30, 7, and 1 days before expiry by
+                        default.
+                      </p>
+                      {missingDefaults && (
+                        <button
+                          type="button"
+                          onClick={handleRestoreDefaults}
+                          className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-emerald-600 transition-colors hover:text-emerald-700 dark:text-emerald-400"
                         >
-                          <div className="flex min-w-0 items-center gap-3">
-                            <Bell
-                              className={`h-4 w-4 shrink-0 ${reminder.sent ? "text-emerald-500" : "text-amber-500"}`}
-                            />
-                            <div className="min-w-0">
-                              <p className="text-sm text-foreground">
-                                {daysBeforeExpiry} day
-                                {daysBeforeExpiry === 1 ? "" : "s"} before expiry
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {new Date(
-                                  reminder.remindAt,
-                                ).toLocaleDateString()}
-                                {" · "}
-                                {daysUntil > 0
-                                  ? `in ${daysUntil} days`
-                                  : reminder.sent
-                                    ? "Sent"
-                                    : "Due"}
-                              </p>
-                            </div>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => setReminderToDelete(reminder.id)}
-                            className="inline-flex shrink-0 items-center gap-1 rounded-md border border-border px-2 py-1 text-xs font-medium text-red-500 transition-colors hover:bg-red-500/10"
+                          <RotateCcw className="h-3.5 w-3.5" />
+                          Restore defaults
+                        </button>
+                      )}
+                    </div>
+                  )}
+                  {reminders.length === 0 ? (
+                    product.status !== "EXPIRED" && (
+                      <p className="py-4 text-center text-sm text-muted-foreground">
+                        No reminders yet
+                      </p>
+                    )
+                  ) : (
+                    (() => {
+                      const now = Date.now();
+                      const renderRow = (
+                        reminder: (typeof reminders)[number],
+                      ) => {
+                        const daysUntil = Math.ceil(
+                          (new Date(reminder.remindAt).getTime() - now) /
+                            (1000 * 60 * 60 * 24),
+                        );
+                        const dayStart = (d: string) => {
+                          const x = new Date(d);
+                          x.setHours(0, 0, 0, 0);
+                          return x.getTime();
+                        };
+                        const daysBeforeExpiry = Math.round(
+                          (dayStart(product.warrantyExpiry) -
+                            dayStart(reminder.remindAt)) /
+                            (1000 * 60 * 60 * 24),
+                        );
+                        const lead =
+                          daysBeforeExpiry > 0
+                            ? `${daysBeforeExpiry} day${daysBeforeExpiry === 1 ? "" : "s"} before expiry`
+                            : `Reminds on ${new Date(reminder.remindAt).toLocaleDateString()}`;
+                        const isDefault = reminder.isDefault;
+                        const when =
+                          daysUntil > 0
+                            ? `in ${daysUntil} day${daysUntil === 1 ? "" : "s"}`
+                            : reminder.sent
+                              ? "Sent"
+                              : "Due";
+                        return (
+                          <div
+                            key={reminder.id}
+                            className="flex items-center justify-between gap-3 rounded-lg bg-muted/50 px-4 py-3"
                           >
-                            <Trash2 className="h-3.5 w-3.5" />
-                            Delete
-                          </button>
-                        </div>
+                            <div className="flex min-w-0 items-center gap-3">
+                              <Bell
+                                className={`h-4 w-4 shrink-0 ${reminder.sent ? "text-emerald-500" : "text-amber-500"}`}
+                              />
+                              <div className="min-w-0">
+                                <p className="flex items-center gap-2 text-sm text-foreground">
+                                  <span className="truncate">{lead}</span>
+                                  {isDefault && (
+                                    <span className="shrink-0 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                                      Default
+                                    </span>
+                                  )}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {new Date(
+                                    reminder.remindAt,
+                                  ).toLocaleDateString()}
+                                  {" · "}
+                                  {when}
+                                </p>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setReminderToDelete(reminder.id)}
+                              className="inline-flex shrink-0 items-center gap-1 rounded-md border border-border px-2 py-1 text-xs font-medium text-red-500 transition-colors hover:bg-red-500/10"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                              Delete
+                            </button>
+                          </div>
+                        );
+                      };
+                      const sorted = [...reminders].sort(
+                        (a, b) =>
+                          new Date(a.remindAt).getTime() -
+                          new Date(b.remindAt).getTime(),
                       );
-                    })
+                      const upcoming = sorted.filter(
+                        (r) => new Date(r.remindAt).getTime() > now,
+                      );
+                      const past = sorted
+                        .filter((r) => new Date(r.remindAt).getTime() <= now)
+                        .reverse();
+                      return (
+                        <>
+                          {upcoming.length === 0 && (
+                            <p className="py-2 text-center text-xs text-muted-foreground">
+                              No upcoming reminders
+                            </p>
+                          )}
+                          {upcoming.map(renderRow)}
+                          {past.length > 0 && (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => setShowPastReminders((v) => !v)}
+                                className="mt-1 self-start text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+                              >
+                                {showPastReminders ? "Hide" : "Show"} past ({past.length})
+                              </button>
+                              {showPastReminders && past.map(renderRow)}
+                            </>
+                          )}
+                        </>
+                      );
+                    })()
                   )}
                 </div>
               )}
             </Card>
           </motion.div>
 
-          {documents.length > 0 && (
+          {leftTab === "documents" && documents.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

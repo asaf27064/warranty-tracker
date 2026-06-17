@@ -5,22 +5,25 @@ import { sendPushToUser } from "./push.service";
 
 export const processReminders = async () => {
   const now = new Date();
-  const thirtyDaysFromNow = new Date();
-  thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+  // Status is judged by calendar day, not the exact instant.
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+  const thirtyDaysFromNow = new Date(startOfToday);
+  thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 31);
 
   // 1. expired
   await prisma.product.updateMany({
     where: {
-      warrantyExpiry: { lt: now },
+      warrantyExpiry: { lt: startOfToday },
       status: { not: "EXPIRED" },
     },
     data: { status: "EXPIRED" },
   });
 
-  // 2. expiring soon (within 30 days)
+  // 2. expiring soon (within 30 days, including today)
   await prisma.product.updateMany({
     where: {
-      warrantyExpiry: { gte: now, lte: thirtyDaysFromNow },
+      warrantyExpiry: { gte: startOfToday, lt: thirtyDaysFromNow },
       status: "ACTIVE",
     },
     data: { status: "EXPIRING_SOON" },
@@ -136,6 +139,7 @@ type Reminder = Awaited<ReturnType<typeof prisma.reminder.create>>;
 
 export type CreateReminderResult =
   | { status: "not_found" }
+  | { status: "expired" }
   | { status: "exists"; reminder: Reminder }
   | { status: "created"; reminder: Reminder };
 
@@ -157,13 +161,20 @@ export async function createReminder(
   });
   if (!product) return { status: "not_found" };
 
+  // A reminder is pointless once the warranty has already expired.
+  if (product.warrantyExpiry.getTime() <= Date.now()) {
+    return { status: "expired" };
+  }
+
   const remindAt = new Date(product.warrantyExpiry);
   remindAt.setDate(remindAt.getDate() - Number(daysBefore));
   remindAt.setHours(8, 0, 0, 0);
-  // If that time has already passed (e.g. a short remaining warranty), schedule
-  // it for now so it still fires on the next run instead of being silently lost.
+  // If that lead time is already in the past (short remaining warranty),
+  // schedule it for now, floored to the minute so repeat clicks dedupe cleanly.
   if (remindAt.getTime() < Date.now()) {
-    remindAt.setTime(Date.now());
+    const soon = new Date();
+    soon.setSeconds(0, 0);
+    remindAt.setTime(soon.getTime());
   }
 
   const existing = await prisma.reminder.findFirst({
@@ -175,6 +186,42 @@ export async function createReminder(
     data: { remindAt, productId },
   });
   return { status: "created", reminder };
+}
+
+const DEFAULT_REMINDER_DAYS = [30, 7, 1];
+
+// Recreate any missing future 30/7/1-day default reminders. Returns the count
+// created, or null if the product is not found.
+export async function restoreDefaultReminders(
+  userId: string,
+  productId: string,
+): Promise<number | null> {
+  const product = await prisma.product.findFirst({
+    where: { id: productId, userId },
+  });
+  if (!product) return null;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  let created = 0;
+  for (const days of DEFAULT_REMINDER_DAYS) {
+    const remindAt = new Date(product.warrantyExpiry);
+    remindAt.setDate(remindAt.getDate() - days);
+    remindAt.setHours(8, 0, 0, 0);
+    if (remindAt < today) continue;
+
+    const existing = await prisma.reminder.findFirst({
+      where: { productId, remindAt },
+    });
+    if (existing) continue;
+
+    await prisma.reminder.create({
+      data: { remindAt, productId, isDefault: true },
+    });
+    created += 1;
+  }
+  return created;
 }
 
 export async function getUserReminders(userId: string) {
@@ -206,4 +253,20 @@ export async function deleteReminder(userId: string, id: string) {
   if (!reminder || reminder.product.userId !== userId) return false;
   await prisma.reminder.delete({ where: { id } });
   return true;
+}
+
+export async function markAllRemindersRead(userId: string) {
+  const res = await prisma.reminder.updateMany({
+    where: { product: { userId }, isRead: false },
+    data: { isRead: true },
+  });
+  return res.count;
+}
+
+// Delete already-fired reminders; upcoming ones are kept.
+export async function clearFiredReminders(userId: string) {
+  const res = await prisma.reminder.deleteMany({
+    where: { product: { userId }, remindAt: { lte: new Date() } },
+  });
+  return res.count;
 }

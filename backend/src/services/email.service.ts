@@ -20,14 +20,16 @@ export type ReminderItem = {
 const fmtDate = (d: Date | string) =>
   new Date(d).toLocaleDateString("en-GB");
 
+const dayWord = (n: number) => `${n} day${n === 1 ? "" : "s"}`;
+
 const statusFor = (daysLeft: number) =>
-  daysLeft <= 0
+  daysLeft < 0
     ? { color: "#dc2626", label: "Warranty expired" }
     : daysLeft === 0
       ? { color: "#d97706", label: "Expires today" }
       : daysLeft <= 7
-        ? { color: "#d97706", label: `Expires in ${daysLeft} days` }
-        : { color: "#059669", label: `Expires in ${daysLeft} days` };
+        ? { color: "#d97706", label: `Expires in ${dayWord(daysLeft)}` }
+        : { color: "#059669", label: `Expires in ${dayWord(daysLeft)}` };
 
 const elapsedPct = (purchase: Date | string, expiry: Date | string) => {
   const total = new Date(expiry).getTime() - new Date(purchase).getTime();
@@ -77,11 +79,11 @@ export const sendReminderDigestEmail = async (
 
   const subject = multiple
     ? `${sorted.length} warranties need your attention`
-    : top.daysLeft <= 0
+    : top.daysLeft < 0
       ? `Your ${top.productName} warranty has expired`
       : top.daysLeft === 0
         ? `Your ${top.productName} warranty expires today`
-        : `Your ${top.productName} warranty expires in ${top.daysLeft} days`;
+        : `Your ${top.productName} warranty expires in ${dayWord(top.daysLeft)}`;
 
   const title = multiple
     ? `${sorted.length} warranties need your attention`
@@ -120,11 +122,11 @@ export const sendReminderDigestEmail = async (
     "",
     ...sorted.map((it) => {
       const s =
-        it.daysLeft <= 0
+        it.daysLeft < 0
           ? "warranty expired"
           : it.daysLeft === 0
             ? "expires today"
-            : `expires in ${it.daysLeft} days`;
+            : `expires in ${dayWord(it.daysLeft)}`;
       return `- ${it.productName}: ${s} (ends ${fmtDate(it.warrantyExpiry)})`;
     }),
     "",

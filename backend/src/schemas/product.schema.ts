@@ -46,7 +46,9 @@ export const bulkDeleteSchema = z.object({
 
 export const getAllProductsQuerySchema = z.object({
   search: z.string().optional(),
-  status: z.enum(["ACTIVE", "EXPIRING_SOON", "EXPIRED"]).optional(),
+  status: z
+    .enum(["ACTIVE", "EXPIRING_SOON", "EXPIRED", "ATTENTION"])
+    .optional(),
   category: z
     .enum([
       "NONE",

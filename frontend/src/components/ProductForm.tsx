@@ -60,7 +60,7 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
   const [docFiles, setDocFiles] = useState<{ file: File; docType: string }[]>(
     [],
   );
-  const [selectedDocType, setSelectedDocType] = useState("OTHER");
+  const [dragOver, setDragOver] = useState(false);
   const [aiText, setAiText] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [missingFields, setMissingFields] = useState<string[]>([]);
@@ -76,6 +76,29 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
     type: string;
     url: string;
   } | null>(null);
+
+  const guessDocType = (file: File) => {
+    const n = file.name.toLowerCase();
+    if (n.includes("invoice")) return "INVOICE";
+    if (n.includes("warrant")) return "WARRANTY_CERTIFICATE";
+    if (n.includes("receipt")) return "RECEIPT";
+    if (file.type.startsWith("image/")) return "PHOTO";
+    return "RECEIPT";
+  };
+
+  const stageDocs = (files: File[]) => {
+    if (files.length === 0) return;
+    setDocFiles((prev) => [
+      ...prev,
+      ...files.map((file) => ({ file, docType: guessDocType(file) })),
+    ]);
+  };
+
+  const handleDropDocs = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    stageDocs(Array.from(e.dataTransfer.files ?? []));
+  };
 
   const openDocPreview = (file: File) => {
     setPreviewDoc({
@@ -145,7 +168,7 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
     setImageFile(null);
     setLoading(false);
     setDocFiles([]);
-    setSelectedDocType("OTHER");
+    setDragOver(false);
     setAiText("");
     setMissingFields([]);
     setAiHint(false);
@@ -498,13 +521,20 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
                   onClick={() =>
                     document.getElementById("receiptUpload")?.click()
                   }
-                  className="flex w-full flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-sky-500/40 bg-sky-500/[0.03] px-4 py-4 text-center transition-colors hover:bg-sky-500/10 disabled:opacity-60"
+                  className="relative flex w-full flex-col items-center justify-center gap-1 overflow-hidden rounded-lg border border-dashed border-sky-500/40 bg-sky-500/[0.03] px-4 py-4 text-center transition-colors hover:bg-sky-500/10 disabled:cursor-progress"
                 >
-                  <span className="flex items-center gap-2 text-sm font-medium text-foreground">
-                    <ReceiptText className="h-4 w-4 text-sky-600 dark:text-sky-400" />
-                    {aiLoading ? "Reading..." : "Scan a receipt or invoice"}
+                  {aiLoading && (
+                    <span className="scan-line pointer-events-none absolute inset-x-3 z-0 h-px bg-gradient-to-r from-transparent via-sky-400 to-transparent shadow-[0_0_8px_1px] shadow-sky-400/50" />
+                  )}
+                  <span className="relative z-10 flex items-center gap-2 text-sm font-medium text-foreground">
+                    <ReceiptText
+                      className={`h-4 w-4 text-sky-600 dark:text-sky-400 ${
+                        aiLoading ? "animate-pulse" : ""
+                      }`}
+                    />
+                    {aiLoading ? "Scanning..." : "Scan a receipt or invoice"}
                   </span>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="relative z-10 text-xs text-muted-foreground">
                     Upload a photo or PDF and we'll read the details
                   </span>
                 </button>
@@ -673,6 +703,11 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
                     )}
                   </div>
                 </div>
+                {!isEdit && (
+                  <p className="text-xs text-muted-foreground">
+                    We'll remind you 30, 7, and 1 days before it expires.
+                  </p>
+                )}
               </section>
 
               {!isEdit && (
@@ -696,11 +731,32 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
                             <span className="truncate text-sm text-foreground">
                               {doc.file.name}
                             </span>
-                            <span className="shrink-0 text-xs text-muted-foreground">
-                              {DocTypeLabels[doc.docType]}
-                            </span>
                           </div>
                           <div className="flex shrink-0 items-center gap-1">
+                            <Select
+                              value={doc.docType}
+                              onValueChange={(value) =>
+                                value &&
+                                setDocFiles((prev) =>
+                                  prev.map((d, j) =>
+                                    j === i ? { ...d, docType: value } : d,
+                                  ),
+                                )
+                              }
+                            >
+                              <SelectTrigger className="h-8 w-36 text-xs">
+                                <span>{DocTypeLabels[doc.docType]}</span>
+                              </SelectTrigger>
+                              <SelectContent>
+                                {Object.entries(DocTypeLabels).map(
+                                  ([value, label]) => (
+                                    <SelectItem key={value} value={value}>
+                                      {label}
+                                    </SelectItem>
+                                  ),
+                                )}
+                              </SelectContent>
+                            </Select>
                             <Button
                               type="button"
                               variant="ghost"
@@ -727,51 +783,41 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
                     </div>
                   )}
 
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Select
-                      value={selectedDocType}
-                      onValueChange={(value) =>
-                        setSelectedDocType(value ?? "OTHER")
-                      }
-                    >
-                      <SelectTrigger className="w-44 text-sm">
-                        <span>{DocTypeLabels[selectedDocType]}</span>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(DocTypeLabels).map(([value, label]) => (
-                          <SelectItem key={value} value={value}>
-                            {label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="gap-2"
-                      onClick={() =>
-                        document.getElementById("docUpload")?.click()
-                      }
-                    >
-                      <Upload className="h-4 w-4" />
-                      Add document
-                    </Button>
-                    <input
-                      id="docUpload"
-                      type="file"
-                      accept="image/*,application/pdf"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          setDocFiles([
-                            ...docFiles,
-                            { file, docType: selectedDocType },
-                          ]);
-                        }
-                      }}
-                    />
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => document.getElementById("docUpload")?.click()}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setDragOver(true);
+                    }}
+                    onDragLeave={() => setDragOver(false)}
+                    onDrop={handleDropDocs}
+                    className={`flex w-full flex-col items-center justify-center gap-1 rounded-lg border border-dashed py-6 text-center transition-colors ${
+                      dragOver
+                        ? "border-emerald-500 bg-emerald-500/5"
+                        : "border-border hover:border-emerald-500/60 hover:bg-muted/40"
+                    }`}
+                  >
+                    <Upload className="h-5 w-5 text-muted-foreground" />
+                    <span className="text-sm font-medium text-foreground">
+                      Drop files or click to upload
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      Receipts, invoices, warranty cards or photos. We'll guess
+                      the type, you can change it.
+                    </span>
+                  </button>
+                  <input
+                    id="docUpload"
+                    type="file"
+                    multiple
+                    accept="image/*,application/pdf"
+                    className="hidden"
+                    onChange={(e) => {
+                      stageDocs(Array.from(e.target.files ?? []));
+                      e.target.value = "";
+                    }}
+                  />
                 </section>
               )}
 

@@ -22,6 +22,7 @@ import {
   useProductStats,
 } from "../hooks/useProductsQuery";
 import { useProducts } from "../hooks/useProducts";
+import { useSessionState } from "../hooks/useSessionState";
 import { toCsv, downloadCsv } from "../lib/csv";
 import { toast } from "sonner";
 import ProductForm from "../components/ProductForm";
@@ -40,12 +41,15 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [activeFilter, setActiveFilter] = useState("ALL");
-  const [categoryFilter, setCategoryFilter] = useState("ALL");
-  const [sortField, setSortField] = useState("created");
-  const [sortDir, setSortDir] = useState("desc");
+  const [searchQuery, setSearchQuery] = useSessionState("wt:search", "");
+  const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
+  const [activeFilter, setActiveFilter] = useSessionState("wt:status", "ALL");
+  const [categoryFilter, setCategoryFilter] = useSessionState(
+    "wt:category",
+    "ALL",
+  );
+  const [sortField, setSortField] = useSessionState("wt:sortField", "created");
+  const [sortDir, setSortDir] = useSessionState("wt:sortDir", "desc");
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -135,6 +139,14 @@ const Dashboard = () => {
   const stats = statsData ?? { active: 0, expiringSoon: 0, expired: 0 };
 
   const products = data?.pages.flatMap((p) => p.items) ?? [];
+  const totalCount = data?.pages[0]?.total ?? 0;
+  const countNoun = hasActiveFilters
+    ? totalCount === 1
+      ? "result"
+      : "results"
+    : totalCount === 1
+      ? "product"
+      : "products";
 
   const loadMoreRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -239,7 +251,6 @@ const Dashboard = () => {
         onToggleSidebar={toggleSidebar}
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
-        onAdd={() => setShowAddProduct(true)}
       />
 
       <div className="relative flex flex-1 overflow-hidden">
@@ -289,7 +300,18 @@ const Dashboard = () => {
                 )}
               </button>
             </div>
-            {!statsHidden && <DashboardStats stats={stats} />}
+            {!statsHidden && (
+              <DashboardStats
+                stats={stats}
+                onSelectStatus={(status) => {
+                  setActiveFilter(status);
+                  if (status === "ATTENTION" || status === "EXPIRING_SOON") {
+                    setSortField("expiry");
+                    setSortDir("asc");
+                  }
+                }}
+              />
+            )}
 
             <motion.div
               initial={{ opacity: 0 }}
@@ -297,7 +319,8 @@ const Dashboard = () => {
               transition={{ delay: 0.4 }}
               className="mt-8 flex items-center justify-between gap-3"
             >
-              <div className="flex overflow-hidden rounded-md border border-border">
+              <div className="flex items-center gap-3">
+                <div className="flex overflow-hidden rounded-md border border-border">
                 <button
                   onClick={() => changeView("cards")}
                   className={`flex items-center gap-1.5 px-3 py-1.5 text-sm ${
@@ -320,8 +343,22 @@ const Dashboard = () => {
                   <List className="h-4 w-4" />
                   List
                 </button>
+                </div>
+                {!isLoading && !isError && products.length > 0 && (
+                  <span className="text-sm text-muted-foreground">
+                    {totalCount} {countNoun}
+                  </span>
+                )}
               </div>
               <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  className="gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
+                  onClick={() => setShowAddProduct(true)}
+                >
+                  <Plus className="h-4 w-4" />
+                  Add product
+                </Button>
                 <Button
                   variant="outline"
                   size="sm"
@@ -559,9 +596,13 @@ const Dashboard = () => {
             )}
 
             <div ref={loadMoreRef} className="mt-6 flex justify-center">
-              {isFetchingNextPage && (
+              {isFetchingNextPage ? (
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-              )}
+              ) : !hasNextPage && products.length > 0 ? (
+                <p className="text-xs text-muted-foreground">
+                  That's all {totalCount} {countNoun}
+                </p>
+              ) : null}
             </div>
 
             <ProductForm

@@ -6,6 +6,12 @@ import { getWarrantyStatus } from "../utils/getWarrantyStatus";
 // Framework-agnostic product business logic, shared by the HTTP controllers
 // and the chat agent so there is a single source of truth (validated by Zod).
 
+function startOfTodayDate(): Date {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
 export type CreateProductInput = z.infer<typeof createProductSchema>;
 export type UpdateProductInput = Partial<CreateProductInput>;
 
@@ -14,7 +20,7 @@ export type SortDir = "asc" | "desc";
 
 export type ProductFilters = {
   query?: string;
-  status?: "ACTIVE" | "EXPIRING_SOON" | "EXPIRED";
+  status?: "ACTIVE" | "EXPIRING_SOON" | "EXPIRED" | "ATTENTION";
   category?: string;
   sort?: SortField;
   dir?: SortDir;
@@ -30,9 +36,13 @@ const SORT_COLUMN: Record<SortField, string> = {
 
 // A unique `id` tiebreaker (same direction) keeps cursor pagination
 // deterministic even when the primary sort field has ties.
-function buildOrderBy(sort?: SortField, dir?: SortDir): object[] {
-  const field = sort ?? "created";
-  const direction = dir ?? (sort ? "asc" : "desc");
+function buildOrderBy(filters: ProductFilters): object[] {
+  // Needs-attention leads with expiring items, then expired.
+  if (filters.status === "ATTENTION") {
+    return [{ status: "asc" }, { warrantyExpiry: "asc" }, { id: "asc" }];
+  }
+  const field = filters.sort ?? "created";
+  const direction = filters.dir ?? (filters.sort ? "asc" : "desc");
   const column = SORT_COLUMN[field];
   return [{ [column]: direction }, { id: direction }];
 }
@@ -55,7 +65,9 @@ async function createExpiryReminders(
     remindAt.setDate(remindAt.getDate() - days);
     remindAt.setHours(8, 0, 0, 0);
     if (remindAt >= today) {
-      await db.reminder.create({ data: { remindAt, productId } });
+      await db.reminder.create({
+        data: { remindAt, productId, isDefault: true },
+      });
     }
   }
 }
@@ -93,7 +105,11 @@ function buildWhere(userId: string, filters: ProductFilters) {
   const query = filters.query?.trim();
   return {
     userId,
-    ...(filters.status ? { status: filters.status } : {}),
+    ...(filters.status
+      ? filters.status === "ATTENTION"
+        ? { status: { in: ["EXPIRING_SOON", "EXPIRED"] } as never }
+        : { status: filters.status }
+      : {}),
     ...(filters.category ? { category: filters.category as never } : {}),
     ...(query
       ? {
@@ -113,7 +129,7 @@ export async function getProductsForExport(
 ) {
   return prisma.product.findMany({
     where: buildWhere(userId, filters),
-    orderBy: buildOrderBy(filters.sort, filters.dir),
+    orderBy: buildOrderBy(filters),
   });
 }
 
@@ -133,7 +149,7 @@ export async function searchProducts(
 ) {
   return prisma.product.findMany({
     where: buildWhere(userId, filters),
-    orderBy: buildOrderBy(filters.sort, filters.dir),
+    orderBy: buildOrderBy(filters),
     take: AGENT_LIMIT,
   });
 }
@@ -146,18 +162,23 @@ export async function listProducts(
   page: { limit?: number; cursor?: string } = {},
 ) {
   const limit = Math.min(Math.max(page.limit ?? 20, 1), 100);
+  const where = buildWhere(userId, filters);
 
-  const rows = await prisma.product.findMany({
-    where: buildWhere(userId, filters),
-    orderBy: buildOrderBy(filters.sort, filters.dir),
-    take: limit + 1,
-    ...(page.cursor ? { cursor: { id: page.cursor }, skip: 1 } : {}),
-  });
+  const [rows, total] = await Promise.all([
+    prisma.product.findMany({
+      where,
+      orderBy: buildOrderBy(filters),
+      take: limit + 1,
+      ...(page.cursor ? { cursor: { id: page.cursor }, skip: 1 } : {}),
+    }),
+    prisma.product.count({ where }),
+  ]);
 
   const hasMore = rows.length > limit;
   const items = hasMore ? rows.slice(0, limit) : rows;
   return {
     items,
+    total,
     nextCursor: hasMore ? items[items.length - 1].id : null,
   };
 }
@@ -175,7 +196,7 @@ export async function getProductStats(userId: string) {
       _count: { _all: true },
     }),
     prisma.product.findFirst({
-      where: { userId, warrantyExpiry: { gte: new Date() } },
+      where: { userId, warrantyExpiry: { gte: startOfTodayDate() } },
       orderBy: { warrantyExpiry: "asc" },
       select: { name: true, warrantyExpiry: true },
     }),
@@ -225,7 +246,10 @@ export async function getExpiringWarranties(
   const until = new Date();
   until.setDate(until.getDate() + days);
   return prisma.product.findMany({
-    where: { userId, warrantyExpiry: { gte: new Date(), lte: until } },
+    where: {
+      userId,
+      warrantyExpiry: { gte: startOfTodayDate(), lte: until },
+    },
     orderBy: { warrantyExpiry: "asc" },
   });
 }

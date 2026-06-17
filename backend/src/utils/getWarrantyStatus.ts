@@ -1,15 +1,22 @@
 import { type WarrantyStatus } from "../generated/prisma/enums";
 
+const DAY_MS = 1000 * 60 * 60 * 24;
+
+const startOfDay = (date: Date): number => {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
+};
+
 export const getWarrantyStatus = (
   purchaseDate: Date,
   warrantyExpiry: Date,
 ): WarrantyStatus => {
-  const now = new Date();
+  const today = startOfDay(new Date());
+  const expiryDay = startOfDay(warrantyExpiry);
 
-  const diffMs = warrantyExpiry.getTime() - now.getTime();
-  const daysUntilExpiry = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffMs <= 0) return "EXPIRED";
+  if (expiryDay < today) return "EXPIRED";
+  const daysUntilExpiry = Math.round((expiryDay - today) / DAY_MS);
   if (daysUntilExpiry <= 30) return "EXPIRING_SOON";
   return "ACTIVE";
 };

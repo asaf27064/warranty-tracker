@@ -117,6 +117,7 @@ export type Reminder = {
   sent: boolean;
   sentAt?: string;
   isRead: boolean;
+  isDefault: boolean;
   productId: string;
   createdAt: string;
 };
@@ -149,4 +150,5 @@ export const StatusLabels: Record<string, string> = {
   ACTIVE: "Active",
   EXPIRING_SOON: "Expiring Soon",
   EXPIRED: "Expired",
+  ATTENTION: "Needs attention",
 };
