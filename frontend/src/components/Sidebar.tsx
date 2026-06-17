@@ -163,8 +163,7 @@ const Sidebar = ({
       </div>
 
       {(stats.archived ?? 0) > 0 && (
-        <div className="mt-2 shrink-0">
-          {collapsed && <div className="mb-1 border-t border-border" />}
+        <div className="mt-2 shrink-0 border-t border-border pt-2">
           <Item
             active={statusFilter === "ARCHIVED"}
             onClick={() => setStatusFilter("ARCHIVED")}
