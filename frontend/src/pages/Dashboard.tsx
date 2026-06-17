@@ -135,6 +135,14 @@ const Dashboard = () => {
   const stats = statsData ?? { active: 0, expiringSoon: 0, expired: 0 };
 
   const products = data?.pages.flatMap((p) => p.items) ?? [];
+  const totalCount = data?.pages[0]?.total ?? 0;
+  const countNoun = hasActiveFilters
+    ? totalCount === 1
+      ? "result"
+      : "results"
+    : totalCount === 1
+      ? "product"
+      : "products";
 
   const loadMoreRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -432,6 +440,12 @@ const Dashboard = () => {
               </div>
             )}
 
+            {!isLoading && !isError && products.length > 0 && (
+              <p className="mt-4 text-sm text-muted-foreground">
+                {totalCount} {countNoun}
+              </p>
+            )}
+
             {view === "cards" && (
             <motion.div
               className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 min-[1680px]:grid-cols-5"
@@ -577,9 +591,13 @@ const Dashboard = () => {
             )}
 
             <div ref={loadMoreRef} className="mt-6 flex justify-center">
-              {isFetchingNextPage && (
+              {isFetchingNextPage ? (
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-              )}
+              ) : !hasNextPage && products.length > 0 ? (
+                <p className="text-xs text-muted-foreground">
+                  That's all {totalCount} {countNoun}
+                </p>
+              ) : null}
             </div>
 
             <ProductForm

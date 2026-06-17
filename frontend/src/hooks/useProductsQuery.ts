@@ -10,7 +10,11 @@ export type ProductFilters = {
   dir?: string;
 };
 
-type ProductsPage = { items: Product[]; nextCursor: string | null };
+type ProductsPage = {
+  items: Product[];
+  total: number;
+  nextCursor: string | null;
+};
 
 const PAGE_SIZE = 20;
 
