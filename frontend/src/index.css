@@ -126,13 +126,13 @@
   html {
     @apply font-sans;
     }
-}
-
-/* Soft light theme: lift card surfaces with shadow instead of hard edges. */
-html:not(.dark) [class*="bg-card"] {
-  box-shadow:
-    0 1px 2px -1px oklch(0.45 0.04 264 / 0.08),
-    0 12px 28px -12px oklch(0.45 0.04 264 / 0.16);
+  /* Soft light theme: a default card lift. Explicit shadow utilities (e.g. the
+     landing page) override this because base ranks below utilities. */
+  html:not(.dark) [class*="bg-card"] {
+    box-shadow:
+      0 1px 2px -1px oklch(0.45 0.04 264 / 0.08),
+      0 12px 28px -12px oklch(0.45 0.04 264 / 0.16);
+  }
 }
 
 /* Status palette - softer/more premium than raw Tailwind 500s, but still
