@@ -131,7 +131,6 @@ const Dashboard = () => {
     data,
     isLoading,
     isError,
-    error,
     refetch,
     fetchNextPage,
     hasNextPage,
@@ -563,9 +562,8 @@ const Dashboard = () => {
                   Could not load products
                 </p>
                 <p className="mt-1 max-w-md text-sm text-muted-foreground">
-                  {error instanceof Error
-                    ? error.message
-                    : "Please check that the backend is running and try again."}
+                  Something went wrong while loading your products. Please try
+                  again in a moment.
                 </p>
                 <Button
                   variant="outline"
