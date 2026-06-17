@@ -11,6 +11,8 @@ import {
   X,
   Eye,
   EyeOff,
+  Archive,
+  ArchiveRestore,
 } from "lucide-react";
 import { FaFileCsv } from "react-icons/fa";
 import { motion } from "framer-motion";
@@ -55,7 +57,7 @@ const Dashboard = () => {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
-  const { bulkDeleteProducts, fetchForExport } = useProducts();
+  const { bulkDeleteProducts, setArchived, fetchForExport } = useProducts();
   const { updatePreferences } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     const stored = localStorage.getItem("wtSidebarCollapsed");
@@ -231,6 +233,21 @@ const Dashboard = () => {
     } catch (e) {
       toast.error("Failed to delete products");
       throw e;
+    }
+  };
+
+  const archivedView = activeFilter === "ARCHIVED";
+  const handleBulkArchive = async () => {
+    const ids = [...selectedIds];
+    try {
+      const count = await setArchived(ids, !archivedView);
+      toast.success(
+        `${archivedView ? "Unarchived" : "Archived"} ${count} product${count === 1 ? "" : "s"}`,
+      );
+      exitSelectMode();
+      await refreshAfterMutation();
+    } catch {
+      toast.error(`Failed to ${archivedView ? "unarchive" : "archive"} products`);
     }
   };
 
@@ -427,6 +444,20 @@ const Dashboard = () => {
                   >
                     <FaFileCsv className="h-4 w-4 text-emerald-600" />
                     Export selected
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                    disabled={selectedIds.size === 0}
+                    onClick={handleBulkArchive}
+                  >
+                    {archivedView ? (
+                      <ArchiveRestore className="h-4 w-4" />
+                    ) : (
+                      <Archive className="h-4 w-4" />
+                    )}
+                    {archivedView ? "Unarchive" : "Archive"}
                   </Button>
                   <Button
                     variant="outline"
