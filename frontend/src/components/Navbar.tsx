@@ -22,19 +22,18 @@ const Navbar = ({ onToggleSidebar, searchValue, onSearchChange }: Props) => {
 
   return (
     <nav className="flex items-center gap-3 border-b border-border bg-card/80 px-4 py-2.5 backdrop-blur-xl">
-      {onToggleSidebar && (
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onToggleSidebar}
-          aria-label="Toggle sidebar"
-          className="text-muted-foreground hover:text-foreground"
-        >
-          <Menu className="h-5 w-5" />
-        </Button>
-      )}
-
-      <div className="flex items-center gap-2.5">
+      <div className="flex flex-1 items-center gap-2.5">
+        {onToggleSidebar && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onToggleSidebar}
+            aria-label="Toggle sidebar"
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+        )}
         <img src={logo} alt="logo" className="h-9 w-auto object-contain" />
         <span className="hidden text-lg font-bold text-foreground sm:inline">
           Warranty Tracker
@@ -42,7 +41,7 @@ const Navbar = ({ onToggleSidebar, searchValue, onSearchChange }: Props) => {
       </div>
 
       {showSearch && (
-        <div className="relative mx-2 max-w-md flex-1">
+        <div className="relative w-full max-w-md">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search products..."
@@ -53,7 +52,7 @@ const Navbar = ({ onToggleSidebar, searchValue, onSearchChange }: Props) => {
         </div>
       )}
 
-      <div className="ml-auto flex items-center gap-2">
+      <div className="flex flex-1 items-center justify-end gap-2">
         <button
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           aria-label="Toggle theme"
