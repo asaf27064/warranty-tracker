@@ -795,7 +795,7 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
                     className={`flex w-full flex-col items-center justify-center gap-1 rounded-lg border border-dashed py-6 text-center transition-colors ${
                       dragOver
                         ? "border-emerald-500 bg-emerald-500/5"
-                        : "border-border hover:border-emerald-500/60 hover:bg-muted/40"
+                        : "border-border bg-muted hover:border-emerald-500/60"
                     }`}
                   >
                     <Upload className="h-5 w-5 text-muted-foreground" />
