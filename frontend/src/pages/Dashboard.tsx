@@ -325,7 +325,7 @@ const Dashboard = () => {
                   onClick={() => changeView("cards")}
                   className={`flex items-center gap-1.5 px-3 py-1.5 text-sm ${
                     view === "cards"
-                      ? "bg-muted text-foreground"
+                      ? "bg-foreground/[0.08] font-medium text-foreground dark:bg-muted"
                       : "text-muted-foreground hover:bg-muted/50"
                   }`}
                 >
@@ -336,7 +336,7 @@ const Dashboard = () => {
                   onClick={() => changeView("list")}
                   className={`flex items-center gap-1.5 border-l border-border px-3 py-1.5 text-sm ${
                     view === "list"
-                      ? "bg-muted text-foreground"
+                      ? "bg-foreground/[0.08] font-medium text-foreground dark:bg-muted"
                       : "text-muted-foreground hover:bg-muted/50"
                   }`}
                 >
@@ -439,7 +439,7 @@ const Dashboard = () => {
                     Delete
                   </Button>
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
                     className="gap-1"
                     onClick={exitSelectMode}

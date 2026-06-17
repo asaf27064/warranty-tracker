@@ -6,7 +6,7 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-    --background: oklch(0.964 0.004 255);
+    --background: oklch(0.975 0.009 255);
     --foreground: oklch(0.205 0.01 260);
     --card: oklch(1 0 0);
     --card-foreground: oklch(0.205 0.01 260);
@@ -14,14 +14,14 @@
     --popover-foreground: oklch(0.205 0.01 260);
     --primary: oklch(0.245 0.01 260);
     --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.945 0.005 255);
+    --secondary: oklch(0.955 0.004 255);
     --secondary-foreground: oklch(0.245 0.01 260);
-    --muted: oklch(0.945 0.005 255);
+    --muted: oklch(0.955 0.004 255);
     --muted-foreground: oklch(0.5 0.014 260);
     --accent: oklch(0.945 0.005 255);
     --accent-foreground: oklch(0.245 0.01 260);
     --destructive: oklch(0.55 0.16 25);
-    --border: oklch(0.888 0.005 255);
+    --border: oklch(0.915 0.005 255);
     --input: oklch(0.888 0.005 255);
     --ring: oklch(0.708 0 0);
     --chart-1: oklch(0.809 0.105 251.813);
@@ -29,7 +29,7 @@
     --chart-3: oklch(0.546 0.245 262.881);
     --chart-4: oklch(0.488 0.243 264.376);
     --chart-5: oklch(0.424 0.199 265.638);
-    --radius: 0.625rem;
+    --radius: 0.8rem;
     --sidebar: oklch(0.985 0 0);
     --sidebar-foreground: oklch(0.145 0 0);
     --sidebar-primary: oklch(0.205 0 0);
@@ -126,6 +126,13 @@
   html {
     @apply font-sans;
     }
+  /* Soft light theme: a default card lift. Explicit shadow utilities (e.g. the
+     landing page) override this because base ranks below utilities. */
+  html:not(.dark) [class*="bg-card"] {
+    box-shadow:
+      0 1px 2px -1px oklch(0.45 0.04 264 / 0.08),
+      0 12px 28px -12px oklch(0.45 0.04 264 / 0.16);
+  }
 }
 
 /* Status palette - softer/more premium than raw Tailwind 500s, but still

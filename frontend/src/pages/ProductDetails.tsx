@@ -691,7 +691,7 @@ const ProductDetails = () => {
                       Add
                     </Button>
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       size="sm"
                       onClick={() => setShowCustomReminder(false)}
                     >
@@ -744,7 +744,7 @@ const ProductDetails = () => {
                   }`}
                 >
                   {documents.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-10 text-center">
+                    <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-muted py-10 text-center">
                       <ReceiptText className="h-9 w-9 text-muted-foreground" />
                       <p className="mt-3 text-sm font-medium text-foreground">
                         No documents yet
@@ -866,7 +866,7 @@ const ProductDetails = () => {
                       className={`flex items-center justify-center gap-2 rounded-lg border border-dashed py-3 text-sm transition-colors ${
                         dragOver
                           ? "border-emerald-500 bg-emerald-500/5 text-foreground"
-                          : "border-border text-muted-foreground hover:border-emerald-500/60 hover:bg-muted/40"
+                          : "border-border bg-muted text-muted-foreground hover:border-emerald-500/60"
                       }`}
                     >
                       <Upload className="h-4 w-4" />
