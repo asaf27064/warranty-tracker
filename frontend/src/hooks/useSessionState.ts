@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 
-// Like useState, but persisted to sessionStorage so the value survives leaving
-// and returning to a page within the same browser session (e.g. opening a
-// product and coming back to the dashboard).
+// useState backed by sessionStorage, so filters survive leaving and returning.
 export function useSessionState<T>(key: string, initial: T) {
   const [value, setValue] = useState<T>(() => {
     try {
@@ -17,7 +15,7 @@ export function useSessionState<T>(key: string, initial: T) {
     try {
       sessionStorage.setItem(key, JSON.stringify(value));
     } catch {
-      // ignore quota / availability errors
+      // ignore
     }
   }, [key, value]);
 

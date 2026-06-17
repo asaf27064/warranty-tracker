@@ -253,8 +253,7 @@ const ProductDetails = () => {
     }
   };
 
-  // Guess the document type from the file so the user uploads first and only
-  // re-classifies if the guess is wrong.
+  // Guess the document type from the file name / mime.
   const guessDocType = (file: File) => {
     const n = file.name.toLowerCase();
     if (n.includes("invoice")) return "INVOICE";
@@ -354,8 +353,7 @@ const ProductDetails = () => {
       (1000 * 60 * 60 * 24),
   );
 
-  // A default reminder (30/7/1 days before expiry) is "missing" if its future
-  // slot has no reminder. Mirrors the backend restore logic.
+  // True when a future 30/7/1 default slot has no reminder.
   const futureDefaultSlots = [30, 7, 1]
     .map((days) => {
       const slot = new Date(product.warrantyExpiry);

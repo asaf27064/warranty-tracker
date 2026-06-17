@@ -15,8 +15,6 @@ export const getWarrantyStatus = (
   const today = startOfDay(new Date());
   const expiryDay = startOfDay(warrantyExpiry);
 
-  // A warranty is covered through its whole expiry day; it's only expired once
-  // that day has fully passed.
   if (expiryDay < today) return "EXPIRED";
   const daysUntilExpiry = Math.round((expiryDay - today) / DAY_MS);
   if (daysUntilExpiry <= 30) return "EXPIRING_SOON";

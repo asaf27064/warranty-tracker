@@ -6,8 +6,6 @@ import { getWarrantyStatus } from "../utils/getWarrantyStatus";
 // Framework-agnostic product business logic, shared by the HTTP controllers
 // and the chat agent so there is a single source of truth (validated by Zod).
 
-// Warranties are covered through their whole expiry day, so "upcoming" is
-// measured from the start of today rather than the current instant.
 function startOfTodayDate(): Date {
   const d = new Date();
   d.setHours(0, 0, 0, 0);
@@ -39,8 +37,7 @@ const SORT_COLUMN: Record<SortField, string> = {
 // A unique `id` tiebreaker (same direction) keeps cursor pagination
 // deterministic even when the primary sort field has ties.
 function buildOrderBy(filters: ProductFilters): object[] {
-  // The "needs attention" view leads with actionable items (expiring soon,
-  // soonest first) and lists the already-expired ones after.
+  // Needs-attention leads with expiring items, then expired.
   if (filters.status === "ATTENTION") {
     return [{ status: "asc" }, { warrantyExpiry: "asc" }, { id: "asc" }];
   }

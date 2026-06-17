@@ -1,9 +1,7 @@
 import "dotenv/config";
 import prisma from "../config/db";
 
-// One-off backfill: marks reminders that sit exactly on a 30/7/1-days-before
-// expiry slot as isDefault. Run once after the isDefault migration so existing
-// (pre-flag) reminders get their "Default" badge. Safe to re-run; idempotent.
+// One-off: flag reminders sitting on a 30/7/1-day slot as default.
 const DEFAULT_REMINDER_DAYS = [30, 7, 1];
 
 async function main() {

@@ -171,7 +171,7 @@
   background-color: color-mix(in oklch, var(--muted-foreground) 70%, transparent);
 }
 
-/* Receipt-scan line: a sweeping highlight while the AI reads a document */
+/* Receipt scan sweep */
 @keyframes scan-sweep {
   0% {
     top: 6%;

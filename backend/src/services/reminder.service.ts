@@ -5,8 +5,7 @@ import { sendPushToUser } from "./push.service";
 
 export const processReminders = async () => {
   const now = new Date();
-  // Status is evaluated by calendar day: a warranty stays covered through its
-  // whole expiry day and only becomes expired once that day has passed.
+  // Status is judged by calendar day, not the exact instant.
   const startOfToday = new Date();
   startOfToday.setHours(0, 0, 0, 0);
   const thirtyDaysFromNow = new Date(startOfToday);
@@ -191,9 +190,8 @@ export async function createReminder(
 
 const DEFAULT_REMINDER_DAYS = [30, 7, 1];
 
-// Recreate any of the 30/7/1-day default reminders that are missing and still
-// in the future. Used to undo deleting a default. Idempotent: existing ones are
-// left alone. Returns the number of reminders created, or null if not found.
+// Recreate any missing future 30/7/1-day default reminders. Returns the count
+// created, or null if the product is not found.
 export async function restoreDefaultReminders(
   userId: string,
   productId: string,
@@ -257,7 +255,6 @@ export async function deleteReminder(userId: string, id: string) {
   return true;
 }
 
-// Mark every unread reminder for the user as read (clears the bell's badge).
 export async function markAllRemindersRead(userId: string) {
   const res = await prisma.reminder.updateMany({
     where: { product: { userId }, isRead: false },
@@ -266,8 +263,7 @@ export async function markAllRemindersRead(userId: string) {
   return res.count;
 }
 
-// Clear notifications: delete the already-fired reminders (remindAt in the
-// past). Upcoming reminders are kept.
+// Delete already-fired reminders; upcoming ones are kept.
 export async function clearFiredReminders(userId: string) {
   const res = await prisma.reminder.deleteMany({
     where: { product: { userId }, remindAt: { lte: new Date() } },

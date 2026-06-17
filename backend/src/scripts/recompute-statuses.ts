@@ -2,9 +2,7 @@ import "dotenv/config";
 import prisma from "../config/db";
 import { getWarrantyStatus } from "../utils/getWarrantyStatus";
 
-// One-off: recompute every product's status with the calendar-day rules so
-// existing rows match the updated logic (today's expiries count as expiring,
-// not expired). Safe to re-run; idempotent.
+// One-off: recompute every product's status against the current rules.
 async function main() {
   const products = await prisma.product.findMany({
     select: { id: true, purchaseDate: true, warrantyExpiry: true, status: true },
