@@ -30,26 +30,26 @@ const DashboardStats = ({ stats, onSelectStatus }: Props) => {
     : null;
 
   const cardClass =
-    "rounded-lg border border-border bg-card px-3.5 py-3 text-left transition-colors outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40 enabled:cursor-pointer enabled:hover:border-emerald-600/40 enabled:hover:bg-muted/30 disabled:cursor-default";
+    "rounded-xl border border-border bg-card p-5 text-left transition-colors outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40 enabled:cursor-pointer enabled:hover:border-emerald-600/40 enabled:hover:bg-muted/30 disabled:cursor-default";
 
   return (
-    <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-3">
+    <div className="mt-2 grid grid-cols-1 gap-4 sm:grid-cols-3">
       <button
         type="button"
         onClick={() => onSelectStatus?.("ACTIVE")}
         className={cardClass}
       >
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <ShieldCheck className="h-3.5 w-3.5 c-active" />
+        <div className="flex items-center gap-2 text-[13px] text-muted-foreground">
+          <ShieldCheck className="h-4 w-4 c-active" />
           Coverage
         </div>
-        <div className="mt-0.5 text-2xl font-bold text-foreground">
+        <div className="mt-1.5 text-3xl font-bold text-foreground">
           {coverage}%
         </div>
-        <div className="mt-0.5 text-[11px] text-muted-foreground">
+        <div className="mt-1 text-xs text-muted-foreground">
           {stats.active} of {total} active
         </div>
-        <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-muted">
+        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-muted">
           <div className="h-full bar-active" style={{ width: `${coverage}%` }} />
         </div>
       </button>
@@ -60,14 +60,14 @@ const DashboardStats = ({ stats, onSelectStatus }: Props) => {
         onClick={() => onSelectStatus?.("ATTENTION")}
         className={cardClass}
       >
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <AlertTriangle className="h-3.5 w-3.5 c-expiring" />
+        <div className="flex items-center gap-2 text-[13px] text-muted-foreground">
+          <AlertTriangle className="h-4 w-4 c-expiring" />
           Needs attention
         </div>
-        <div className="mt-0.5 text-2xl font-bold text-foreground">
+        <div className="mt-1.5 text-3xl font-bold text-foreground">
           {attention}
         </div>
-        <div className="mt-0.5 text-[11px] text-muted-foreground">
+        <div className="mt-1 text-xs text-muted-foreground">
           <span className="c-expiring">{stats.expiringSoon} expiring</span>
           {" · "}
           <span className="c-expired">{stats.expired} expired</span>
@@ -80,14 +80,14 @@ const DashboardStats = ({ stats, onSelectStatus }: Props) => {
         onClick={() => onSelectStatus?.("EXPIRING_SOON")}
         className={cardClass}
       >
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <CalendarClock className="h-3.5 w-3.5" />
+        <div className="flex items-center gap-2 text-[13px] text-muted-foreground">
+          <CalendarClock className="h-4 w-4" />
           Next expiry
         </div>
-        <div className="mt-0.5 text-2xl font-bold text-foreground">
+        <div className="mt-1.5 text-3xl font-bold text-foreground">
           {nextDays === null ? "None" : formatUntil(nextDays)}
         </div>
-        <div className="mt-0.5 truncate text-[11px] text-muted-foreground">
+        <div className="mt-1 truncate text-xs text-muted-foreground">
           {next
             ? `${next.name}${next.count > 1 ? ` +${next.count - 1} more` : ""} · ${new Date(next.date).toLocaleDateString()}`
             : "Nothing upcoming"}
