@@ -289,7 +289,16 @@ const Dashboard = () => {
               </button>
             </div>
             {!statsHidden && (
-              <DashboardStats stats={stats} onSelectStatus={setActiveFilter} />
+              <DashboardStats
+                stats={stats}
+                onSelectStatus={(status) => {
+                  setActiveFilter(status);
+                  if (status === "ATTENTION" || status === "EXPIRING_SOON") {
+                    setSortField("expiry");
+                    setSortDir("asc");
+                  }
+                }}
+              />
             )}
 
             <motion.div
