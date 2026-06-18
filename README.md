@@ -4,7 +4,7 @@
 
 **Never lose track of a product warranty again.**
 
-Warranty Tracker is a full-stack TypeScript app for managing product warranties: add products, store receipts and documents, get reminded before coverage expires, and manage everything by chatting with an AI assistant that can read your receipts and answer questions about your warranties.
+Warranty Tracker is a full-stack TypeScript app for managing product warranties: add products, store receipts and documents, get reminded before coverage expires, and manage everything by chatting with an AI assistant that can answer questions about your warranties.
 
 > **Live demo:** **[warranty-tracker-kohl.vercel.app](https://warranty-tracker-kohl.vercel.app)** - sign in with Google and try it (the API is on a free tier, so the first request after a while may take ~30s to wake).
 
@@ -24,9 +24,9 @@ Warranty Tracker is a full-stack TypeScript app for managing product warranties:
 
 ## ✨ Highlights
 
-- **AI assistant (tool-using agent).** Chat to search your products, see what's expiring, set reminders, or add a product. After an add, attach a photo or receipt right in the chat. Built on Anthropic Claude with real tool use over a shared, Zod-validated service layer.
-- **Local-first natural-language add.** "I bought a laptop yesterday, 1 year warranty" is parsed by a rule-based parser (chrono-node + regex), confirmed, and created with no LLM call. Ambiguous messages fall back to the Claude agent.
-- **Receipt and invoice scanning.** Upload a photo or PDF and Claude vision extracts the product name, store, purchase date, and warranty length, then pre-fills the form for review.
+- **AI assistant (tool-using agent).** Chat to search your products, see what's expiring, set reminders, or add a product. After an add, attach a photo or receipt right in the chat. Built on Claude with real tool use over a shared, Zod-validated service layer.
+- **Local-first natural-language add.** "I bought a laptop yesterday, 1 year warranty" is parsed by a rule-based parser (chrono-node + regex), confirmed, and created with no LLM call.
+- **Receipt and invoice scanning.** Upload a photo or PDF and extracts the product name, store, purchase date, and warranty length, then pre-fills the form for review.
 - **Reminder digest emails.** A daily job groups everything expiring soon into one clean email per user, with product thumbnails, color-coded status, and a warranty progress bar.
 - **Web push and installable PWA.** Opt in to browser push (via the Web Push / VAPID protocol and a service worker) to get notified even when the app is closed, and install the app to your home screen or desktop.
 
