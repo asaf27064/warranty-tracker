@@ -12,8 +12,6 @@ Warranty Tracker is a full-stack TypeScript app for managing product warranties:
 
 ## 📸 Screenshots
 
-> Save images with these exact names into `docs/screenshots/` and they'll render automatically (a GIF works too, just keep the filename).
-
 | Dashboard | Product details |
 |---|---|
 | ![Dashboard](docs/screenshots/dashboard.png) | ![Product details](docs/screenshots/product-details.png) |
@@ -70,7 +68,7 @@ Warranty Tracker is a full-stack TypeScript app for managing product warranties:
 
 **Backend:** Node.js + Express, TypeScript, Prisma v7 + PostgreSQL, Passport (Google OAuth 2.0), JWT, Zod validation, Anthropic SDK (Claude), Cloudflare R2 (S3 SDK), Nodemailer, web-push (VAPID), node-cron, Multer, express-rate-limit.
 
-**Infra:** Docker, Vercel (frontend), Render (backend), Neon (Postgres), Cloudflare R2. Jest + Supertest for API tests, GitHub Actions for CI.
+**Infra:** Docker, Vercel (frontend), Render (backend), Neon (Postgres), Cloudflare R2. Jest + Supertest (API tests), Vitest + Testing Library (frontend), GitHub Actions for CI.
 
 ---
 
@@ -123,6 +121,7 @@ Step-by-step for the free stack (Vercel + Render + Neon + R2) is in **[DEPLOY.md
 
 ```bash
 cd backend && npm test     # Jest + Supertest (needs a test database)
+cd frontend && npm test    # Vitest + Testing Library
 ```
 
-GitHub Actions runs a typecheck on the backend and a build on the frontend for every pull request.
+GitHub Actions runs a backend typecheck and a frontend build on every pull request.
