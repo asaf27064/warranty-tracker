@@ -1,8 +1,8 @@
 {
-  "name": "backend",
+  "name": "warranty-tracker-backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Warranty Tracker API (Express + Prisma + PostgreSQL).",
+  "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
