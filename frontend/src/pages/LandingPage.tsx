@@ -39,7 +39,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { Button } from "../components/ui/button";
-import logo from "../assets/logo.png";
+import logo from "../assets/logo.svg";
 
 const GoogleIcon = () => (
   <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">

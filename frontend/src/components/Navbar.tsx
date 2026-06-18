@@ -5,7 +5,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "../components/ui/avatar";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { LogOut, Sun, Moon, Menu, Search, Settings } from "lucide-react";
-import logo from "../assets/logo.png";
+import logo from "../assets/logo.svg";
 import NotificationBell from "./NotificationBell";
 
 type Props = {
