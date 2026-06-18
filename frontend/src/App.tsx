@@ -11,6 +11,7 @@ import PrefsSync from "./components/PrefsSync";
 import ReminderToaster from "./components/ReminderToaster";
 import OnboardingModal from "./components/OnboardingModal";
 import { Toaster } from "./components/ui/sonner";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 function GlobalChrome() {
   const { user } = useAuth();
@@ -26,11 +27,12 @@ function GlobalChrome() {
 
 function App() {
   return (
-    <ThemeProvider>
-      <BrowserRouter>
-        <AuthProvider>
-          <Toaster />
-          <Routes>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <BrowserRouter>
+          <AuthProvider>
+            <Toaster />
+            <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route
               path="/dashboard"
@@ -56,11 +58,12 @@ function App() {
                 </ProtectedRoute>
               }
             />
-          </Routes>
-          <GlobalChrome />
-        </AuthProvider>
-      </BrowserRouter>
-    </ThemeProvider>
+            </Routes>
+            <GlobalChrome />
+          </AuthProvider>
+        </BrowserRouter>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 
