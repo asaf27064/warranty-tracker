@@ -1,3 +1,4 @@
+import { z } from "zod";
 import type Anthropic from "@anthropic-ai/sdk";
 import { client } from "../config/anthropic";
 import * as productService from "./product.service";
@@ -120,11 +121,45 @@ export const agentTools: Anthropic.Tool[] = [
   },
 ];
 
+// Model-supplied tool inputs aren't trusted; validate them before they reach
+// the service layer.
+const toolInputSchemas: Record<string, z.ZodTypeAny> = {
+  search_products: z.object({
+    query: z.string().optional(),
+    status: z.enum(["ACTIVE", "EXPIRING_SOON", "EXPIRED"]).optional(),
+    category: z.enum(CATEGORIES as [string, ...string[]]).optional(),
+  }),
+  get_expiring_warranties: z.object({
+    withinDays: z.number().int().min(1).max(3650),
+  }),
+  get_product_details: z.object({ productId: z.string().min(1) }),
+  create_reminder: z.object({
+    productId: z.string().min(1),
+    daysBefore: z.number().int().min(1).max(365),
+  }),
+  create_product: z.object({}).passthrough(),
+};
+
 async function executeTool(
   name: string,
-  input: any,
+  rawInput: unknown,
   userId: string,
 ): Promise<unknown> {
+  const schema = toolInputSchemas[name];
+  if (!schema) return { error: `Unknown tool: ${name}` };
+  const parsed = schema.safeParse(rawInput);
+  if (!parsed.success) {
+    return { error: "Invalid tool input", details: parsed.error.message };
+  }
+  const input = parsed.data as Record<string, unknown> & {
+    query?: string;
+    status?: "ACTIVE" | "EXPIRING_SOON" | "EXPIRED";
+    category?: string;
+    withinDays?: number;
+    productId?: string;
+    daysBefore?: number;
+  };
+
   switch (name) {
     case "search_products":
       return productService.searchProducts(userId, {
@@ -134,12 +169,12 @@ async function executeTool(
       });
 
     case "get_expiring_warranties":
-      return productService.getExpiringWarranties(userId, input.withinDays);
+      return productService.getExpiringWarranties(userId, input.withinDays!);
 
     case "get_product_details": {
       const product = await productService.getProductById(
         userId,
-        input.productId,
+        input.productId!,
         { include: true },
       );
       return product ?? { error: "Product not found" };
@@ -148,8 +183,8 @@ async function executeTool(
     case "create_reminder": {
       const result = await reminderService.createReminder(
         userId,
-        input.productId,
-        input.daysBefore,
+        input.productId!,
+        input.daysBefore!,
       );
       if (result.status === "not_found") return { error: "Product not found" };
       if (result.status === "expired")
@@ -159,7 +194,11 @@ async function executeTool(
 
     case "create_product":
       try {
-        return await productService.createProduct(userId, input);
+        // createProduct validates with its own Zod schema before persisting.
+        return await productService.createProduct(
+          userId,
+          input as Parameters<typeof productService.createProduct>[1],
+        );
       } catch (err) {
         // Surface validation failures to the model instead of crashing the loop.
         return {

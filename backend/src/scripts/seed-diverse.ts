@@ -102,7 +102,7 @@ const seeds: Seed[] = [
   { name: "Apple Watch Ultra", store: "iStore", category: "ELECTRONICS", pic: "smartwatch", months: 24, exp: 250, docs: [recImg(), invPdf(), warrantyPdf(), productPhoto()] },
   { name: "Fender Stratocaster Guitar", store: "Amazon", category: "OTHER", pic: "guitar", months: 12, exp: 180, reminders: false },
   { name: "HP LaserJet Printer", store: "KSP", category: "ELECTRONICS", pic: "printer", months: 12, exp: 7, docs: [recImg()] },
-  { name: "Café Espresso Machine (De'Longhi) — 50% off!", store: "Ivory", category: "HOME_KITCHEN", pic: "espresso", months: 24, exp: 200 },
+  { name: "Café Espresso Machine (De'Longhi) - 50% off!", store: "Ivory", category: "HOME_KITCHEN", pic: "espresso", months: 24, exp: 200 },
   { name: "Patio Sofa Set", store: "IKEA", category: "FURNITURE", pic: "sofa", months: 36, exp: -400 },
   { name: "Garmin GPS Watch", store: "Decathlon", category: "SPORTS", pic: "watch", months: 24, exp: 95 },
 ];
