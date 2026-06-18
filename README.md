@@ -121,10 +121,6 @@ Set `VITE_API_URL=http://localhost:5000` in `frontend/.env` for local dev. For w
 
 ---
 
-## ☁️ Deployment
-
-Step-by-step for the free stack (Vercel + Render + Neon + R2) is in **[DEPLOY.md](DEPLOY.md)**. The backend ships as a Docker image that runs `prisma migrate deploy` on start.
-
 ## ✅ Tests and CI
 
 ```bash
