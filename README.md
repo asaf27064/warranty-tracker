@@ -22,11 +22,11 @@ Warranty Tracker is a full-stack TypeScript app for managing product warranties:
 
 | Dashboard | Product details |
 |---|---|
-| ![Dashboard](docs/screenshots/dashboard.png) | ![Product details](docs/screenshots/product-details.png) |
+| ![Dashboard Dark Theme](docs/screenshots/dashboard_dark.png) | ![Product details Dark Theme](docs/screenshots/product-details_dark.png) |
 
 | AI assistant | Receipt scan |
 |---|---|
-| ![AI assistant](docs/screenshots/assistant.png) | ![Receipt scan](docs/screenshots/receipt-scan.png) |
+| ![Dashboard Light Theme](docs/screenshots/dashboard_light.png) | ![Product details Light Theme](docs/screenshots/product-details_light.png) |
 
 ---
 
