@@ -10,7 +10,7 @@ const options = [
   { value: "created:desc", label: "Newest first" },
   { value: "created:asc", label: "Oldest first" },
   { value: "expiry:asc", label: "Expiring soon" },
-  { value: "name:asc", label: "Name A–Z" },
+  { value: "name:asc", label: "Name A-Z" },
 ];
 
 type Props = {
