@@ -1,6 +1,14 @@
-# 🛡️ Warranty Tracker
+<p align="center">
+  <img src="frontend/public/logo.png" width="88" alt="Warranty Tracker" />
+</p>
 
-![CI](https://github.com/asaf27064/warranty-tracker/actions/workflows/ci.yml/badge.svg)
+<h1 align="center">Warranty Tracker</h1>
+
+<p align="center">
+  <a href="https://github.com/asaf27064/warranty-tracker/actions/workflows/ci.yml">
+    <img src="https://github.com/asaf27064/warranty-tracker/actions/workflows/ci.yml/badge.svg" alt="CI" />
+  </a>
+</p>
 
 **Never lose track of a product warranty again.**
 
@@ -125,3 +133,7 @@ cd frontend && npm test    # Vitest + Testing Library
 ```
 
 GitHub Actions runs a backend typecheck and a frontend build on every pull request.
+
+---
+
+Built by Asaf Ohana.

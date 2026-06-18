@@ -96,7 +96,13 @@ const OnboardingModal = () => {
     <Dialog open={open} onOpenChange={() => {}}>
       <DialogContent showCloseButton={false} className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Welcome to Warranty Tracker</DialogTitle>
+          <DialogTitle>
+            Welcome to{" "}
+            <span className="text-emerald-600 dark:text-emerald-400">
+              Warranty
+            </span>{" "}
+            Tracker
+          </DialogTitle>
         </DialogHeader>
         <p className="text-sm text-muted-foreground">
           Choose how you'd like to be reminded before your warranties expire.

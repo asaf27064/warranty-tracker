@@ -128,7 +128,9 @@ const LandingPage = () => {
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3">
           <div className="flex items-center gap-2.5">
             <img src={logo} alt="" className="h-8 w-8 object-contain" />
-            <span className="text-[15px] font-semibold">Warranty Tracker</span>
+            <span className="text-[15px] font-semibold">
+              <span className="text-emerald-600 dark:text-emerald-400">Warranty</span> Tracker
+            </span>
           </div>
           <nav className="flex items-center gap-5 text-sm text-muted-foreground">
             <a href="#features" className="hidden transition-colors hover:text-foreground sm:inline">Features</a>
@@ -192,6 +194,9 @@ const LandingPage = () => {
           <Reveal hover className="shine glass relative overflow-hidden rounded-2xl border border-border shadow-2xl transition-shadow">
             <div className="flex items-center gap-3 border-b border-border/60 px-4 py-2.5">
               <img src={logo} alt="" className="h-6 w-6 object-contain" />
+              <span className="hidden text-[13px] font-semibold sm:inline">
+                <span className="text-emerald-600 dark:text-emerald-400">Warranty</span> Tracker
+              </span>
               <div className="hidden flex-1 items-center gap-2 rounded-md border border-border bg-muted/40 px-2.5 py-1.5 text-xs text-muted-foreground sm:flex">
                 <Search className="h-3.5 w-3.5" /> Search products
               </div>
@@ -558,8 +563,8 @@ const LandingPage = () => {
 
       <footer className="border-t border-border">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5 text-xs text-muted-foreground">
-          <div className="flex items-center gap-2"><img src={logo} alt="" className="h-5 w-5 object-contain" /> Warranty Tracker</div>
-          <div>Built by Asaf</div>
+          <div className="flex items-center gap-2"><img src={logo} alt="" className="h-5 w-5 object-contain" /> <span><span className="text-emerald-600 dark:text-emerald-400">Warranty</span> Tracker</span></div>
+          <div>Built by Asaf Ohana</div>
         </div>
       </footer>
     </div>

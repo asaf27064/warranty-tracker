@@ -36,8 +36,9 @@ const Navbar = ({ onToggleSidebar, searchValue, onSearchChange }: Props) => {
 
       <div className="flex items-center gap-2.5">
         <img src={logo} alt="logo" className="h-9 w-auto object-contain" />
-        <span className="hidden text-lg font-bold text-foreground sm:inline">
-          Warranty Tracker
+        <span className="hidden text-lg font-bold sm:inline">
+          <span className="text-emerald-600 dark:text-emerald-400">Warranty</span>
+          <span className="text-foreground"> Tracker</span>
         </span>
       </div>
 
