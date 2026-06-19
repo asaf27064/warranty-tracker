@@ -38,7 +38,7 @@ async function issueRefreshToken(
   user: { id: string; email: string },
 ) {
   const refreshToken = jwt.sign(
-    { userId: user.id, email: user.email },
+    { userId: user.id, email: user.email, jti: crypto.randomUUID() },
     process.env.JWT_REFRESH_SECRET!,
     { expiresIn: "7d" },
   );
