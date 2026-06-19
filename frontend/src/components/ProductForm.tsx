@@ -62,7 +62,8 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
   );
   const [dragOver, setDragOver] = useState(false);
   const [aiText, setAiText] = useState("");
-  const [aiLoading, setAiLoading] = useState(false);
+  const [aiScanLoading, setAiScanLoading] = useState(false);
+  const [aiFillLoading, setAiFillLoading] = useState(false);
   const [missingFields, setMissingFields] = useState<string[]>([]);
   const [aiHint, setAiHint] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -311,7 +312,7 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
   const handleAiFill = async () => {
     if (!aiText.trim()) return;
 
-    setAiLoading(true);
+    setAiFillLoading(true);
     setMissingFields([]);
     setAiHint(false);
     try {
@@ -321,12 +322,12 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
       console.error(e);
       toast.error("Couldn't extract details from that text");
     } finally {
-      setAiLoading(false);
+      setAiFillLoading(false);
     }
   };
 
   const handleReceiptUpload = async (file: File) => {
-    setAiLoading(true);
+    setAiScanLoading(true);
     setMissingFields([]);
     setAiHint(false);
     try {
@@ -341,7 +342,7 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
       console.error(e);
       toast.error("Couldn't read that file. Try a clearer image or PDF.");
     } finally {
-      setAiLoading(false);
+      setAiScanLoading(false);
     }
   };
 
@@ -503,9 +504,9 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
                   <Button
                     type="button"
                     onClick={handleAiFill}
-                    disabled={aiLoading || !aiText.trim()}
+                    disabled={aiFillLoading || !aiText.trim()}
                   >
-                    {aiLoading ? "Thinking..." : "Fill"}
+                    {aiFillLoading ? "Thinking..." : "Fill"}
                   </Button>
                 </div>
                 <div className="my-3 flex items-center gap-3">
@@ -517,22 +518,22 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
                 </div>
                 <button
                   type="button"
-                  disabled={aiLoading}
+                  disabled={aiScanLoading}
                   onClick={() =>
                     document.getElementById("receiptUpload")?.click()
                   }
                   className="relative flex w-full flex-col items-center justify-center gap-1 overflow-hidden rounded-lg border border-dashed border-sky-500/40 bg-sky-500/[0.03] px-4 py-4 text-center transition-colors hover:bg-sky-500/10 disabled:cursor-progress"
                 >
-                  {aiLoading && (
+                  {aiScanLoading && (
                     <span className="scan-line pointer-events-none absolute inset-x-3 z-0 h-px bg-gradient-to-r from-transparent via-sky-400 to-transparent shadow-[0_0_8px_1px] shadow-sky-400/50" />
                   )}
                   <span className="relative z-10 flex items-center gap-2 text-sm font-medium text-foreground">
                     <ReceiptText
                       className={`h-4 w-4 text-sky-600 dark:text-sky-400 ${
-                        aiLoading ? "animate-pulse" : ""
+                        aiScanLoading ? "animate-pulse" : ""
                       }`}
                     />
-                    {aiLoading ? "Scanning..." : "Scan a receipt or invoice"}
+                    {aiScanLoading ? "Scanning..." : "Scan a receipt or invoice"}
                   </span>
                   <span className="relative z-10 text-xs text-muted-foreground">
                     Upload a photo or PDF and we'll read the details
