@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import prisma from "../config/db";
 import { deleteUserData } from "../services/account.service";
 import {
@@ -24,32 +25,41 @@ const refreshCookieBase = {
   path: "/",
 };
 
+const REFRESH_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
+// Refresh tokens are stored hashed, never in plaintext, so a database leak
+// doesn't hand out usable sessions.
+const hashToken = (token: string) =>
+  crypto.createHash("sha256").update(token).digest("hex");
+
+// Mints a refresh token, persists only its hash, and sets the cookie.
+async function issueRefreshToken(
+  res: Response,
+  user: { id: string; email: string },
+) {
+  const refreshToken = jwt.sign(
+    { userId: user.id, email: user.email, jti: crypto.randomUUID() },
+    process.env.JWT_REFRESH_SECRET!,
+    { expiresIn: "7d" },
+  );
+  await prisma.refreshToken.create({
+    data: {
+      token: hashToken(refreshToken),
+      userId: user.id,
+      expiresAt: new Date(Date.now() + REFRESH_TTL_MS),
+    },
+  });
+  res.cookie("jwt", refreshToken, {
+    ...refreshCookieBase,
+    maxAge: REFRESH_TTL_MS,
+  });
+}
+
 export const googleCallback = async (req: Request, res: Response) => {
   if (!req.user) {
     return res.status(401).json({ message: "Unauthorized" });
   }
-
-  const user = req.user;
-
-  const refreshToken = jwt.sign(
-    { userId: user.id, email: user.email },
-    process.env.JWT_REFRESH_SECRET!,
-    { expiresIn: "7d" },
-  );
-
-  await prisma.refreshToken.create({
-    data: {
-      token: refreshToken,
-      userId: user.id,
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-    },
-  });
-
-  res.cookie("jwt", refreshToken, {
-    ...refreshCookieBase,
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-  });
-
+  await issueRefreshToken(res, req.user);
   return res.redirect(`${process.env.CLIENT_URL}/dashboard`);
 };
 
@@ -135,47 +145,49 @@ export const sendTestPush = async (req: Request, res: Response) => {
 };
 
 export const handleRefreshToken = async (req: Request, res: Response) => {
-  const cookies = req.cookies;
-
-  if (!cookies?.jwt) {
+  const refreshToken = req.cookies?.jwt;
+  if (!refreshToken) {
     return res.status(401).json({ message: "No refresh token found" });
   }
 
-  const refreshToken = cookies.jwt;
-
+  const hashed = hashToken(refreshToken);
   const storedToken = await prisma.refreshToken.findUnique({
-    where: { token: refreshToken },
+    where: { token: hashed },
   });
 
+  // Not in the DB: either bogus, or a rotated token being replayed. If it still
+  // verifies, treat it as reuse and revoke every session for that user.
   if (!storedToken) {
     res.clearCookie("jwt", refreshCookieBase);
+    try {
+      const decoded = jwt.verify(
+        refreshToken,
+        process.env.JWT_REFRESH_SECRET!,
+      ) as RefreshTokenPayload;
+      await prisma.refreshToken.deleteMany({
+        where: { userId: decoded.userId },
+      });
+    } catch {
+      // not a valid token, nothing to revoke
+    }
     return res.status(403).json({ message: "Invalid refresh token" });
   }
 
   if (storedToken.expiresAt < new Date()) {
-    await prisma.refreshToken.delete({
-      where: { token: refreshToken },
-    });
-
+    await prisma.refreshToken.delete({ where: { token: hashed } });
     res.clearCookie("jwt", refreshCookieBase);
-
     return res.status(403).json({ message: "Refresh token expired" });
   }
 
   let decoded: RefreshTokenPayload;
-
   try {
     decoded = jwt.verify(
       refreshToken,
       process.env.JWT_REFRESH_SECRET!,
     ) as RefreshTokenPayload;
   } catch {
-    await prisma.refreshToken.deleteMany({
-      where: { token: refreshToken },
-    });
-
+    await prisma.refreshToken.delete({ where: { token: hashed } });
     res.clearCookie("jwt", refreshCookieBase);
-
     return res.status(403).json({ message: "Invalid refresh token" });
   }
 
@@ -185,38 +197,34 @@ export const handleRefreshToken = async (req: Request, res: Response) => {
       .json({ message: "Token mismatch - Access Forbidden" });
   }
 
-  const user = await prisma.user.findUnique({
-    where: { id: decoded.userId },
-  });
-
+  const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
   if (!user) {
+    await prisma.refreshToken.delete({ where: { token: hashed } });
     return res.status(404).json({ message: "User not found" });
   }
+
+  // Rotate: a refresh token is single-use. Invalidate it and issue a fresh one.
+  await prisma.refreshToken.delete({ where: { token: hashed } });
+  await issueRefreshToken(res, user);
 
   const accessToken = jwt.sign(
     { userId: user.id, email: user.email },
     process.env.JWT_ACCESS_SECRET!,
     { expiresIn: "15m" },
   );
-
   return res.status(200).json({ accessToken });
 };
 
 export const handleLogout = async (req: Request, res: Response) => {
-  const cookies = req.cookies;
-
-  if (!cookies?.jwt) {
+  const refreshToken = req.cookies?.jwt;
+  if (!refreshToken) {
     return res.sendStatus(204);
   }
-
-  const refreshToken = cookies.jwt;
   try {
     await prisma.refreshToken.deleteMany({
-      where: { token: refreshToken },
+      where: { token: hashToken(refreshToken) },
     });
-
     res.clearCookie("jwt", refreshCookieBase);
-
     return res.status(200).json({ message: "Logged out successfully" });
   } catch {
     return res.status(500).json({ message: "Server error" });
