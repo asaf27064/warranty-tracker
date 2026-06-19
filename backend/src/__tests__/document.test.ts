@@ -64,7 +64,11 @@ describe("Document API", () => {
       .post(`/api/documents/product/${testProductId}`)
       .set("Authorization", `Bearer ${token}`)
       .field("docType", "RECEIPT")
-      .attach("file", Buffer.from("test file content"), "test-receipt.pdf");
+      .attach(
+        "file",
+        Buffer.from("%PDF-1.4 test document content"),
+        "test-receipt.pdf",
+      );
 
     expect(res.status).toBe(201);
     expect(res.body.fileName).toBe("test-receipt.pdf");
