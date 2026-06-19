@@ -8,6 +8,7 @@ import express, {
 } from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import helmet from "helmet";
 import passport from "passport";
 import { initializePassport } from "./config/passport";
 import { authRateLimit } from "./middlewares/rateLimit";
@@ -24,6 +25,15 @@ const app = express();
 
 // Behind a hosting proxy (Render/Vercel/etc.) so X-Forwarded-* headers are trusted.
 app.set("trust proxy", 1);
+
+// Standard security headers. This is a JSON API consumed cross-origin by the
+// frontend, so allow cross-origin resource access and skip the HTML-oriented CSP.
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    contentSecurityPolicy: false,
+  }),
+);
 
 app.use(
   cors({
