@@ -22,12 +22,15 @@ const ImageSearchModal = ({
   const [images, setImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const handleSearch = async () => {
-    if (!query) return;
+  // Takes the term explicitly so the on-open search uses the fresh query rather
+  // than the not-yet-updated state from setQuery.
+  const handleSearch = async (q: string = query) => {
+    const term = q.trim();
+    if (!term) return;
     setLoading(true);
     try {
       const res = await api.get("/api/images/search", {
-        params: { q: query },
+        params: { q: term },
       });
       setImages(res.data.images);
     } catch {
@@ -40,8 +43,10 @@ const ImageSearchModal = ({
   useEffect(() => {
     if (open && initialQuery) {
       setQuery(initialQuery);
-      handleSearch();
+      setImages([]);
+      handleSearch(initialQuery);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   return (
@@ -58,13 +63,13 @@ const ImageSearchModal = ({
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+              onKeyDown={(e) => e.key === "Enter" && handleSearch(query)}
               placeholder="Search for product images..."
               className="pl-10"
             />
           </div>
           <Button
-            onClick={handleSearch}
+            onClick={() => handleSearch(query)}
             disabled={loading}
             className="bg-emerald-600 text-white hover:bg-emerald-700"
           >
