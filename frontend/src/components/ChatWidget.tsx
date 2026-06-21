@@ -50,6 +50,7 @@ const ChatWidget = () => {
   const { messages, sendMessage, loading, reset, patchProduct } = useChat();
   const { updateProduct } = useProducts();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const receiptInputRef = useRef<HTMLInputElement>(null);
   const [photoTarget, setPhotoTarget] = useState<{
     id: string;
@@ -139,6 +140,27 @@ const ChatWidget = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
+  // Close on click outside the panel, or on Escape. Skip while the image-search
+  // modal is open over the chat, so picking a photo doesn't dismiss it.
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (e: PointerEvent) => {
+      if (photoTarget) return;
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !photoTarget) setOpen(false);
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open, photoTarget]);
+
   const handleSend = async () => {
     if (!input.trim() || loading) return;
     const text = input;
@@ -218,6 +240,7 @@ const ChatWidget = () => {
       <AnimatePresence>
         {open && (
           <motion.div
+            ref={panelRef}
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}

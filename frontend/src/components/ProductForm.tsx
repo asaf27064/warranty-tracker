@@ -318,6 +318,7 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
     try {
       const res = await api.post("/api/ai/extract-product", { text: aiText });
       applyExtracted(res.data);
+      setAiText("");
     } catch (e) {
       console.error(e);
       toast.error("Couldn't extract details from that text");
