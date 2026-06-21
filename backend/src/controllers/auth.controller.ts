@@ -174,7 +174,7 @@ export const handleRefreshToken = async (req: Request, res: Response) => {
   }
 
   if (storedToken.expiresAt < new Date()) {
-    await prisma.refreshToken.delete({ where: { token: hashed } });
+    await prisma.refreshToken.deleteMany({ where: { token: hashed } });
     res.clearCookie("jwt", refreshCookieBase);
     return res.status(403).json({ message: "Refresh token expired" });
   }
@@ -186,7 +186,7 @@ export const handleRefreshToken = async (req: Request, res: Response) => {
       process.env.JWT_REFRESH_SECRET!,
     ) as RefreshTokenPayload;
   } catch {
-    await prisma.refreshToken.delete({ where: { token: hashed } });
+    await prisma.refreshToken.deleteMany({ where: { token: hashed } });
     res.clearCookie("jwt", refreshCookieBase);
     return res.status(403).json({ message: "Invalid refresh token" });
   }
@@ -199,13 +199,19 @@ export const handleRefreshToken = async (req: Request, res: Response) => {
 
   const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
   if (!user) {
-    await prisma.refreshToken.delete({ where: { token: hashed } });
+    await prisma.refreshToken.deleteMany({ where: { token: hashed } });
     return res.status(404).json({ message: "User not found" });
   }
 
-  // Rotate: a refresh token is single-use. Invalidate it and issue a fresh one.
-  await prisma.refreshToken.delete({ where: { token: hashed } });
-  await issueRefreshToken(res, user);
+  // Rotate: a refresh token is single-use. deleteMany is idempotent, so two
+  // refreshes racing on the same token don't crash; only the one that actually
+  // claims it issues the new token (the other just gets a fresh access token).
+  const rotated = await prisma.refreshToken.deleteMany({
+    where: { token: hashed },
+  });
+  if (rotated.count > 0) {
+    await issueRefreshToken(res, user);
+  }
 
   const accessToken = jwt.sign(
     { userId: user.id, email: user.email },
