@@ -30,6 +30,7 @@ import {
   RotateCcw,
   Archive,
   ArchiveRestore,
+  Maximize2,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import Navbar from "../components/Navbar";
@@ -165,11 +166,13 @@ const ProductDetails = () => {
   const navigate = useNavigate();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [daysBefore, setDaysBefore] = useState(30);
   const [dragOver, setDragOver] = useState(false);
   const [showProductModal, setShowProductModal] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState<ProductDocument | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [imageOpen, setImageOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [docToDelete, setDocToDelete] = useState<ProductDocument | null>(null);
   const [reminderToDelete, setReminderToDelete] = useState<string | null>(null);
@@ -181,21 +184,26 @@ const ProductDetails = () => {
   const [showCustomReminder, setShowCustomReminder] = useState(false);
   const [showPastReminders, setShowPastReminders] = useState(false);
 
+  const fetchAll = async () => {
+    if (!id) return;
+    setLoading(true);
+    setLoadError(false);
+    try {
+      const data = await getProductById(id);
+      setProduct(data);
+      await getAllDocs(id);
+      await getAllReminders(id);
+    } catch (err) {
+      console.error("fetchAll error:", err);
+      setLoadError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchAll = async () => {
-      if (!id) return;
-      try {
-        const data = await getProductById(id);
-        setProduct(data);
-        await getAllDocs(id);
-        await getAllReminders(id);
-      } catch (err) {
-        console.error("fetchAll error:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchAll();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   useEffect(() => {
@@ -210,8 +218,43 @@ const ProductDetails = () => {
   if (loading) return <ProductDetailsSkeleton />;
   if (!product) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <p className="text-muted-foreground">Product not found</p>
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <main className="mx-auto max-w-6xl p-4 sm:p-6">
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="mt-4 flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Dashboard
+          </button>
+          <div className="mt-16 flex flex-col items-center text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted">
+              <Package className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <p className="mt-4 text-lg font-medium text-foreground">
+              {loadError ? "Could not load this product" : "Product not found"}
+            </p>
+            <p className="mt-1 max-w-md text-sm text-muted-foreground">
+              {loadError
+                ? "Something went wrong while loading it. Please try again in a moment."
+                : "It may have been deleted, or the link is no longer valid."}
+            </p>
+            <div className="mt-4 flex items-center gap-2">
+              {loadError && (
+                <Button variant="outline" onClick={fetchAll}>
+                  Try again
+                </Button>
+              )}
+              <Button
+                variant={loadError ? "default" : "outline"}
+                onClick={() => navigate("/dashboard")}
+              >
+                Back to Dashboard
+              </Button>
+            </div>
+          </div>
+        </main>
       </div>
     );
   }
@@ -443,7 +486,12 @@ const ProductDetails = () => {
             <Card className="border-border bg-card p-6">
               <div className="flex flex-col gap-5 sm:flex-row">
                 {product.picture && !heroFailed ? (
-                  <div className="relative h-48 w-full shrink-0 overflow-hidden rounded-xl bg-muted sm:h-auto sm:w-44 sm:self-stretch">
+                  <button
+                    type="button"
+                    onClick={() => setImageOpen(true)}
+                    aria-label="Expand image"
+                    className="group relative h-48 w-full shrink-0 cursor-zoom-in overflow-hidden rounded-xl bg-muted sm:h-56 sm:w-56"
+                  >
                     <img
                       src={product.picture}
                       alt=""
@@ -456,9 +504,12 @@ const ProductDetails = () => {
                       onError={() => setHeroFailed(true)}
                       className="relative z-[1] h-full w-full object-contain"
                     />
-                  </div>
+                    <span className="absolute right-2 top-2 z-[2] flex h-8 w-8 items-center justify-center rounded-md bg-background/70 text-foreground opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100">
+                      <Maximize2 className="h-4 w-4" />
+                    </span>
+                  </button>
                 ) : (
-                  <div className="flex h-48 w-full shrink-0 items-center justify-center rounded-xl bg-muted sm:h-auto sm:w-44 sm:self-stretch">
+                  <div className="flex h-48 w-full shrink-0 items-center justify-center rounded-xl bg-muted sm:h-56 sm:w-56">
                     <Package className="h-16 w-16 text-muted-foreground" />
                   </div>
                 )}
@@ -1145,6 +1196,23 @@ const ProductDetails = () => {
           }}
         />
       )}
+
+      <Dialog open={imageOpen} onOpenChange={setImageOpen}>
+        <DialogContent className="max-h-[92vh] overflow-hidden p-0 sm:max-w-3xl">
+          <DialogHeader className="border-b border-border p-4 pr-12">
+            <DialogTitle className="truncate">{product.name}</DialogTitle>
+          </DialogHeader>
+          <div className="flex max-h-[calc(92vh-72px)] items-center justify-center overflow-auto p-4">
+            {product.picture && (
+              <img
+                src={product.picture}
+                alt={product.name}
+                className="max-h-[80vh] w-auto object-contain"
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
         <DialogContent className="max-h-[92vh] overflow-hidden p-0 sm:max-w-5xl">

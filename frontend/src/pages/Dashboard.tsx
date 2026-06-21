@@ -38,6 +38,10 @@ import Sidebar from "../components/Sidebar";
 import ActiveFilters from "../components/ActiveFilters";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import type { Product } from "../types";
+
+type CachedPage = { items: Product[]; total: number; nextCursor: string | null };
+type CachedProducts = { pages: CachedPage[]; pageParams: unknown[] };
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -167,6 +171,37 @@ const Dashboard = () => {
     await queryClient.invalidateQueries({ queryKey: ["product-stats"] });
   };
 
+  // Optimistically drop ids from every cached product list so the grid updates
+  // instantly. Returns a snapshot to restore if the request fails. Works for
+  // both delete and archive: archived/unarchived items leave the current view.
+  const dropFromCache = (ids: string[]) => {
+    const idSet = new Set(ids);
+    const snapshot = queryClient.getQueriesData({ queryKey: ["products"] });
+    queryClient.setQueriesData<CachedProducts>(
+      { queryKey: ["products"] },
+      (old) => {
+        if (!old?.pages) return old;
+        const present = old.pages.reduce(
+          (n, pg) => n + pg.items.filter((p) => idSet.has(p.id)).length,
+          0,
+        );
+        return {
+          ...old,
+          pages: old.pages.map((pg) => ({
+            ...pg,
+            items: pg.items.filter((p) => !idSet.has(p.id)),
+            total: Math.max(0, pg.total - present),
+          })),
+        };
+      },
+    );
+    return snapshot;
+  };
+
+  const restoreCache = (
+    snapshot: ReturnType<typeof queryClient.getQueriesData>,
+  ) => snapshot.forEach(([key, data]) => queryClient.setQueryData(key, data));
+
   // Same filter params the list query sends, for the export endpoint.
   const exportParams = () => {
     const params: Record<string, string> = {};
@@ -224,12 +259,14 @@ const Dashboard = () => {
 
   const handleBulkDelete = async () => {
     const ids = [...selectedIds];
+    exitSelectMode();
+    const snapshot = dropFromCache(ids);
     try {
       const deleted = await bulkDeleteProducts(ids);
       toast.success(`Deleted ${deleted} product${deleted === 1 ? "" : "s"}`);
-      exitSelectMode();
       await refreshAfterMutation();
     } catch (e) {
+      restoreCache(snapshot);
       toast.error("Failed to delete products");
       throw e;
     }
@@ -238,14 +275,16 @@ const Dashboard = () => {
   const archivedView = activeFilter === "ARCHIVED";
   const handleBulkArchive = async () => {
     const ids = [...selectedIds];
+    exitSelectMode();
+    const snapshot = dropFromCache(ids);
     try {
       const count = await setArchived(ids, !archivedView);
       toast.success(
         `${archivedView ? "Unarchived" : "Archived"} ${count} product${count === 1 ? "" : "s"}`,
       );
-      exitSelectMode();
       await refreshAfterMutation();
     } catch {
+      restoreCache(snapshot);
       toast.error(`Failed to ${archivedView ? "unarchive" : "archive"} products`);
     }
   };
@@ -610,15 +649,9 @@ const Dashboard = () => {
                       No products yet
                     </p>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      Add your first product to start tracking warranties.
+                      Use the Add product button above to start tracking
+                      warranties.
                     </p>
-                    <Button
-                      className="mt-4 gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
-                      onClick={() => setShowAddProduct(true)}
-                    >
-                      <Plus className="h-4 w-4" />
-                      Add your first product
-                    </Button>
                   </>
                 )}
               </motion.div>

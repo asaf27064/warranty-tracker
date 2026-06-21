@@ -86,10 +86,19 @@ const ProductCard = ({ product, onClick, selectable, selected }: Props) => {
       className="group"
     >
       <Card
+        role="button"
+        tabIndex={0}
+        aria-label={product.name}
         className={`relative flex flex-col gap-0 cursor-pointer overflow-hidden border-border bg-card p-0 transition-all hover:shadow-xl ${
           selected ? "ring-2 ring-emerald-500" : ""
         }`}
         onClick={onClick}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onClick();
+          }
+        }}
       >
         <div className="relative flex h-44 items-center justify-center overflow-hidden bg-muted p-1.5">
           {selectable && (

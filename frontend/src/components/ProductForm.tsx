@@ -318,6 +318,7 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
     try {
       const res = await api.post("/api/ai/extract-product", { text: aiText });
       applyExtracted(res.data);
+      setAiText("");
     } catch (e) {
       console.error(e);
       toast.error("Couldn't extract details from that text");
@@ -443,7 +444,7 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
                 onClick={() => document.getElementById("imageUpload")?.click()}
               >
                 <ImagePlus className="h-4 w-4" />
-                Upload
+                Upload photo
               </Button>
               <Button
                 type="button"
@@ -452,7 +453,7 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
                 onClick={() => setShowImageSearch(true)}
               >
                 <Search className="h-4 w-4" />
-                Search
+                Search photo
               </Button>
             </div>
             <input
