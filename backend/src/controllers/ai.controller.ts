@@ -14,11 +14,27 @@ import {
   validateUploadedFile,
 } from "../utils/fileValidation";
 
-// Last user message in history, for confirm-then-create.
-const lastUserText = (history: Anthropic.MessageParam[]): string | null => {
+// The add message the user is confirming. Only valid when the most recent
+// assistant turn was a local proposal ("Here's what I understood"), so a bare
+// "yes" after anything else (a created product, an agent question) doesn't
+// re-create a stale product from earlier in the conversation.
+const pendingProposalAddText = (
+  history: Anthropic.MessageParam[],
+): string | null => {
+  let lastAssistant = -1;
   for (let i = history.length - 1; i >= 0; i--) {
-    const m = history[i];
-    if (m.role === "user" && typeof m.content === "string") return m.content;
+    if (history[i].role === "assistant") {
+      lastAssistant = i;
+      break;
+    }
+  }
+  if (lastAssistant === -1) return null;
+  const content = history[lastAssistant].content;
+  const text = typeof content === "string" ? content : "";
+  if (!text.startsWith("Here's what I understood")) return null;
+  for (let j = lastAssistant - 1; j >= 0; j--) {
+    const u = history[j];
+    if (u.role === "user" && typeof u.content === "string") return u.content;
   }
   return null;
 };
@@ -126,7 +142,7 @@ export const chat = async (req: Request, res: Response) => {
       );
 
     if (isAffirmation) {
-      const prev = lastUserText(history);
+      const prev = pendingProposalAddText(history);
       const parsed = prev ? parseProductMessage(prev) : null;
       if (parsed) {
         try {
