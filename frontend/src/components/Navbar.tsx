@@ -21,7 +21,7 @@ const Navbar = ({ onToggleSidebar, searchValue, onSearchChange }: Props) => {
   const showSearch = onSearchChange !== undefined;
 
   return (
-    <nav className="flex items-center gap-3 border-b border-border bg-card/80 px-4 py-2.5 backdrop-blur-xl">
+    <nav className="flex flex-wrap items-center gap-3 border-b border-border bg-card/80 px-4 py-2.5 backdrop-blur-xl">
       {onToggleSidebar && (
         <Button
           variant="ghost"
@@ -43,7 +43,7 @@ const Navbar = ({ onToggleSidebar, searchValue, onSearchChange }: Props) => {
       </div>
 
       {showSearch && (
-        <div className="relative mx-2 flex-1">
+        <div className="relative order-last w-full sm:order-none sm:mx-2 sm:w-auto sm:flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search products..."

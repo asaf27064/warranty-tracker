@@ -53,7 +53,7 @@ import {
 const ProductDetailsSkeleton = () => (
   <div className="min-h-screen bg-background">
     <Navbar />
-    <main className="mx-auto max-w-6xl p-6">
+    <main className="mx-auto max-w-6xl p-4 sm:p-6">
       <Skeleton className="mt-4 mb-6 h-5 w-36" />
       <div className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
         <Card className="border-border bg-card p-6">
@@ -418,7 +418,7 @@ const ProductDetails = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <main className="mx-auto max-w-6xl p-6">
+      <main className="mx-auto max-w-6xl p-4 sm:p-6">
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}

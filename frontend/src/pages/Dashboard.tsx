@@ -297,7 +297,7 @@ const Dashboard = () => {
         />
 
         <main className="nice-scroll flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-[1680px] p-6">
+          <div className="mx-auto max-w-[1680px] p-4 sm:p-6">
             <div className="flex justify-end">
               <button
                 onClick={toggleStats}
@@ -333,7 +333,7 @@ const Dashboard = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4 }}
-              className="mt-8 flex items-center justify-between gap-3"
+              className="mt-8 flex flex-wrap items-center justify-between gap-3"
             >
               <div className="flex items-center gap-3">
                 <div className="flex overflow-hidden rounded-md border border-border">
@@ -383,7 +383,9 @@ const Dashboard = () => {
                   disabled={exporting}
                 >
                   <FaFileCsv className="h-4 w-4 text-emerald-600" />
-                  {exporting ? "Exporting..." : "Export all"}
+                  <span className="hidden sm:inline">
+                    {exporting ? "Exporting..." : "Export all"}
+                  </span>
                 </Button>
                 <Button
                   variant={selectMode ? "default" : "outline"}
@@ -394,7 +396,7 @@ const Dashboard = () => {
                   }
                 >
                   <CheckSquare className="h-4 w-4" />
-                  Select
+                  <span className="hidden sm:inline">Select</span>
                 </Button>
                 <ProductFilters
                   value={`${sortField}:${sortDir}`}
