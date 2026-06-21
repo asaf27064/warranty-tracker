@@ -1,4 +1,12 @@
 import request from "supertest";
+
+// Object storage is mocked: the suite tests the upload route logic, not the real
+// R2 upload, so it runs without storage credentials.
+jest.mock("../config/r2", () => ({
+  r2Client: { send: jest.fn().mockResolvedValue({}) },
+  R2_BUCKET: "test-bucket",
+}));
+
 import app from "../app";
 import { generateTestToken } from "./setup";
 import prisma from "../config/db";
