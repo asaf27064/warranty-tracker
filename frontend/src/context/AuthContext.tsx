@@ -39,6 +39,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const tokenRef = useRef<string | null>(null);
+  const refreshInFlight = useRef<Promise<string> | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -48,11 +49,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     let lastHiddenAt = 0;
 
-    const refreshAccessToken = async () => {
-      const res = await authApi.post("/auth/refresh");
-      setAccessToken(res.data.accessToken);
-      tokenRef.current = res.data.accessToken;
-      return res.data.accessToken as string;
+    // Single-flight: StrictMode runs this effect twice in dev, and the tab can
+    // refocus mid-init, so several refreshes can fire at once. Sending the same
+    // rotating refresh token twice trips the backend's reuse detection, which
+    // revokes the whole session. Coalesce concurrent calls into one request.
+    const refreshAccessToken = (): Promise<string> => {
+      if (refreshInFlight.current) return refreshInFlight.current;
+      const p = authApi
+        .post("/auth/refresh")
+        .then((res) => {
+          setAccessToken(res.data.accessToken);
+          tokenRef.current = res.data.accessToken;
+          return res.data.accessToken as string;
+        })
+        .finally(() => {
+          refreshInFlight.current = null;
+        });
+      refreshInFlight.current = p;
+      return p;
     };
 
     // Genuine session loss (refresh cookie gone/expired): clear and tell the user.
