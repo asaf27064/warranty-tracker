@@ -444,7 +444,7 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
                 onClick={() => document.getElementById("imageUpload")?.click()}
               >
                 <ImagePlus className="h-4 w-4" />
-                Upload
+                Upload photo
               </Button>
               <Button
                 type="button"
@@ -453,7 +453,7 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
                 onClick={() => setShowImageSearch(true)}
               >
                 <Search className="h-4 w-4" />
-                Search
+                Search web
               </Button>
             </div>
             <input

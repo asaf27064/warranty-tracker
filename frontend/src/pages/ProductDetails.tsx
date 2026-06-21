@@ -30,6 +30,7 @@ import {
   RotateCcw,
   Archive,
   ArchiveRestore,
+  Maximize2,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import Navbar from "../components/Navbar";
@@ -171,6 +172,7 @@ const ProductDetails = () => {
   const [showProductModal, setShowProductModal] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState<ProductDocument | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [imageOpen, setImageOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [docToDelete, setDocToDelete] = useState<ProductDocument | null>(null);
   const [reminderToDelete, setReminderToDelete] = useState<string | null>(null);
@@ -484,7 +486,12 @@ const ProductDetails = () => {
             <Card className="border-border bg-card p-6">
               <div className="flex flex-col gap-5 sm:flex-row">
                 {product.picture && !heroFailed ? (
-                  <div className="relative h-48 w-full shrink-0 overflow-hidden rounded-xl bg-muted sm:h-auto sm:w-44 sm:self-stretch">
+                  <button
+                    type="button"
+                    onClick={() => setImageOpen(true)}
+                    aria-label="Expand image"
+                    className="group relative h-56 w-full shrink-0 cursor-zoom-in overflow-hidden rounded-xl bg-muted sm:h-auto sm:w-60 sm:self-stretch"
+                  >
                     <img
                       src={product.picture}
                       alt=""
@@ -497,9 +504,12 @@ const ProductDetails = () => {
                       onError={() => setHeroFailed(true)}
                       className="relative z-[1] h-full w-full object-contain"
                     />
-                  </div>
+                    <span className="absolute right-2 top-2 z-[2] flex h-8 w-8 items-center justify-center rounded-md bg-background/70 text-foreground opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100">
+                      <Maximize2 className="h-4 w-4" />
+                    </span>
+                  </button>
                 ) : (
-                  <div className="flex h-48 w-full shrink-0 items-center justify-center rounded-xl bg-muted sm:h-auto sm:w-44 sm:self-stretch">
+                  <div className="flex h-56 w-full shrink-0 items-center justify-center rounded-xl bg-muted sm:h-auto sm:w-60 sm:self-stretch">
                     <Package className="h-16 w-16 text-muted-foreground" />
                   </div>
                 )}
@@ -1186,6 +1196,23 @@ const ProductDetails = () => {
           }}
         />
       )}
+
+      <Dialog open={imageOpen} onOpenChange={setImageOpen}>
+        <DialogContent className="max-h-[92vh] overflow-hidden p-0 sm:max-w-3xl">
+          <DialogHeader className="border-b border-border p-4 pr-12">
+            <DialogTitle className="truncate">{product.name}</DialogTitle>
+          </DialogHeader>
+          <div className="flex max-h-[calc(92vh-72px)] items-center justify-center overflow-auto p-4">
+            {product.picture && (
+              <img
+                src={product.picture}
+                alt={product.name}
+                className="max-h-[80vh] w-auto object-contain"
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
         <DialogContent className="max-h-[92vh] overflow-hidden p-0 sm:max-w-5xl">
