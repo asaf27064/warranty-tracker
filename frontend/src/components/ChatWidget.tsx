@@ -10,6 +10,7 @@ import {
   Package,
   Sparkles,
   ImagePlus,
+  Search,
   FileText,
   ExternalLink,
 } from "lucide-react";
@@ -52,11 +53,13 @@ const ChatWidget = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const receiptInputRef = useRef<HTMLInputElement>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
   const [photoTarget, setPhotoTarget] = useState<{
     id: string;
     name: string;
   } | null>(null);
   const [receiptForId, setReceiptForId] = useState<string | null>(null);
+  const [photoForId, setPhotoForId] = useState<string | null>(null);
 
   const dismissAnnounce = () => {
     setAnnounceSeen(true);
@@ -93,6 +96,33 @@ const ChatWidget = () => {
   const addReceipt = (productId: string) => {
     setReceiptForId(productId);
     receiptInputRef.current?.click();
+  };
+
+  // Pick an image from the device and attach it as the product photo.
+  const uploadPhoto = (productId: string) => {
+    setPhotoForId(productId);
+    photoInputRef.current?.click();
+  };
+
+  const handlePhotoFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    const productId = photoForId;
+    e.target.value = "";
+    if (!file || !productId) return;
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await api.post("/api/images/upload", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      await updateProduct(productId, { picture: res.data.url });
+      patchProduct(productId, { picture: res.data.url });
+      toast.success("Photo added");
+    } catch {
+      toast.error("Couldn't upload the photo");
+    } finally {
+      setPhotoForId(null);
+    }
   };
 
   const handleReceiptFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -414,8 +444,16 @@ const ChatWidget = () => {
                           }
                           className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs transition hover:bg-muted"
                         >
+                          <Search className="h-3.5 w-3.5" />
+                          Search photo
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => uploadPhoto(created.id)}
+                          className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs transition hover:bg-muted"
+                        >
                           <ImagePlus className="h-3.5 w-3.5" />
-                          Add photo
+                          Upload photo
                         </button>
                         <button
                           type="button"
@@ -488,6 +526,13 @@ const ChatWidget = () => {
         accept="image/*,application/pdf"
         className="hidden"
         onChange={handleReceiptFile}
+      />
+      <input
+        ref={photoInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handlePhotoFile}
       />
     </>
   );
