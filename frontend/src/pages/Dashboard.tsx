@@ -649,15 +649,9 @@ const Dashboard = () => {
                       No products yet
                     </p>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      Add your first product to start tracking warranties.
+                      Use the Add product button above to start tracking
+                      warranties.
                     </p>
-                    <Button
-                      className="mt-4 gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
-                      onClick={() => setShowAddProduct(true)}
-                    >
-                      <Plus className="h-4 w-4" />
-                      Add your first product
-                    </Button>
                   </>
                 )}
               </motion.div>
