@@ -1,5 +1,6 @@
 import prisma from "../config/db";
 import { getWarrantyStatus } from "../utils/getWarrantyStatus";
+import { searchImages } from "../services/image.service";
 
 // Diverse demo seed: varied products, statuses, edge cases, receipts and
 // reminders, for one user (by email). It CLEARS the user's existing products
@@ -49,6 +50,23 @@ type Seed = {
 const photo = (kw: string, lock: number) =>
   `https://loremflickr.com/600/400/${kw.replace(/\s+/g, ",")}?lock=${lock}`;
 const SAMPLE_PDF = "https://pdfobject.com/pdf/sample.pdf";
+
+// Real product photo via the app's image search (needs SERPAPI_KEY). Falls back
+// to a keyword photo so the seed still works without a key.
+async function resolveImage(
+  query: string,
+  kw: string | null,
+  idx: number,
+): Promise<string | null> {
+  if (!kw) return null;
+  try {
+    const imgs = await searchImages(query);
+    if (imgs[0]) return imgs[0];
+  } catch {
+    // fall through to the keyword fallback
+  }
+  return photo(kw, idx + 1);
+}
 
 let lock = 1;
 const recImg = (): Doc => ({
@@ -105,6 +123,19 @@ const seeds: Seed[] = [
   { name: "Café Espresso Machine (De'Longhi) - 50% off!", store: "Ivory", category: "HOME_KITCHEN", pic: "espresso", months: 24, exp: 200 },
   { name: "Patio Sofa Set", store: "IKEA", category: "FURNITURE", pic: "sofa", months: 36, exp: -400 },
   { name: "Garmin GPS Watch", store: "Decathlon", category: "SPORTS", pic: "watch", months: 24, exp: 95 },
+  { name: "Samsung Galaxy S24 Ultra", store: "iStore", category: "PHONES", pic: "samsung galaxy phone", months: 24, exp: 320, docs: [recImg()] },
+  { name: 'iPad Pro 13"', store: "Apple", category: "ELECTRONICS", pic: "ipad tablet", months: 12, exp: 200 },
+  { name: "Bose SoundLink Flex Speaker", store: "Amazon", category: "ELECTRONICS", pic: "bluetooth speaker", months: 12, exp: 45, docs: [recImg()] },
+  { name: "KitchenAid Stand Mixer", store: "Williams Sonoma", category: "HOME_KITCHEN", pic: "stand mixer", months: 60, exp: 700, docs: [recImg(), warrantyPdf()] },
+  { name: "Philips Airfryer XXL", store: "KSP", category: "HOME_KITCHEN", pic: "air fryer", months: 24, exp: 110 },
+  { name: "Samsung Washing Machine", store: "חשמל דיל", category: "APPLIANCES", pic: "washing machine", months: 36, exp: 25, docs: [recImg()] },
+  { name: "Logitech MX Master 3S Mouse", store: "Amazon", category: "ELECTRONICS", pic: "computer mouse", months: 12, exp: 150 },
+  { name: "Adidas Ultraboost 22", store: "Adidas", category: "FASHION", pic: "running shoes", months: 6, exp: 40 },
+  { name: "Weber Spirit II Gas Grill", store: "Home Depot", category: "OTHER", pic: "gas grill bbq", months: 120, exp: 900, docs: [warrantyPdf()] },
+  { name: "Canon EOS R6 Camera", store: "B&H Photo", category: "ELECTRONICS", pic: "dslr camera", months: 24, exp: 480, docs: [recImg(), invPdf()] },
+  { name: "Sony PlayStation 5", store: "GameStop", category: "ELECTRONICS", pic: "playstation 5 console", months: 12, exp: 60, docs: [recImg()] },
+  { name: "Rolex Submariner", store: "Rolex", category: "JEWELRY", pic: "luxury watch", months: 60, exp: 1800, docs: [invPdf(), warrantyPdf()] },
+  { name: "Samsung Galaxy Buds", store: "iStore", category: "ELECTRONICS", pic: "wireless earbuds", months: 12, exp: 9 },
 ];
 
 async function main() {
@@ -123,7 +154,7 @@ async function main() {
   let docCount = 0;
   let reminderCount = 0;
 
-  for (const s of seeds) {
+  for (const [idx, s] of seeds.entries()) {
     const warrantyExpiry = new Date();
     warrantyExpiry.setHours(23, 59, 0, 0);
     warrantyExpiry.setDate(warrantyExpiry.getDate() + s.exp);
@@ -136,7 +167,7 @@ async function main() {
         name: s.name,
         store: s.store,
         userId: user.id,
-        picture: s.pic ? photo(s.pic, seeds.indexOf(s) + 1) : null,
+        picture: await resolveImage(s.name, s.pic, idx),
         purchaseDate,
         warrantyExpiry,
         warrantyMonths: s.months,
