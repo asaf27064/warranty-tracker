@@ -490,7 +490,7 @@ const ProductDetails = () => {
                     type="button"
                     onClick={() => setImageOpen(true)}
                     aria-label="Expand image"
-                    className="group relative h-56 w-full shrink-0 cursor-zoom-in overflow-hidden rounded-xl bg-muted sm:h-auto sm:w-60 sm:self-stretch"
+                    className="group relative h-48 w-full shrink-0 cursor-zoom-in overflow-hidden rounded-xl bg-muted sm:h-56 sm:w-56"
                   >
                     <img
                       src={product.picture}
@@ -509,7 +509,7 @@ const ProductDetails = () => {
                     </span>
                   </button>
                 ) : (
-                  <div className="flex h-56 w-full shrink-0 items-center justify-center rounded-xl bg-muted sm:h-auto sm:w-60 sm:self-stretch">
+                  <div className="flex h-48 w-full shrink-0 items-center justify-center rounded-xl bg-muted sm:h-56 sm:w-56">
                     <Package className="h-16 w-16 text-muted-foreground" />
                   </div>
                 )}

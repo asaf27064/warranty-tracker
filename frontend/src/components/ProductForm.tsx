@@ -453,7 +453,7 @@ const ProductForm = ({ product, open, onClose, onSuccess }: Props) => {
                 onClick={() => setShowImageSearch(true)}
               >
                 <Search className="h-4 w-4" />
-                Search web
+                Search photo
               </Button>
             </div>
             <input
