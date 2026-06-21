@@ -165,6 +165,7 @@ const ProductDetails = () => {
   const navigate = useNavigate();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [daysBefore, setDaysBefore] = useState(30);
   const [dragOver, setDragOver] = useState(false);
   const [showProductModal, setShowProductModal] = useState(false);
@@ -181,21 +182,26 @@ const ProductDetails = () => {
   const [showCustomReminder, setShowCustomReminder] = useState(false);
   const [showPastReminders, setShowPastReminders] = useState(false);
 
+  const fetchAll = async () => {
+    if (!id) return;
+    setLoading(true);
+    setLoadError(false);
+    try {
+      const data = await getProductById(id);
+      setProduct(data);
+      await getAllDocs(id);
+      await getAllReminders(id);
+    } catch (err) {
+      console.error("fetchAll error:", err);
+      setLoadError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchAll = async () => {
-      if (!id) return;
-      try {
-        const data = await getProductById(id);
-        setProduct(data);
-        await getAllDocs(id);
-        await getAllReminders(id);
-      } catch (err) {
-        console.error("fetchAll error:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchAll();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   useEffect(() => {
@@ -210,8 +216,43 @@ const ProductDetails = () => {
   if (loading) return <ProductDetailsSkeleton />;
   if (!product) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <p className="text-muted-foreground">Product not found</p>
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <main className="mx-auto max-w-6xl p-4 sm:p-6">
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="mt-4 flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Dashboard
+          </button>
+          <div className="mt-16 flex flex-col items-center text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted">
+              <Package className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <p className="mt-4 text-lg font-medium text-foreground">
+              {loadError ? "Could not load this product" : "Product not found"}
+            </p>
+            <p className="mt-1 max-w-md text-sm text-muted-foreground">
+              {loadError
+                ? "Something went wrong while loading it. Please try again in a moment."
+                : "It may have been deleted, or the link is no longer valid."}
+            </p>
+            <div className="mt-4 flex items-center gap-2">
+              {loadError && (
+                <Button variant="outline" onClick={fetchAll}>
+                  Try again
+                </Button>
+              )}
+              <Button
+                variant={loadError ? "default" : "outline"}
+                onClick={() => navigate("/dashboard")}
+              >
+                Back to Dashboard
+              </Button>
+            </div>
+          </div>
+        </main>
       </div>
     );
   }
