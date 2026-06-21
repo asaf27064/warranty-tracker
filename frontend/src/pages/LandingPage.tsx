@@ -30,6 +30,8 @@ import {
   Search,
   FileDown,
   Moon,
+  Sun,
+  Image as ImageIcon,
   Download,
   Lock,
   ArrowRight,
@@ -37,6 +39,7 @@ import {
   ChevronDown,
   LogIn,
 } from "lucide-react";
+import { useTheme } from "next-themes";
 import { useAuth } from "../context/AuthContext";
 import { Button } from "../components/ui/button";
 import logo from "../assets/logo.svg";
@@ -100,6 +103,7 @@ const features = [
   { icon: LayoutGrid, title: "Cards & list views", desc: "Browse visually or scan a dense, sortable list. Your pick." },
   { icon: Search, title: "Search, filter & sort", desc: "Find anything by name, store, category or status in a second." },
   { icon: FileDown, title: "Export & bulk actions", desc: "Select many at once, delete in bulk, or export to CSV." },
+  { icon: ImageIcon, title: "Find a product photo", desc: "Search the web for a product image without leaving the form." },
   { icon: Moon, title: "Dark, light & system", desc: "A calm theme for every taste, remembered across devices." },
   { icon: Download, title: "Installable app", desc: "Add it to your home screen or desktop and open it like an app." },
   { icon: Lock, title: "Private by default", desc: "Your data is yours. Delete your account and files anytime." },
@@ -107,6 +111,7 @@ const features = [
 
 const LandingPage = () => {
   const { loginWithGoogle, user, lastUser, loading } = useAuth();
+  const { resolvedTheme, setTheme } = useTheme();
 
   if (loading) {
     return (
@@ -135,6 +140,17 @@ const LandingPage = () => {
           <nav className="flex items-center gap-5 text-sm text-muted-foreground">
             <a href="#features" className="hidden transition-colors hover:text-foreground sm:inline">Features</a>
             <a href="#how" className="hidden transition-colors hover:text-foreground sm:inline">How it works</a>
+            <button
+              onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+              aria-label="Toggle theme"
+              className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
+            >
+              {resolvedTheme === "dark" ? (
+                <Sun className="h-[18px] w-[18px]" />
+              ) : (
+                <Moon className="h-[18px] w-[18px]" />
+              )}
+            </button>
             <Button size="sm" className="bg-emerald-600 text-white hover:bg-emerald-700" onClick={() => signIn()}>{lastUser ? "Continue" : "Sign in"}</Button>
           </nav>
         </div>
