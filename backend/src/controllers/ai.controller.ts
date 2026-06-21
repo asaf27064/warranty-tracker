@@ -117,7 +117,7 @@ export const chat = async (req: Request, res: Response) => {
     // send corrections and anything else to the agent.
     const trimmed = message.trim();
     const isAffirmation =
-      /^(yes|yeah|yep|yup|sure|ok|okay|confirm|correct|add it|do it|go ahead)\b/i.test(
+      /^(y|ya|ye+a*h+|ye+a+|yep+|yup+|ye+s+|sure|ok|okay|kk?|fine|correct|confirm|absolutely|please\s+do|go\s+ahead|go\s+for\s+it|add\s+it|create\s+it|save\s+it|do\s+it)\b/i.test(
         trimmed,
       ) &&
       // not a correction like "yes but change the date"
